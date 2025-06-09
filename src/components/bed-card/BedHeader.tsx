@@ -1,0 +1,49 @@
+
+import React from 'react';
+import { CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { BedStatus } from './BedStatus';
+
+interface BedHeaderProps {
+  name: string;
+  department: string;
+  isOccupied: boolean;
+  isReserved: boolean;
+  isCustom?: boolean;
+  onDeleteBed?: () => void;
+}
+
+export const BedHeader: React.FC<BedHeaderProps> = ({
+  name,
+  department,
+  isOccupied,
+  isReserved,
+  isCustom,
+  onDeleteBed
+}) => {
+  return (
+    <CardHeader className="pb-2">
+      <CardTitle className="flex justify-between items-start text-sm">
+        <div className="space-y-1">
+          <span className="font-bold">{name}</span>
+          <div className="text-xs text-gray-600 font-normal">{department}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <BedStatus isOccupied={isOccupied} isReserved={isReserved} />
+          {isCustom && onDeleteBed && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 w-6 p-0"
+              onClick={onDeleteBed}
+              title="Excluir leito customizado"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </CardTitle>
+    </CardHeader>
+  );
+};
