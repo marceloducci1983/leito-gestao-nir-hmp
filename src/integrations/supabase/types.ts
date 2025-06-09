@@ -9,7 +9,353 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bed_occupations: {
+        Row: {
+          bed_id: string | null
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          end_date: string | null
+          id: string
+          occupation_type: string
+          patient_id: string | null
+          start_date: string
+        }
+        Insert: {
+          bed_id?: string | null
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          end_date?: string | null
+          id?: string
+          occupation_type: string
+          patient_id?: string | null
+          start_date?: string
+        }
+        Update: {
+          bed_id?: string | null
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          end_date?: string | null
+          id?: string
+          occupation_type?: string
+          patient_id?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bed_occupations_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bed_reservations: {
+        Row: {
+          bed_id: string | null
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          id: string
+          origin_clinic: string
+          patient_name: string
+          updated_at: string
+        }
+        Insert: {
+          bed_id?: string | null
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          id?: string
+          origin_clinic: string
+          patient_name: string
+          updated_at?: string
+        }
+        Update: {
+          bed_id?: string | null
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          diagnosis?: string
+          id?: string
+          origin_clinic?: string
+          patient_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bed_reservations_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beds: {
+        Row: {
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          department_id: string | null
+          id: string
+          is_custom: boolean | null
+          is_occupied: boolean | null
+          is_reserved: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          department_id?: string | null
+          id?: string
+          is_custom?: boolean | null
+          is_occupied?: boolean | null
+          is_reserved?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          department_id?: string | null
+          id?: string
+          is_custom?: boolean | null
+          is_occupied?: boolean | null
+          is_reserved?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beds_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: Database["public"]["Enums"]["department_type"]
+          occupied_beds: number | null
+          reserved_beds: number | null
+          total_beds: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: Database["public"]["Enums"]["department_type"]
+          occupied_beds?: number | null
+          reserved_beds?: number | null
+          total_beds?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: Database["public"]["Enums"]["department_type"]
+          occupied_beds?: number | null
+          reserved_beds?: number | null
+          total_beds?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patient_discharges: {
+        Row: {
+          actual_stay_days: number
+          admission_date: string
+          age: number
+          bed_id: string
+          birth_date: string
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          discharge_date: string
+          discharge_type: Database["public"]["Enums"]["discharge_type"]
+          expected_discharge_date: string
+          id: string
+          is_tfd: boolean | null
+          name: string
+          occupation_days: number
+          origin_city: string
+          patient_id: string
+          sex: Database["public"]["Enums"]["sex_type"]
+          specialty: string | null
+          tfd_type: string | null
+        }
+        Insert: {
+          actual_stay_days: number
+          admission_date: string
+          age: number
+          bed_id: string
+          birth_date: string
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          discharge_date: string
+          discharge_type: Database["public"]["Enums"]["discharge_type"]
+          expected_discharge_date: string
+          id?: string
+          is_tfd?: boolean | null
+          name: string
+          occupation_days: number
+          origin_city: string
+          patient_id: string
+          sex: Database["public"]["Enums"]["sex_type"]
+          specialty?: string | null
+          tfd_type?: string | null
+        }
+        Update: {
+          actual_stay_days?: number
+          admission_date?: string
+          age?: number
+          bed_id?: string
+          birth_date?: string
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          diagnosis?: string
+          discharge_date?: string
+          discharge_type?: Database["public"]["Enums"]["discharge_type"]
+          expected_discharge_date?: string
+          id?: string
+          is_tfd?: boolean | null
+          name?: string
+          occupation_days?: number
+          origin_city?: string
+          patient_id?: string
+          sex?: Database["public"]["Enums"]["sex_type"]
+          specialty?: string | null
+          tfd_type?: string | null
+        }
+        Relationships: []
+      }
+      patient_transfers: {
+        Row: {
+          created_at: string
+          from_bed_id: string | null
+          from_department: Database["public"]["Enums"]["department_type"]
+          id: string
+          notes: string | null
+          patient_id: string | null
+          to_bed_id: string | null
+          to_department: Database["public"]["Enums"]["department_type"]
+          transfer_date: string
+        }
+        Insert: {
+          created_at?: string
+          from_bed_id?: string | null
+          from_department: Database["public"]["Enums"]["department_type"]
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          to_bed_id?: string | null
+          to_department: Database["public"]["Enums"]["department_type"]
+          transfer_date?: string
+        }
+        Update: {
+          created_at?: string
+          from_bed_id?: string | null
+          from_department?: Database["public"]["Enums"]["department_type"]
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          to_bed_id?: string | null
+          to_department?: Database["public"]["Enums"]["department_type"]
+          transfer_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_transfers_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_transfers_to_bed_id_fkey"
+            columns: ["to_bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          admission_date: string
+          age: number
+          bed_id: string | null
+          birth_date: string
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          expected_discharge_date: string
+          id: string
+          is_tfd: boolean | null
+          name: string
+          occupation_days: number | null
+          origin_city: string
+          sex: Database["public"]["Enums"]["sex_type"]
+          specialty: string | null
+          tfd_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          admission_date: string
+          age: number
+          bed_id?: string | null
+          birth_date: string
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          diagnosis: string
+          expected_discharge_date: string
+          id?: string
+          is_tfd?: boolean | null
+          name: string
+          occupation_days?: number | null
+          origin_city: string
+          sex: Database["public"]["Enums"]["sex_type"]
+          specialty?: string | null
+          tfd_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admission_date?: string
+          age?: number
+          bed_id?: string | null
+          birth_date?: string
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          diagnosis?: string
+          expected_discharge_date?: string
+          id?: string
+          is_tfd?: boolean | null
+          name?: string
+          occupation_days?: number | null
+          origin_city?: string
+          sex?: Database["public"]["Enums"]["sex_type"]
+          specialty?: string | null
+          tfd_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +364,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      department_type:
+        | "CLINICA MEDICA"
+        | "PRONTO SOCORRO"
+        | "CLINICA CIRURGICA"
+        | "UTI ADULTO"
+        | "UTI NEONATAL"
+        | "PEDIATRIA"
+        | "MATERNIDADE"
+      discharge_type: "POR MELHORA" | "EVASÃO" | "TRANSFERENCIA" | "OBITO"
+      sex_type: "masculino" | "feminino"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +488,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      department_type: [
+        "CLINICA MEDICA",
+        "PRONTO SOCORRO",
+        "CLINICA CIRURGICA",
+        "UTI ADULTO",
+        "UTI NEONATAL",
+        "PEDIATRIA",
+        "MATERNIDADE",
+      ],
+      discharge_type: ["POR MELHORA", "EVASÃO", "TRANSFERENCIA", "OBITO"],
+      sex_type: ["masculino", "feminino"],
+    },
   },
 } as const

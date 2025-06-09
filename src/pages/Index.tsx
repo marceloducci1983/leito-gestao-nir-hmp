@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import LoginScreen from '@/components/LoginScreen';
 import NavigationBar from '@/components/NavigationBar';
-import BedsPanel from '@/components/BedsPanel';
+import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
 import ArchivePanel from '@/components/ArchivePanel';
 import DischargeMonitoring from '@/components/DischargeMonitoring';
 import IndicatorsPanel from '@/components/IndicatorsPanel';
@@ -10,10 +11,10 @@ import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
 import { Bed, DischargedPatient } from '@/types';
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Skip login for now since we don't have auth setup
   const [activeTab, setActiveTab] = useState('PAINEL DE LEITOS');
   
-  // Central data state that flows from BedsPanel to other modules
+  // Central data state that flows from SupabaseBedsPanel to other modules
   const [centralData, setCentralData] = useState<{
     beds: Bed[];
     archivedPatients: DischargedPatient[];
@@ -52,7 +53,7 @@ const Index = () => {
   const renderActivePanel = () => {
     switch (activeTab) {
       case 'PAINEL DE LEITOS':
-        return <BedsPanel onDataChange={handleDataChange} />;
+        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
       case 'ARQUIVO':
         return <ArchivePanel archivedPatients={centralData.archivedPatients} />;
       case 'MONITORAMENTO DE ALTAS':
@@ -88,7 +89,7 @@ const Index = () => {
           />
         );
       default:
-        return <BedsPanel onDataChange={handleDataChange} />;
+        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
     }
   };
 
