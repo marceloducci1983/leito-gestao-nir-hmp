@@ -9,7 +9,7 @@ export const useAddPatient = () => {
 
   return useMutation({
     mutationFn: async ({ bedId, patientData }: { bedId: string; patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'> }) => {
-      console.log('Adding patient with data:', patientData);
+      console.log('Adding patient with data:', { bedId, patientData });
       
       // Primeiro, inserir o paciente
       const { data: patient, error: patientError } = await supabase
@@ -17,7 +17,7 @@ export const useAddPatient = () => {
         .insert({
           name: patientData.name,
           sex: patientData.sex,
-          birth_date: patientData.birthDate, // Already in ISO format from form
+          birth_date: patientData.birthDate,
           age: patientData.age,
           admission_date: patientData.admissionDate,
           admission_time: patientData.admissionTime,
@@ -68,11 +68,57 @@ export const useAddPatient = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
       toast.success('Paciente admitido com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao admitir paciente:', error);
-      toast.error('Erro ao admitir paciente');
+      toast.error('Erro ao admitir paciente. Verifique os dados e tente novamente.');
+    }
+  });
+};
+
+export const useUpdatePatient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ patientId, patientData }: { patientId: string; patientData: Partial<Patient> }) => {
+      console.log('Updating patient with data:', { patientId, patientData });
+      
+      const { data: patient, error: patientError } = await supabase
+        .from('patients')
+        .update({
+          name: patientData.name,
+          sex: patientData.sex,
+          birth_date: patientData.birthDate,
+          age: patientData.age,
+          admission_date: patientData.admissionDate,
+          admission_time: patientData.admissionTime,
+          diagnosis: patientData.diagnosis,
+          specialty: patientData.specialty,
+          expected_discharge_date: patientData.expectedDischargeDate,
+          origin_city: patientData.originCity,
+          is_tfd: patientData.isTFD,
+          tfd_type: patientData.tfdType
+        })
+        .eq('id', patientId)
+        .select()
+        .single();
+
+      if (patientError) {
+        console.error('Error updating patient:', patientError);
+        throw patientError;
+      }
+
+      return patient;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['beds'] });
+      toast.success('Paciente editado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao editar paciente:', error);
+      toast.error('Erro ao editar paciente. Tente novamente.');
     }
   });
 };
@@ -86,6 +132,8 @@ export const useDischargePatient = () => {
       patientId: string; 
       dischargeData: { dischargeType: string; dischargeDate: string } 
     }) => {
+      console.log('Discharging patient:', { bedId, patientId, dischargeData });
+      
       // Buscar dados do paciente
       const { data: patient, error: patientError } = await supabase
         .from('patients')
@@ -93,14 +141,17 @@ export const useDischargePatient = () => {
         .eq('id', patientId)
         .single();
 
-      if (patientError) throw patientError;
+      if (patientError) {
+        console.error('Error fetching patient:', patientError);
+        throw patientError;
+      }
 
       // Calcular dias de internação
       const admissionDate = new Date(patient.admission_date);
       const dischargeDate = new Date(dischargeData.dischargeDate);
       const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Inserir na tabela de altas
+      // Inserir na tabela de altas (ARQUIVO e MONITORAMENTO)
       const { error: dischargeError } = await supabase
         .from('patient_discharges')
         .insert({
@@ -125,7 +176,10 @@ export const useDischargePatient = () => {
           bed_id: bedId
         });
 
-      if (dischargeError) throw dischargeError;
+      if (dischargeError) {
+        console.error('Error inserting discharge:', dischargeError);
+        throw dischargeError;
+      }
 
       // Remover paciente da tabela de pacientes
       const { error: deletePatientError } = await supabase
@@ -133,7 +187,10 @@ export const useDischargePatient = () => {
         .delete()
         .eq('id', patientId);
 
-      if (deletePatientError) throw deletePatientError;
+      if (deletePatientError) {
+        console.error('Error deleting patient:', deletePatientError);
+        throw deletePatientError;
+      }
 
       // Liberar o leito
       const { error: bedError } = await supabase
@@ -141,16 +198,19 @@ export const useDischargePatient = () => {
         .update({ is_occupied: false })
         .eq('id', bedId);
 
-      if (bedError) throw bedError;
+      if (bedError) {
+        console.error('Error updating bed:', bedError);
+        throw bedError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
-      toast.success('Alta realizada com sucesso!');
+      toast.success('Alta realizada com sucesso! Dados enviados para Arquivo e Monitoramento.');
     },
     onError: (error) => {
       console.error('Erro ao dar alta:', error);
-      toast.error('Erro ao dar alta');
+      toast.error('Erro ao dar alta. Tente novamente.');
     }
   });
 };
@@ -164,6 +224,8 @@ export const useTransferPatient = () => {
       fromBedId: string; 
       toBedId: string 
     }) => {
+      console.log('Transferring patient:', { patientId, fromBedId, toBedId });
+      
       // Buscar dados do leito de destino
       const { data: toBed, error: toBedError } = await supabase
         .from('beds')
@@ -171,7 +233,10 @@ export const useTransferPatient = () => {
         .eq('id', toBedId)
         .single();
 
-      if (toBedError) throw toBedError;
+      if (toBedError) {
+        console.error('Error fetching destination bed:', toBedError);
+        throw toBedError;
+      }
 
       // Buscar dados do leito de origem
       const { data: fromBed, error: fromBedError } = await supabase
@@ -180,7 +245,10 @@ export const useTransferPatient = () => {
         .eq('id', fromBedId)
         .single();
 
-      if (fromBedError) throw fromBedError;
+      if (fromBedError) {
+        console.error('Error fetching origin bed:', fromBedError);
+        throw fromBedError;
+      }
 
       // Registrar a transferência
       const { error: transferError } = await supabase
@@ -194,7 +262,10 @@ export const useTransferPatient = () => {
           transfer_date: new Date().toISOString()
         });
 
-      if (transferError) throw transferError;
+      if (transferError) {
+        console.error('Error recording transfer:', transferError);
+        throw transferError;
+      }
 
       // Atualizar paciente com novo leito e departamento
       const { error: patientError } = await supabase
@@ -205,7 +276,10 @@ export const useTransferPatient = () => {
         })
         .eq('id', patientId);
 
-      if (patientError) throw patientError;
+      if (patientError) {
+        console.error('Error updating patient:', patientError);
+        throw patientError;
+      }
 
       // Liberar leito de origem
       const { error: fromBedUpdateError } = await supabase
@@ -213,7 +287,10 @@ export const useTransferPatient = () => {
         .update({ is_occupied: false })
         .eq('id', fromBedId);
 
-      if (fromBedUpdateError) throw fromBedUpdateError;
+      if (fromBedUpdateError) {
+        console.error('Error updating origin bed:', fromBedUpdateError);
+        throw fromBedUpdateError;
+      }
 
       // Ocupar leito de destino
       const { error: toBedUpdateError } = await supabase
@@ -221,7 +298,10 @@ export const useTransferPatient = () => {
         .update({ is_occupied: true, is_reserved: false })
         .eq('id', toBedId);
 
-      if (toBedUpdateError) throw toBedUpdateError;
+      if (toBedUpdateError) {
+        console.error('Error updating destination bed:', toBedUpdateError);
+        throw toBedUpdateError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
@@ -229,7 +309,7 @@ export const useTransferPatient = () => {
     },
     onError: (error) => {
       console.error('Erro ao transferir paciente:', error);
-      toast.error('Erro ao transferir paciente');
+      toast.error('Erro ao transferir paciente. Tente novamente.');
     }
   });
 };

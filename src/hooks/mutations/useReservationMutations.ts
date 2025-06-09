@@ -62,11 +62,12 @@ export const useAddReservation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
       toast.success('Leito reservado com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao reservar leito:', error);
-      toast.error('Erro ao reservar leito');
+      toast.error('Erro ao reservar leito. Tente novamente.');
     }
   });
 };
@@ -76,13 +77,18 @@ export const useDeleteReservation = () => {
 
   return useMutation({
     mutationFn: async (bedId: string) => {
+      console.log('Deleting reservation for bed:', bedId);
+      
       // Deletar a reserva
       const { error: deleteError } = await supabase
         .from('bed_reservations')
         .delete()
         .eq('bed_id', bedId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Error deleting reservation:', deleteError);
+        throw deleteError;
+      }
 
       // Atualizar o leito como não reservado
       const { error: bedUpdateError } = await supabase
@@ -90,7 +96,10 @@ export const useDeleteReservation = () => {
         .update({ is_reserved: false })
         .eq('id', bedId);
 
-      if (bedUpdateError) throw bedUpdateError;
+      if (bedUpdateError) {
+        console.error('Error updating bed status:', bedUpdateError);
+        throw bedUpdateError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
@@ -98,7 +107,7 @@ export const useDeleteReservation = () => {
     },
     onError: (error) => {
       console.error('Erro ao remover reserva:', error);
-      toast.error('Erro ao remover reserva');
+      toast.error('Erro ao remover reserva. Tente novamente.');
     }
   });
 };

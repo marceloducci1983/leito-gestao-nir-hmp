@@ -6,6 +6,8 @@ import NewPatientForm from '@/components/forms/NewPatientForm';
 import NewReservationForm from '@/components/forms/NewReservationForm';
 import DischargeModal from '@/components/forms/DischargeModal';
 import TransferModal from '@/components/forms/TransferModal';
+import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
+import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
 import { Department, Patient } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +25,8 @@ interface SupabaseBedsPanelProps {
 
 const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) => {
   const { centralData, isLoading, error, addPatient, dischargePatient, addReservation, transferPatient } = useSupabaseBeds();
+  const deleteReservationMutation = useDeleteReservation();
+  const updatePatientMutation = useUpdatePatient();
   const { toast } = useToast();
 
   // Estados para controlar os modais
@@ -124,31 +128,12 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 
   const handleDeleteReservation = async (bedId: string) => {
     try {
-      // Implementar lógica para deletar reserva
-      toast({
-        title: "Reserva excluída",
-        description: "A reserva foi removida com sucesso",
-      });
+      await deleteReservationMutation.mutateAsync(bedId);
     } catch (error) {
+      console.error('Erro ao excluir reserva:', error);
       toast({
         title: "Erro",
         description: "Erro ao excluir reserva",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteBed = async (bedId: string) => {
-    try {
-      // Implementar lógica para deletar leito customizado
-      toast({
-        title: "Leito excluído",
-        description: "O leito customizado foi removido",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir leito",
         variant: "destructive",
       });
     }
@@ -166,35 +151,28 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         }
       });
       setShowReservationForm(false);
-      toast({
-        title: "Leito reservado com sucesso",
-        description: `Reserva para ${reservationData.patient_name}`,
-      });
     } catch (error) {
       console.error('Erro ao reservar leito:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao reservar leito",
-        variant: "destructive",
-      });
     }
   };
 
   const submitPatient = async (patientData: any) => {
     try {
-      await addPatient({ bedId: selectedBedId, patientData });
+      if (isEditingPatient && selectedPatient) {
+        // Editar paciente existente
+        await updatePatientMutation.mutateAsync({
+          patientId: selectedPatient.id,
+          patientData: patientData
+        });
+      } else {
+        // Adicionar novo paciente
+        await addPatient({ bedId: selectedBedId, patientData });
+      }
       setShowPatientForm(false);
-      toast({
-        title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
-        description: `${patientData.name} - ${patientData.diagnosis}`,
-      });
+      setSelectedPatient(null);
+      setIsEditingPatient(false);
     } catch (error) {
-      console.error('Erro ao admitir/editar paciente:', error);
-      toast({
-        title: "Erro",
-        description: isEditingPatient ? "Erro ao editar paciente" : "Erro ao admitir paciente",
-        variant: "destructive",
-      });
+      console.error('Erro ao processar paciente:', error);
     }
   };
 
@@ -211,17 +189,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         }
       });
       setShowDischargeModal(false);
-      toast({
-        title: "Alta realizada com sucesso",
-        description: `${selectedPatient.name} - ${dischargeType}`,
-      });
+      setSelectedPatient(null);
     } catch (error) {
       console.error('Erro ao dar alta:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao dar alta",
-        variant: "destructive",
-      });
     }
   };
 
@@ -235,17 +205,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         toBedId: targetBedId
       });
       setShowTransferModal(false);
-      toast({
-        title: "Transferência realizada com sucesso",
-        description: `${selectedPatient.name} transferido para ${targetDepartment}`,
-      });
+      setSelectedPatient(null);
     } catch (error) {
       console.error('Erro ao transferir paciente:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao transferir paciente",
-        variant: "destructive",
-      });
     }
   };
 
@@ -308,7 +270,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
                         onTransferPatient={handleTransferPatient}
                         onDischargePatient={handleDischargePatient}
                         onDeleteReservation={handleDeleteReservation}
-                        onDeleteBed={handleDeleteBed}
                       />
                     ))}
                   </div>
@@ -330,7 +291,11 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 
       <NewPatientForm
         isOpen={showPatientForm}
-        onClose={() => setShowPatientForm(false)}
+        onClose={() => {
+          setShowPatientForm(false);
+          setSelectedPatient(null);
+          setIsEditingPatient(false);
+        }}
         onSubmit={submitPatient}
         bedId={selectedBedId}
         department={selectedDepartment}
@@ -342,14 +307,20 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         <>
           <DischargeModal
             isOpen={showDischargeModal}
-            onClose={() => setShowDischargeModal(false)}
+            onClose={() => {
+              setShowDischargeModal(false);
+              setSelectedPatient(null);
+            }}
             onSubmit={submitDischarge}
             patientName={selectedPatient.name}
           />
 
           <TransferModal
             isOpen={showTransferModal}
-            onClose={() => setShowTransferModal(false)}
+            onClose={() => {
+              setShowTransferModal(false);
+              setSelectedPatient(null);
+            }}
             onSubmit={submitTransfer}
             patientName={selectedPatient.name}
             availableBeds={availableBedsForTransfer}

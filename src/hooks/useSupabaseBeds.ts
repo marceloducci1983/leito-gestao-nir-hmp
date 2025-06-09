@@ -1,7 +1,7 @@
 
 import { useBedsData, useDischargedPatientsData } from '@/hooks/queries/useSupabaseData';
 import { useRealtimeSubscriptions } from '@/hooks/useRealtimeSubscriptions';
-import { useAddPatient, useDischargePatient, useTransferPatient } from '@/hooks/mutations/usePatientMutations';
+import { useAddPatient, useDischargePatient, useTransferPatient, useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
 import { useAddReservation } from '@/hooks/mutations/useReservationMutations';
 import { transformBedsData, transformDischargedPatientsData } from '@/utils/dataTransformers';
 import { useMemo } from 'react';
@@ -15,6 +15,7 @@ export const useSupabaseBeds = () => {
 
   // Get mutation hooks
   const addPatientMutation = useAddPatient();
+  const updatePatientMutation = useUpdatePatient();
   const dischargePatientMutation = useDischargePatient();
   const transferPatientMutation = useTransferPatient();
   const addReservationMutation = useAddReservation();
@@ -37,6 +38,7 @@ export const useSupabaseBeds = () => {
     isLoading: bedsLoading || dischargedLoading,
     error: bedsError || dischargedError,
     addPatient: addPatientMutation.mutate,
+    updatePatient: updatePatientMutation.mutate,
     dischargePatient: dischargePatientMutation.mutate,
     transferPatient: transferPatientMutation.mutate,
     addReservation: addReservationMutation.mutate
