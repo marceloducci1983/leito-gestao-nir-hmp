@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import LoginScreen from '@/components/LoginScreen';
 import NavigationBar from '@/components/NavigationBar';
 import BedsPanel from '@/components/BedsPanel';
 import ArchivePanel from '@/components/ArchivePanel';
 import DischargeMonitoring from '@/components/DischargeMonitoring';
+import IndicatorsPanel from '@/components/IndicatorsPanel';
 import PlaceholderPanel from '@/components/PlaceholderPanel';
 import { Bed, DischargedPatient } from '@/types';
 
@@ -58,9 +58,9 @@ const Index = () => {
         return <DischargeMonitoring dischargeMonitoring={centralData.dischargeMonitoring} />;
       case 'INDICADORES':
         return (
-          <PlaceholderPanel
-            title="INDICADORES"
-            description="Módulo para visualização de indicadores hospitalares, estatísticas de ocupação, tempo médio de permanência e outros KPIs importantes."
+          <IndicatorsPanel 
+            beds={centralData.beds} 
+            archivedPatients={centralData.archivedPatients}
           />
         );
       case 'ALTAS PREVISTAS':
