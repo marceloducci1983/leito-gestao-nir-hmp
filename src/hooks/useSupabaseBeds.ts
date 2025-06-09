@@ -12,8 +12,8 @@ interface SupabaseBed {
   is_occupied: boolean;
   is_reserved: boolean;
   is_custom: boolean;
-  patients?: SupabasePatient;
-  bed_reservations?: SupabaseBedReservation;
+  patients?: SupabasePatient[];
+  bed_reservations?: SupabaseBedReservation[];
 }
 
 interface SupabasePatient {
@@ -68,7 +68,7 @@ export const useSupabaseBeds = () => {
         .order('name');
 
       if (error) throw error;
-      return data as SupabaseBed[];
+      return data;
     }
   });
 
@@ -89,39 +89,46 @@ export const useSupabaseBeds = () => {
   // Transform Supabase data to frontend format
   useEffect(() => {
     if (bedsData) {
-      const transformedBeds: Bed[] = bedsData.map(bed => ({
-        id: bed.id,
-        name: bed.name,
-        department: bed.department as any,
-        isOccupied: bed.is_occupied,
-        isReserved: bed.is_reserved,
-        isCustom: bed.is_custom,
-        patient: bed.patients ? {
-          id: bed.patients.id,
-          name: bed.patients.name,
-          sex: bed.patients.sex as any,
-          birthDate: bed.patients.birth_date,
-          age: bed.patients.age,
-          admissionDate: bed.patients.admission_date,
-          diagnosis: bed.patients.diagnosis,
-          specialty: bed.patients.specialty,
-          expectedDischargeDate: bed.patients.expected_discharge_date,
-          originCity: bed.patients.origin_city,
-          occupationDays: bed.patients.occupation_days,
-          isTFD: bed.patients.is_tfd,
-          tfdType: bed.patients.tfd_type,
-          bedId: bed.id,
-          department: bed.patients.department as any
-        } : undefined,
-        reservation: bed.bed_reservations ? {
-          id: bed.bed_reservations.id,
-          patientName: bed.bed_reservations.patient_name,
-          originClinic: bed.bed_reservations.origin_clinic,
-          diagnosis: bed.bed_reservations.diagnosis,
-          bedId: bed.id,
-          department: bed.bed_reservations.department as any
-        } : undefined
-      }));
+      const transformedBeds: Bed[] = bedsData.map(bed => {
+        // Get the first patient if exists (assuming one patient per bed)
+        const patient = bed.patients && bed.patients.length > 0 ? bed.patients[0] : null;
+        // Get the first reservation if exists (assuming one reservation per bed)
+        const reservation = bed.bed_reservations && bed.bed_reservations.length > 0 ? bed.bed_reservations[0] : null;
+
+        return {
+          id: bed.id,
+          name: bed.name,
+          department: bed.department as any,
+          isOccupied: bed.is_occupied,
+          isReserved: bed.is_reserved,
+          isCustom: bed.is_custom,
+          patient: patient ? {
+            id: patient.id,
+            name: patient.name,
+            sex: patient.sex as any,
+            birthDate: patient.birth_date,
+            age: patient.age,
+            admissionDate: patient.admission_date,
+            diagnosis: patient.diagnosis,
+            specialty: patient.specialty,
+            expectedDischargeDate: patient.expected_discharge_date,
+            originCity: patient.origin_city,
+            occupationDays: patient.occupation_days,
+            isTFD: patient.is_tfd,
+            tfdType: patient.tfd_type,
+            bedId: bed.id,
+            department: patient.department as any
+          } : undefined,
+          reservation: reservation ? {
+            id: reservation.id,
+            patientName: reservation.patient_name,
+            originClinic: reservation.origin_clinic,
+            diagnosis: reservation.diagnosis,
+            bedId: bed.id,
+            department: reservation.department as any
+          } : undefined
+        };
+      });
 
       const transformedDischarges: DischargedPatient[] = dischargedData?.map(discharge => ({
         id: discharge.patient_id,

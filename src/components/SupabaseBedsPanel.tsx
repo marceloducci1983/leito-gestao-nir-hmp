@@ -52,6 +52,38 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     );
   }
 
+  const handleAddPatient = async (bedId: string, patient: any) => {
+    try {
+      await addPatient({ bedId, patient });
+    } catch (error) {
+      console.error('Error adding patient:', error);
+    }
+  };
+
+  const handleDischargePatient = async (bedId: string, patientId: string, dischargeData: any) => {
+    try {
+      await dischargePatient({ bedId, patientId, dischargeData });
+    } catch (error) {
+      console.error('Error discharging patient:', error);
+    }
+  };
+
+  const handleAddReservation = async (bedId: string, reservation: any) => {
+    try {
+      await addReservation({ bedId, reservation });
+    } catch (error) {
+      console.error('Error adding reservation:', error);
+    }
+  };
+
+  const handleTransferPatient = async (patientId: string, fromBedId: string, toBedId: string, notes?: string) => {
+    try {
+      await transferPatient({ patientId, fromBedId, toBedId, notes });
+    } catch (error) {
+      console.error('Error transferring patient:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -86,13 +118,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
                   <BedCard
                     key={bed.id}
                     bed={bed}
-                    onAddPatient={(patient) => addPatient({ bedId: bed.id, patient })}
+                    onAddPatient={(patient) => handleAddPatient(bed.id, patient)}
                     onDischargePatient={(patientId, dischargeData) => 
-                      dischargePatient({ bedId: bed.id, patientId, dischargeData })
+                      handleDischargePatient(bed.id, patientId, dischargeData)
                     }
-                    onAddReservation={(reservation) => addReservation({ bedId: bed.id, reservation })}
+                    onAddReservation={(reservation) => handleAddReservation(bed.id, reservation)}
                     onTransferPatient={(patientId, toBedId, notes) => 
-                      transferPatient({ patientId, fromBedId: bed.id, toBedId, notes })
+                      handleTransferPatient(patientId, bed.id, toBedId, notes)
                     }
                     allBeds={centralData.beds}
                   />
