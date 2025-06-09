@@ -52,28 +52,36 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     );
   }
 
-  const handleAddPatient = (bedId: string, patient: any) => {
-    addPatient({ bedId, patient }).catch(error => {
+  const handleAddPatient = async (bedId: string, patient: any) => {
+    try {
+      await addPatient({ bedId, patient });
+    } catch (error) {
       console.error('Error adding patient:', error);
-    });
+    }
   };
 
-  const handleDischargePatient = (bedId: string, patientId: string, dischargeData: any) => {
-    dischargePatient({ bedId, patientId, dischargeData }).catch(error => {
+  const handleDischargePatient = async (bedId: string, patientId: string, dischargeData: any) => {
+    try {
+      await dischargePatient({ bedId, patientId, dischargeData });
+    } catch (error) {
       console.error('Error discharging patient:', error);
-    });
+    }
   };
 
-  const handleAddReservation = (bedId: string, reservation: any) => {
-    addReservation({ bedId, reservation }).catch(error => {
+  const handleAddReservation = async (bedId: string, reservation: any) => {
+    try {
+      await addReservation({ bedId, reservation });
+    } catch (error) {
       console.error('Error adding reservation:', error);
-    });
+    }
   };
 
-  const handleTransferPatient = (patientId: string, fromBedId: string, toBedId: string, notes?: string) => {
-    transferPatient({ patientId, fromBedId, toBedId, notes }).catch(error => {
+  const handleTransferPatient = async (patientId: string, fromBedId: string, toBedId: string, notes?: string) => {
+    try {
+      await transferPatient({ patientId, fromBedId, toBedId, notes });
+    } catch (error) {
       console.error('Error transferring patient:', error);
-    });
+    }
   };
 
   return (
