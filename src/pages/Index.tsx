@@ -2,19 +2,19 @@
 import React, { useState } from 'react';
 import LoginScreen from '@/components/LoginScreen';
 import NavigationBar from '@/components/NavigationBar';
-import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
+import BedsPanel from '@/components/BedsPanel';
 import ArchivePanel from '@/components/ArchivePanel';
 import DischargeMonitoring from '@/components/DischargeMonitoring';
 import PlaceholderPanel from '@/components/PlaceholderPanel';
-import { DischargedPatient } from '@/types';
+import { Bed, DischargedPatient } from '@/types';
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('PAINEL DE LEITOS');
   
-  // Central data state that flows from SupabaseBedsPanel to other modules
+  // Central data state that flows from BedsPanel to other modules
   const [centralData, setCentralData] = useState<{
-    beds: any[];
+    beds: Bed[];
     archivedPatients: DischargedPatient[];
     dischargeMonitoring: DischargedPatient[];
   }>({
@@ -37,7 +37,7 @@ const Index = () => {
   };
 
   const handleDataChange = (data: {
-    beds: any[];
+    beds: Bed[];
     archivedPatients: DischargedPatient[];
     dischargeMonitoring: DischargedPatient[];
   }) => {
@@ -51,7 +51,7 @@ const Index = () => {
   const renderActivePanel = () => {
     switch (activeTab) {
       case 'PAINEL DE LEITOS':
-        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
+        return <BedsPanel onDataChange={handleDataChange} />;
       case 'ARQUIVO':
         return <ArchivePanel archivedPatients={centralData.archivedPatients} />;
       case 'MONITORAMENTO DE ALTAS':
@@ -92,7 +92,7 @@ const Index = () => {
           />
         );
       default:
-        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
+        return <BedsPanel onDataChange={handleDataChange} />;
     }
   };
 

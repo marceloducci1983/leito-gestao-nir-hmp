@@ -4,7 +4,7 @@ import { Bed, Department } from '@/types';
 export const getInitialBeds = (): Bed[] => {
   const beds: Bed[] = [];
 
-  // CLINICA MEDICA - em ordem
+  // CLINICA MEDICA
   const clinicaMedicaBeds = [
     'ISOL', '2A', '2B', '2C', '2D', '3A', '3B', '3C', '4A', '4B',
     '6A', '6B', '7A', '7B', '8A', '8B', '9A', '9B', '10A', '10B',
@@ -22,7 +22,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // PRONTO SOCORRO - em ordem
+  // PRONTO SOCORRO
   const prontoSocorroBeds = [
     '1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '2E',
     '3A', '3B', '3C', '3D', '4A', '4B', '4C', '4D',
@@ -40,7 +40,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // CLINICA CIRURGICA - em ordem
+  // CLINICA CIRURGICA
   const clinicaCirurgicaBeds = [
     '1A – ORTOP', '1B – ORTOP', '1C – ORTOP', '2A – ORTOP', '2B – ORTOP', '2C – ORTOP',
     '3A – ORTOP', '3B – ORTOP', '4A – CIRUR', '4B – CIRUR', '5A – CIRUR', '5B – CIRUR',
@@ -59,7 +59,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // UTI ADULTO - em ordem correta com BOX-ISOL
+  // UTI ADULTO
   const utiAdultoBeds = [
     'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', 'BOX-5', 'BOX-6', 'BOX-7', 'BOX-8',
     'BOX-9', 'BOX-10', 'BOX-11', 'BOX-12', 'BOX-13', 'BOX-14', 'BOX-15-ISOL', 'BOX-16-ISOL'
@@ -75,7 +75,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // UTI NEONATAL - em ordem
+  // UTI NEONATAL
   const utiNeonatalBeds = [
     '1A', '1B', '1C', '1D', 'Canguru-2A', 'Canguru-2B', 'Convencional 1', 'Convencional 2'
   ];
@@ -90,7 +90,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // PEDIATRIA - em ordem
+  // PEDIATRIA
   const pediatriaBeds = [
     'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', '1A', '1B', '1C', '1D',
     '2A', '2B', '2C', '2D', '2E', '3A', '3B', '3C', '3D',
@@ -107,7 +107,7 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // MATERNIDADE - em ordem
+  // MATERNIDADE
   const maternidadeBeds = [
     '1A', '1B', '2A', '2B', '4A', '4B', '5A', '5B', '6A', '6B',
     '7A', '7B', '9A', '9B', '9C', '10A', '10B', '10C',
