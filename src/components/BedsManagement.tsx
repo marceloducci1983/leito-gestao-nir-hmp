@@ -196,8 +196,12 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 
     try {
       await dischargePatient({
+        bedId: selectedBedId,
         patientId: selectedPatient.id,
-        dischargeType: dischargeType as any
+        dischargeData: {
+          dischargeType: dischargeType,
+          dischargeDate: new Date().toISOString().split('T')[0]
+        }
       });
       toast({
         title: "Alta realizada com sucesso",
@@ -219,9 +223,7 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
       await transferPatient({
         patientId: selectedPatient.id,
         fromBedId: selectedBedId,
-        toBedId: targetBedId,
-        fromDepartment: selectedPatient.department as any,
-        toDepartment: targetDepartment as any
+        toBedId: targetBedId
       });
       toast({
         title: "Transferência realizada com sucesso",

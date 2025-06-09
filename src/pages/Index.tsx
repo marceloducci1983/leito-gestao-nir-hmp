@@ -52,11 +52,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="arquivo" className="space-y-6">
-            <ArchivePanel />
+            <ArchivePanel archivedPatients={centralData.archivedPatients} />
           </TabsContent>
 
           <TabsContent value="monitoramento" className="space-y-6">
-            <DischargeMonitoring />
+            <DischargeMonitoring dischargeMonitoring={centralData.dischargeMonitoring} />
           </TabsContent>
         </Tabs>
       </div>
