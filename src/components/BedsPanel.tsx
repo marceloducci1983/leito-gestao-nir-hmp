@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -253,7 +252,15 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
   };
 
   const departmentBeds = beds.filter(bed => bed.department === selectedDepartment);
-  const availableBedsForTransfer = beds.filter(bed => !bed.isOccupied && !bed.isReserved);
+  
+  // Fix: Map beds to the correct format for TransferForm
+  const availableBedsForTransfer = beds
+    .filter(bed => !bed.isOccupied && !bed.isReserved)
+    .map(bed => ({
+      id: bed.id,
+      name: bed.name,
+      department: bed.department as Department
+    }));
 
   return (
     <div className="space-y-6">
@@ -326,7 +333,7 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
             onSubmit={submitTransfer}
             patientName={selectedPatient.name}
             availableBeds={availableBedsForTransfer}
-            currentDepartment={selectedPatient.department}
+            currentDepartment={selectedPatient.department as Department}
           />
         </>
       )}
