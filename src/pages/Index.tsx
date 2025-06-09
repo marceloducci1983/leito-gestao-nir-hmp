@@ -6,6 +6,7 @@ import ArchivePanel from '@/components/ArchivePanel';
 import DischargeMonitoring from '@/components/DischargeMonitoring';
 import IndicatorsPanel from '@/components/IndicatorsPanel';
 import PlaceholderPanel from '@/components/PlaceholderPanel';
+import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
 import { Bed, DischargedPatient } from '@/types';
 
 const Index = () => {
@@ -64,12 +65,7 @@ const Index = () => {
           />
         );
       case 'ALTAS PREVISTAS':
-        return (
-          <PlaceholderPanel
-            title="ALTAS PREVISTAS"
-            description="Módulo para acompanhamento de pacientes com alta prevista, facilitando o planejamento e gestão de leitos."
-          />
-        );
+        return <ExpectedDischargesPanel beds={centralData.beds} />;
       case 'EM TFD':
         return (
           <PlaceholderPanel
