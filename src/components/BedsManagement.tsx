@@ -60,32 +60,28 @@ const BED_ORDER_BY_DEPARTMENT: Record<Department, string[]> = {
 const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[] => {
   const orderArray = BED_ORDER_BY_DEPARTMENT[department] || [];
   
-  // Separar leitos que estão na ordem definida dos que não estão
-  const orderedBeds: Bed[] = [];
-  const unorderedBeds: Bed[] = [];
-  
-  beds.forEach(bed => {
-    const index = orderArray.indexOf(bed.name);
-    if (index !== -1) {
-      orderedBeds.push({ ...bed, sortIndex: index });
-    } else {
-      unorderedBeds.push(bed);
+  return beds.sort((a, b) => {
+    const indexA = orderArray.indexOf(a.name);
+    const indexB = orderArray.indexOf(b.name);
+    
+    // Se ambos estão na lista de ordem definida, ordena pela posição na lista
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
     }
+    
+    // Se apenas A está na lista, A vem primeiro
+    if (indexA !== -1 && indexB === -1) {
+      return -1;
+    }
+    
+    // Se apenas B está na lista, B vem primeiro
+    if (indexA === -1 && indexB !== -1) {
+      return 1;
+    }
+    
+    // Se nenhum está na lista, ordena alfabeticamente
+    return a.name.localeCompare(b.name);
   });
-  
-  // Ordenar os leitos que estão na lista pela ordem definida
-  orderedBeds.sort((a, b) => (a.sortIndex || 0) - (b.sortIndex || 0));
-  
-  // Ordenar os leitos não listados alfabeticamente e colocar no final
-  unorderedBeds.sort((a, b) => a.name.localeCompare(b.name));
-  
-  // Remover a propriedade sortIndex antes de retornar
-  const cleanOrderedBeds = orderedBeds.map(bed => {
-    const { sortIndex, ...cleanBed } = bed as any;
-    return cleanBed;
-  });
-  
-  return [...cleanOrderedBeds, ...unorderedBeds];
 };
 
 const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
