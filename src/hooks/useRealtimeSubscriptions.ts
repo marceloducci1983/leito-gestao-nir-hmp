@@ -11,15 +11,22 @@ export const useRealtimeSubscriptions = () => {
       .channel('beds-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'beds' }, () => {
         queryClient.invalidateQueries({ queryKey: ['beds'] });
+        queryClient.invalidateQueries({ queryKey: ['department_stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, () => {
         queryClient.invalidateQueries({ queryKey: ['beds'] });
+        queryClient.invalidateQueries({ queryKey: ['department_stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bed_reservations' }, () => {
         queryClient.invalidateQueries({ queryKey: ['beds'] });
+        queryClient.invalidateQueries({ queryKey: ['department_stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'patient_discharges' }, () => {
         queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
+        queryClient.invalidateQueries({ queryKey: ['readmissions'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'discharge_control' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
       })
       .subscribe();
 

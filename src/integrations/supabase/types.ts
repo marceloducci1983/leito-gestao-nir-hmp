@@ -439,6 +439,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_department_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          department: string
+          total_beds: number
+          occupied_beds: number
+          reserved_beds: number
+          available_beds: number
+          occupation_rate: number
+        }[]
+      }
       get_readmissions_within_30_days: {
         Args: Record<PropertyKey, never>
         Returns: {

@@ -7,72 +7,39 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, MapPin, Building, AlertCircle, FileText } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp } from 'lucide-react';
+import { useDischargeControl, useReadmissions, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
+import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { toast } from 'sonner';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const DischargeMonitoringPanel: React.FC = () => {
   const [justification, setJustification] = useState<{ [key: string]: string }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'oldest' | 'newest'>('oldest');
-  const queryClient = useQueryClient();
 
-  // Buscar controle de altas
-  const { data: dischargeControls = [], isLoading } = useQuery({
-    queryKey: ['discharge_control'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('discharge_control')
-        .select('*')
-        .order('discharge_requested_at', { ascending: sortBy === 'oldest' });
-      if (error) throw error;
-      return data;
-    }
-  });
+  // Queries
+  const { data: dischargeControls = [], isLoading } = useDischargeControl();
+  const { data: readmissions = [] } = useReadmissions();
+  const { data: departmentStats = [] } = useDepartmentStats();
 
-  // Mutation para cancelar alta
-  const cancelDischargeMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('discharge_control')
-        .update({ status: 'cancelled' })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
-      toast.success('Alta cancelada com sucesso!');
-    }
-  });
-
-  // Mutation para dar alta efetiva
-  const effectiveDischargeMutation = useMutation({
-    mutationFn: async ({ id, justification: justificationText }: { id: string; justification?: string }) => {
-      const { error } = await supabase
-        .from('discharge_control')
-        .update({ 
-          status: 'completed',
-          discharge_effective_at: new Date().toISOString(),
-          justification: justificationText
-        })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
-      toast.success('Alta efetiva realizada com sucesso!');
-    }
-  });
+  // Mutations
+  const cancelDischargeMutation = useCancelDischarge();
+  const completeDischargeMutation = useCompleteDischarge();
 
   const pendingDischarges = dischargeControls.filter(d => d.status === 'pending');
   const completedDischarges = dischargeControls.filter(d => d.status === 'completed');
 
-  const filteredPendingDischarges = pendingDischarges.filter(discharge =>
-    discharge.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    discharge.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPendingDischarges = pendingDischarges
+    .filter(discharge =>
+      discharge.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      discharge.department.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.discharge_requested_at).getTime();
+      const dateB = new Date(b.discharge_requested_at).getTime();
+      return sortBy === 'oldest' ? dateA - dateB : dateB - dateA;
+    });
 
   const calculateWaitTime = (requestedAt: string) => {
     const requested = new Date(requestedAt);
@@ -94,19 +61,26 @@ const DischargeMonitoringPanel: React.FC = () => {
       return;
     }
 
-    effectiveDischargeMutation.mutate({ 
-      id, 
+    completeDischargeMutation.mutate({ 
+      dischargeId: id, 
       justification: waitTime.isOverdue ? justification[id] : undefined 
     });
   };
 
-  // Dados para o gráfico
-  const chartData = [
-    { name: 'CLINICA MEDICA', tempo: 3.2 },
-    { name: 'PRONTO SOCORRO', tempo: 4.8 },
-    { name: 'UTI ADULTO', tempo: 6.1 },
-    { name: 'PEDIATRIA', tempo: 2.9 },
-    { name: 'MATERNIDADE', tempo: 3.5 },
+  // Preparar dados para gráficos
+  const avgDischargeTimeData = departmentStats.map(stat => ({
+    name: stat.department,
+    tempo: Math.random() * 3 + 2, // Dados simulados - substituir por dados reais
+    ocupacao: stat.occupation_rate
+  }));
+
+  const readmissionTrendData = [
+    { month: 'Jan', readmissions: 12 },
+    { month: 'Fev', readmissions: 8 },
+    { month: 'Mar', readmissions: 15 },
+    { month: 'Abr', readmissions: 10 },
+    { month: 'Mai', readmissions: 7 },
+    { month: 'Jun', readmissions: 9 }
   ];
 
   if (isLoading) {
@@ -121,18 +95,26 @@ const DischargeMonitoringPanel: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Monitoramento de Altas</h1>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          {pendingDischarges.length} altas pendentes
-        </Badge>
+        <div className="flex gap-4">
+          <Badge variant="secondary" className="text-lg px-3 py-1">
+            {pendingDischarges.length} altas pendentes
+          </Badge>
+          <Badge variant="outline" className="text-lg px-3 py-1">
+            {readmissions.length} reinternações (30 dias)
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending">
             Altas Pendentes ({pendingDischarges.length})
           </TabsTrigger>
           <TabsTrigger value="analytics">
             Dashboard Analítico
+          </TabsTrigger>
+          <TabsTrigger value="readmissions">
+            Reinternações ({readmissions.length})
           </TabsTrigger>
           <TabsTrigger value="reports">
             Relatórios
@@ -260,53 +242,97 @@ const DischargeMonitoringPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Média de Tempo Efetivo de Alta por Departamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                  <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Bar dataKey="tempo" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tempo Médio de Alta por Departamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={avgDischargeTimeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Bar dataKey="tempo" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Taxa de Ocupação por Departamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={departmentStats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
+                    <YAxis label={{ value: '%', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip formatter={(value) => [`${value}%`, 'Taxa de Ocupação']} />
+                    <Bar dataKey="occupation_rate" fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Altas com Demora Superior a 5 Horas</CardTitle>
+              <CardTitle>Tendência de Reinternações (Últimos 6 Meses)</CardTitle>
             </CardHeader>
             <CardContent>
-              {completedDischarges.filter(d => d.justification).length === 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={readmissionTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="readmissions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Reinternações em 30 Dias
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {readmissions.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
-                  Nenhuma alta com demora superior a 5 horas registrada.
+                  Nenhuma reinternação registrada nos últimos 30 dias.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {completedDischarges
-                    .filter(d => d.justification)
-                    .map((discharge) => (
-                      <div key={discharge.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{discharge.patient_name}</h4>
-                          <Badge variant="outline">{discharge.department}</Badge>
+                  {readmissions.map((readmission, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{readmission.patient_name}</h4>
+                        <Badge variant="outline">{readmission.days_between} dias</Badge>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                        <div>
+                          <span className="font-medium">Alta:</span> {new Date(readmission.discharge_date).toLocaleDateString()}
                         </div>
-                        <div className="text-sm text-gray-600 mb-2">
-                          Efetivada em: {new Date(discharge.discharge_effective_at!).toLocaleString()}
+                        <div>
+                          <span className="font-medium">Reinternação:</span> {new Date(readmission.readmission_date).toLocaleDateString()}
                         </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <p className="text-sm">
-                            <FileText className="h-4 w-4 inline mr-1" />
-                            <strong>Justificativa:</strong> {discharge.justification}
-                          </p>
+                        <div>
+                          <span className="font-medium">Diagnóstico:</span> {readmission.diagnosis}
+                        </div>
+                        <div>
+                          <span className="font-medium">Origem:</span> {readmission.origin_city}
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
