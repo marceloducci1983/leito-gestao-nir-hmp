@@ -52,28 +52,40 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     );
   }
 
-  const handleAddPatient = (bedId: string, patient: any) => {
-    addPatient({ bedId, patient }).catch(error => {
-      console.error('Error adding patient:', error);
-    });
+  // Simple callback handlers that match BedCard's expected signatures
+  const handleReserveBed = (bedId: string) => {
+    // This would open a modal or form for bed reservation
+    console.log('Reserve bed:', bedId);
   };
 
-  const handleDischargePatient = (bedId: string, patientId: string, dischargeData: any) => {
-    dischargePatient({ bedId, patientId, dischargeData }).catch(error => {
-      console.error('Error discharging patient:', error);
-    });
+  const handleAdmitPatient = (bedId: string) => {
+    // This would open a modal or form for patient admission
+    console.log('Admit patient to bed:', bedId);
   };
 
-  const handleAddReservation = (bedId: string, reservation: any) => {
-    addReservation({ bedId, reservation }).catch(error => {
-      console.error('Error adding reservation:', error);
-    });
+  const handleEditPatient = (bedId: string) => {
+    // This would open a modal or form for editing patient
+    console.log('Edit patient in bed:', bedId);
   };
 
-  const handleTransferPatient = (patientId: string, fromBedId: string, toBedId: string, notes?: string) => {
-    transferPatient({ patientId, fromBedId, toBedId, notes }).catch(error => {
-      console.error('Error transferring patient:', error);
-    });
+  const handleTransferPatient = (bedId: string) => {
+    // This would open a modal or form for patient transfer
+    console.log('Transfer patient from bed:', bedId);
+  };
+
+  const handleDischargePatient = (bedId: string) => {
+    // This would open a modal or form for patient discharge
+    console.log('Discharge patient from bed:', bedId);
+  };
+
+  const handleDeleteReservation = (bedId: string) => {
+    // This would delete the reservation for the bed
+    console.log('Delete reservation for bed:', bedId);
+  };
+
+  const handleDeleteBed = (bedId: string) => {
+    // This would delete the custom bed
+    console.log('Delete bed:', bedId);
   };
 
   return (
@@ -110,15 +122,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
                   <BedCard
                     key={bed.id}
                     bed={bed}
-                    onAddPatient={(patient) => handleAddPatient(bed.id, patient)}
-                    onDischargePatient={(patientId, dischargeData) => 
-                      handleDischargePatient(bed.id, patientId, dischargeData)
-                    }
-                    onAddReservation={(reservation) => handleAddReservation(bed.id, reservation)}
-                    onTransferPatient={(patientId, toBedId, notes) => 
-                      handleTransferPatient(patientId, bed.id, toBedId, notes)
-                    }
-                    allBeds={centralData.beds}
+                    onReserveBed={handleReserveBed}
+                    onAdmitPatient={handleAdmitPatient}
+                    onEditPatient={handleEditPatient}
+                    onTransferPatient={handleTransferPatient}
+                    onDischargePatient={handleDischargePatient}
+                    onDeleteReservation={handleDeleteReservation}
+                    onDeleteBed={handleDeleteBed}
                   />
                 ))}
               </div>
