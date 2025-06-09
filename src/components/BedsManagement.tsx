@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { Department, Bed } from '@/types';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import NewBedCard from './NewBedCard';
+import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
+import { useBedsManagementState } from '@/hooks/useBedsManagementState';
+import BedsManagementHeader from './BedsManagementHeader';
+import BedsManagementGrid from './BedsManagementGrid';
 import NewPatientForm from './forms/NewPatientForm';
 import NewReservationForm from './forms/NewReservationForm';
 import DischargeModal from './forms/DischargeModal';
@@ -15,87 +18,26 @@ interface BedsManagementProps {
   onDataChange?: (data: any) => void;
 }
 
-// Ordem específica dos leitos por departamento
-const BED_ORDER_BY_DEPARTMENT: Record<Department, string[]> = {
-  'CLINICA MEDICA': [
-    'ISOL', '2A', '2B', '2C', '2D', '3A', '3B', '3C', '4A', '4B', 
-    '6A', '6B', '7A', '7B', '8A', '8B', '9A', '9B', '10A', '10B', 
-    '11A', '11B', '12A', '12B', '13A', '13B', '14A', '14B', '14C', '14D', 
-    '15A', '15B', '15C', '16A', '16B', '16C', '17A', '17B', '17C', '18'
-  ],
-  'PRONTO SOCORRO': [
-    '1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '2E', 
-    '3A', '3B', '3C', '3D', '4A', '4B', '4C', '4D', '5A', '5B', '5C', 
-    'Isolamento', 'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', 'BOX-5', 
-    'CI-1', 'CI-2', 'CI-3', 'CI-4'
-  ],
-  'CLINICA CIRURGICA': [
-    '1A – ORTOP', '1B – ORTOP', '1C – ORTOP', '2A – ORTOP', '2B – ORTOP', '2C – ORTOP',
-    '3A – ORTOP', '3B – ORTOP', '4A – CIRUR', '4B – CIRUR', '5A – CIRUR', '5B – CIRUR',
-    '7A – CIRUR', '7B – CIRUR', '7C – CIRUR', '8A – ORTOP', '8B – ORTOP', '8C – ORTOP',
-    '9A – CIRUR', '9B – CIRUR', '9C – CIRUR', '10A – PED', '10B – PED',
-    '11A – CIRUR', '11B – CIRUR', '11C – CIRUR', 'Isolamento'
-  ],
-  'UTI ADULTO': [
-    'BOX - 1', 'BOX - 2', 'BOX - 3', 'BOX - 4', 'BOX - 5', 'BOX - 6',
-    'BOX - 7', 'BOX - 8', 'BOX - 9', 'BOX - 10', 'BOX - 11', 'BOX - 12',
-    'BOX - 13', 'BOX - 14', 'BOX – 15 - ISOL', 'BOX – 16 – ISOL'
-  ],
-  'UTI NEONATAL': [
-    '1A', '1B', '1C', '1D', 'Canguru-2A', 'Canguru-2B', 'Convencional 1', 'Convencional 2'
-  ],
-  'PEDIATRIA': [
-    'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', '1A', '1B', '1C', '1D', 
-    '2A', '2B', '2C', '2D', '2E', '3A', '3B', '3C', '3D', 
-    '4A', '4B', '4C', '4D', '5A', '5B', '5C', 'Isolamento'
-  ],
-  'MATERNIDADE': [
-    '1A', '1B', '2A', '2B', '4A', '4B', '5A', '5B', '6A', '6B', 
-    '7A', '7B', '9A', '9B', '9C', '10A', '10B', '10C', '11A', '11B', '11C', 
-    'ISOL', 'Ind. A', 'Ind. B', 'BOX-A', 'CI-A', 'CI-B', 'PP-1', 'PP-2', 'PP-3'
-  ]
-};
-
-// Função para ordenar leitos conforme a ordem customizada
-const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[] => {
-  const orderArray = BED_ORDER_BY_DEPARTMENT[department] || [];
-  
-  return beds.sort((a, b) => {
-    const indexA = orderArray.indexOf(a.name);
-    const indexB = orderArray.indexOf(b.name);
-    
-    // Se ambos estão na lista de ordem definida, ordena pela posição na lista
-    if (indexA !== -1 && indexB !== -1) {
-      return indexA - indexB;
-    }
-    
-    // Se apenas A está na lista, A vem primeiro
-    if (indexA !== -1 && indexB === -1) {
-      return -1;
-    }
-    
-    // Se apenas B está na lista, B vem primeiro
-    if (indexA === -1 && indexB !== -1) {
-      return 1;
-    }
-    
-    // Se nenhum está na lista, ordena alfabeticamente
-    return a.name.localeCompare(b.name);
-  });
-};
-
 const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   const { centralData, isLoading, error, addPatient, dischargePatient, addReservation, transferPatient } = useSupabaseBeds();
-  const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
-  const [selectedBedId, setSelectedBedId] = useState<string>('');
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
-  
-  // Form states
-  const [showPatientForm, setShowPatientForm] = useState(false);
-  const [showReservationForm, setShowReservationForm] = useState(false);
-  const [showDischargeModal, setShowDischargeModal] = useState(false);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [isEditingPatient, setIsEditingPatient] = useState(false);
+  const {
+    selectedDepartment,
+    setSelectedDepartment,
+    selectedBedId,
+    setSelectedBedId,
+    selectedPatient,
+    setSelectedPatient,
+    showPatientForm,
+    setShowPatientForm,
+    showReservationForm,
+    setShowReservationForm,
+    showDischargeModal,
+    setShowDischargeModal,
+    showTransferModal,
+    setShowTransferModal,
+    isEditingPatient,
+    setIsEditingPatient,
+  } = useBedsManagementState();
 
   const { toast } = useToast();
 
@@ -137,10 +79,6 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   // Filtrar e ordenar os leitos por departamento
   const filteredBeds = centralData.beds.filter(bed => bed.department === selectedDepartment);
   const departmentBeds = sortBedsByCustomOrder(filteredBeds, selectedDepartment);
-  
-  const occupiedCount = departmentBeds.filter(bed => bed.isOccupied).length;
-  const reservedCount = departmentBeds.filter(bed => bed.isReserved).length;
-  const availableCount = departmentBeds.length - occupiedCount - reservedCount;
 
   const handleReserveBed = (bedId: string) => {
     setSelectedBedId(bedId);
@@ -319,56 +257,25 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 
   return (
     <div className="space-y-6">
-      {/* Department Selection */}
-      <div className="flex flex-wrap gap-2">
-        {departments.map((dept) => (
-          <Button
-            key={dept}
-            onClick={() => setSelectedDepartment(dept)}
-            variant={selectedDepartment === dept ? "default" : "outline"}
-            className="text-xs md:text-sm"
-          >
-            {dept}
-          </Button>
-        ))}
-      </div>
+      <BedsManagementHeader
+        departments={departments}
+        selectedDepartment={selectedDepartment}
+        onDepartmentSelect={setSelectedDepartment}
+        departmentBeds={departmentBeds}
+        onCreateNewBed={handleCreateNewBed}
+      />
 
-      {/* Department Header */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>{selectedDepartment}</span>
-            <div className="flex items-center gap-4">
-              <div className="flex gap-4 text-sm">
-                <span className="text-green-600">Disponíveis: {availableCount}</span>
-                <span className="text-red-600">Ocupados: {occupiedCount}</span>
-                <span className="text-yellow-600">Reservados: {reservedCount}</span>
-                <span className="text-gray-600">Total: {departmentBeds.length}</span>
-              </div>
-              <Button onClick={handleCreateNewBed} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                CRIAR NOVO LEITO
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {departmentBeds.map((bed) => (
-              <NewBedCard
-                key={bed.id}
-                bed={bed}
-                onReserveBed={handleReserveBed}
-                onAdmitPatient={handleAdmitPatient}
-                onEditPatient={handleEditPatient}
-                onTransferPatient={handleTransferPatient}
-                onDischargePatient={handleDischargePatient}
-                onDeleteReservation={handleDeleteReservation}
-                onDeleteBed={bed.isCustom ? handleDeleteBed : undefined}
-              />
-            ))}
-          </div>
-        </CardContent>
+        <BedsManagementGrid
+          departmentBeds={departmentBeds}
+          onReserveBed={handleReserveBed}
+          onAdmitPatient={handleAdmitPatient}
+          onEditPatient={handleEditPatient}
+          onTransferPatient={handleTransferPatient}
+          onDischargePatient={handleDischargePatient}
+          onDeleteReservation={handleDeleteReservation}
+          onDeleteBed={handleDeleteBed}
+        />
       </Card>
 
       {/* Forms */}
