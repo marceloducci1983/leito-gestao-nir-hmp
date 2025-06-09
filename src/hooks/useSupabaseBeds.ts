@@ -90,9 +90,7 @@ export const useSupabaseBeds = () => {
   useEffect(() => {
     if (bedsData) {
       const transformedBeds: Bed[] = bedsData.map(bed => {
-        // Get the first patient if exists (assuming one patient per bed)
         const patient = bed.patients && bed.patients.length > 0 ? bed.patients[0] : null;
-        // Get the first reservation if exists (assuming one reservation per bed)
         const reservation = bed.bed_reservations && bed.bed_reservations.length > 0 ? bed.bed_reservations[0] : null;
 
         return {
@@ -159,7 +157,7 @@ export const useSupabaseBeds = () => {
           const today = new Date();
           const diffTime = today.getTime() - dischargeDate.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          return diffDays <= 7; // Last 7 days
+          return diffDays <= 7;
         })
       });
     }
@@ -168,7 +166,6 @@ export const useSupabaseBeds = () => {
   // Mutations for bed operations
   const addPatientMutation = useMutation({
     mutationFn: async ({ bedId, patient }: { bedId: string; patient: Omit<Patient, 'id' | 'bedId'> }) => {
-      // Insert patient
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .insert({
@@ -192,7 +189,6 @@ export const useSupabaseBeds = () => {
 
       if (patientError) throw patientError;
 
-      // Update bed status
       const { error: bedError } = await supabase
         .from('beds')
         .update({ is_occupied: true })
@@ -218,7 +214,6 @@ export const useSupabaseBeds = () => {
       patientId: string; 
       dischargeData: { dischargeType: string; dischargeDate: string; } 
     }) => {
-      // Get patient data first
       const { data: patient, error: fetchError } = await supabase
         .from('patients')
         .select('*')
@@ -227,12 +222,10 @@ export const useSupabaseBeds = () => {
 
       if (fetchError) throw fetchError;
 
-      // Calculate actual stay days
       const admissionDate = new Date(patient.admission_date);
       const dischargeDate = new Date(dischargeData.dischargeDate);
       const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Insert into discharges
       const { error: dischargeError } = await supabase
         .from('patient_discharges')
         .insert({
@@ -253,12 +246,11 @@ export const useSupabaseBeds = () => {
           tfd_type: patient.tfd_type,
           bed_id: patient.bed_id || bedId,
           department: patient.department,
-          discharge_type: dischargeData.dischargeType
+          discharge_type: dischargeData.dischargeType as any
         });
 
       if (dischargeError) throw dischargeError;
 
-      // Delete patient
       const { error: deleteError } = await supabase
         .from('patients')
         .delete()
@@ -266,7 +258,6 @@ export const useSupabaseBeds = () => {
 
       if (deleteError) throw deleteError;
 
-      // Update bed status
       const { error: bedError } = await supabase
         .from('beds')
         .update({ is_occupied: false })
@@ -299,7 +290,6 @@ export const useSupabaseBeds = () => {
 
       if (reservationError) throw reservationError;
 
-      // Update bed status
       const { error: bedError } = await supabase
         .from('beds')
         .update({ is_reserved: true })
@@ -324,7 +314,6 @@ export const useSupabaseBeds = () => {
       toBedId: string; 
       notes?: string; 
     }) => {
-      // Get patient and bed data
       const { data: patient, error: fetchError } = await supabase
         .from('patients')
         .select('*')
@@ -341,7 +330,6 @@ export const useSupabaseBeds = () => {
 
       if (bedError) throw bedError;
 
-      // Record transfer
       const { error: transferError } = await supabase
         .from('patient_transfers')
         .insert({
@@ -355,7 +343,6 @@ export const useSupabaseBeds = () => {
 
       if (transferError) throw transferError;
 
-      // Update patient
       const { error: updatePatientError } = await supabase
         .from('patients')
         .update({ 
@@ -366,7 +353,6 @@ export const useSupabaseBeds = () => {
 
       if (updatePatientError) throw updatePatientError;
 
-      // Update bed statuses
       const { error: fromBedError } = await supabase
         .from('beds')
         .update({ is_occupied: false })
