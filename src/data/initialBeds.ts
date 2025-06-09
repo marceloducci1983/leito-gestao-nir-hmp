@@ -59,7 +59,22 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // UTI ADULTO - placeholder para implementação futura
+  // UTI ADULTO
+  const utiAdultoBeds = [
+    'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', 'BOX-5', 'BOX-6', 'BOX-7', 'BOX-8',
+    'BOX-9', 'BOX-10', 'BOX-11', 'BOX-12', 'BOX-13', 'BOX-14', 'BOX-15-ISOL', 'BOX-16-ISOL'
+  ];
+
+  utiAdultoBeds.forEach(bedName => {
+    beds.push({
+      id: `UTI-ADULTO-${bedName}`,
+      name: bedName,
+      department: 'UTI ADULTO',
+      isOccupied: false,
+      isReserved: false
+    });
+  });
+
   // UTI NEONATAL
   const utiNeonatalBeds = [
     '1A', '1B', '1C', '1D', 'Canguru-2A', 'Canguru-2B', 'Convencional 1', 'Convencional 2'

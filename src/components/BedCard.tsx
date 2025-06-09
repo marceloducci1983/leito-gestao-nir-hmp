@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, MapPin, Info } from 'lucide-react';
 import { Bed } from '@/types';
 
 interface BedCardProps {
@@ -51,9 +52,14 @@ const BedCard: React.FC<BedCardProps> = ({
   return (
     <Card className={`w-full min-h-[200px] ${getStatusColor()}`}>
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-sm font-bold">{bed.name}</CardTitle>
-          {getStatusBadge()}
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-sm font-bold">{bed.name}</CardTitle>
+            {getStatusBadge()}
+          </div>
+          <div className="text-xs text-gray-600 font-medium">
+            {bed.department}
+          </div>
         </div>
         {bed.isCustom && onDeleteBed && (
           <Button
@@ -69,14 +75,37 @@ const BedCard: React.FC<BedCardProps> = ({
       
       <CardContent className="space-y-2">
         {bed.isOccupied && bed.patient && (
-          <div className="text-xs space-y-1">
-            <p><strong>Paciente:</strong> {bed.patient.name}</p>
-            <p><strong>Idade:</strong> {bed.patient.age} anos</p>
-            <p><strong>Diagnóstico:</strong> {bed.patient.diagnosis}</p>
-            <p><strong>Admissão:</strong> {new Date(bed.patient.admissionDate).toLocaleDateString()}</p>
-            <p><strong>Dias:</strong> {bed.patient.occupationDays}</p>
-            <p><strong>TFD:</strong> {bed.patient.isTFD ? 'Sim' : 'Não'}</p>
-            {bed.patient.specialty && <p><strong>Especialidade:</strong> {bed.patient.specialty}</p>}
+          <div className="text-xs space-y-2">
+            <div className="flex items-center gap-1">
+              <Info className="h-3 w-3 text-blue-600" />
+              <span><strong>Paciente:</strong> {bed.patient.name}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span><strong>Idade:</strong> {bed.patient.age} anos</span>
+            </div>
+            <div className="flex items-start gap-1">
+              <span><strong>Diagnóstico:</strong> {bed.patient.diagnosis}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3 text-green-600" />
+              <span><strong>Admissão:</strong> {new Date(bed.patient.admissionDate).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3 text-orange-600" />
+              <span><strong>Dias:</strong> {bed.patient.occupationDays}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3 text-purple-600" />
+              <span><strong>Município:</strong> {bed.patient.originCity}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span><strong>TFD:</strong> {bed.patient.isTFD ? 'Sim' : 'Não'}</span>
+            </div>
+            {bed.patient.specialty && (
+              <div className="flex items-center gap-1">
+                <span><strong>Especialidade:</strong> {bed.patient.specialty}</span>
+              </div>
+            )}
             
             <div className="flex flex-wrap gap-1 mt-2">
               <Button onClick={() => onEditPatient(bed.id)} size="sm" variant="outline" className="text-xs">
@@ -93,10 +122,18 @@ const BedCard: React.FC<BedCardProps> = ({
         )}
 
         {bed.isReserved && bed.reservation && (
-          <div className="text-xs space-y-1">
-            <p><strong>Reservado para:</strong> {bed.reservation.patientName}</p>
-            <p><strong>Origem:</strong> {bed.reservation.originClinic}</p>
-            <p><strong>Diagnóstico:</strong> {bed.reservation.diagnosis}</p>
+          <div className="text-xs space-y-2">
+            <div className="flex items-center gap-1">
+              <Info className="h-3 w-3 text-blue-600" />
+              <span><strong>Reservado para:</strong> {bed.reservation.patientName}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3 text-purple-600" />
+              <span><strong>Origem:</strong> {bed.reservation.originClinic}</span>
+            </div>
+            <div className="flex items-start gap-1">
+              <span><strong>Diagnóstico:</strong> {bed.reservation.diagnosis}</span>
+            </div>
             
             <Button onClick={() => onDeleteReservation(bed.id)} size="sm" variant="destructive" className="text-xs mt-2">
               EXCLUIR RESERVA
