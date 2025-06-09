@@ -43,13 +43,23 @@ export const useBeds = () => {
 
   const fetchBeds = async () => {
     try {
+      console.log('Fetching beds from database...');
+      
+      // Use ordenação com função alphanumeric_sort do banco
       const { data, error } = await supabase
         .from('beds')
         .select('*')
         .order('department')
-        .order('name');
+        .order('alphanumeric_sort(name)');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Beds fetched successfully:', data?.length || 0, 'beds');
+      console.log('Sample bed data:', data?.[0]);
+      
       setBeds(data || []);
     } catch (error) {
       console.error('Error fetching beds:', error);

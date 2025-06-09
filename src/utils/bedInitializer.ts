@@ -17,6 +17,7 @@ export const initializeBeds = async () => {
 
     // If beds already exist, don't initialize
     if (existingBeds && existingBeds.length > 0) {
+      console.log('Beds already exist, skipping initialization');
       return;
     }
 
@@ -32,16 +33,21 @@ export const initializeBeds = async () => {
       is_custom: bed.isCustom || false
     }));
 
-    // Insert all beds
-    const { error: insertError } = await supabase
-      .from('beds')
-      .insert(supabaseBeds);
+    // Insert all beds in batches to avoid potential limits
+    const batchSize = 100;
+    for (let i = 0; i < supabaseBeds.length; i += batchSize) {
+      const batch = supabaseBeds.slice(i, i + batchSize);
+      const { error: insertError } = await supabase
+        .from('beds')
+        .insert(batch);
 
-    if (insertError) {
-      console.error('Error initializing beds:', insertError);
-    } else {
-      console.log('Beds initialized successfully');
+      if (insertError) {
+        console.error('Error initializing beds batch:', insertError);
+        return;
+      }
     }
+
+    console.log('Beds initialized successfully - total:', supabaseBeds.length);
   } catch (error) {
     console.error('Error in bed initialization:', error);
   }

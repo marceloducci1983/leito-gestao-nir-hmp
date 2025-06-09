@@ -52,8 +52,19 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 
   // Initialize beds on component mount
   useEffect(() => {
+    console.log('Initializing beds...');
     initializeBeds();
   }, []);
+
+  // Debug effect to log beds data
+  useEffect(() => {
+    console.log('Beds data updated:', {
+      totalBeds: beds.length,
+      departments: [...new Set(beds.map(b => b.department))],
+      selectedDepartment,
+      departmentBeds: beds.filter(b => b.department === selectedDepartment).length
+    });
+  }, [beds, selectedDepartment]);
 
   // Transform data for parent component
   useEffect(() => {
@@ -428,6 +439,12 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 
   const departmentBeds = beds.filter(bed => bed.department === selectedDepartment);
   
+  console.log('Rendering department beds:', {
+    selectedDepartment,
+    totalBedsForDepartment: departmentBeds.length,
+    bedNames: departmentBeds.map(b => b.name)
+  });
+  
   // Transform beds for BedCard component
   const transformedBeds = departmentBeds.map(bed => {
     const patient = patients.find(p => p.bed_id === bed.id);
@@ -477,7 +494,11 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     }));
 
   if (bedsLoading) {
-    return <div className="flex justify-center items-center h-64">Carregando leitos...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Carregando leitos...</div>
+      </div>
+    );
   }
 
   return (
@@ -487,7 +508,10 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         {departments.map((dept) => (
           <Button
             key={dept}
-            onClick={() => setSelectedDepartment(dept)}
+            onClick={() => {
+              console.log('Selecting department:', dept);
+              setSelectedDepartment(dept);
+            }}
             variant={selectedDepartment === dept ? "default" : "outline"}
             className="text-xs md:text-sm"
           >
@@ -498,11 +522,22 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 
       {/* Department Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">{selectedDepartment}</h2>
+        <h2 className="text-xl font-bold">
+          {selectedDepartment} ({transformedBeds.length} leitos)
+        </h2>
         <Button onClick={handleCreateNewBed} variant="outline">
           CRIAR NOVO LEITO
         </Button>
       </div>
+
+      {/* Debug Information */}
+      {transformedBeds.length === 0 && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+          <strong>Debug:</strong> Nenhum leito encontrado para {selectedDepartment}.
+          <br />Total de leitos no banco: {beds.length}
+          <br />Departamentos disponíveis: {[...new Set(beds.map(b => b.department))].join(', ')}
+        </div>
+      )}
 
       {/* Beds Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
