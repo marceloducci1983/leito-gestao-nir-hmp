@@ -1,70 +1,70 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Patient } from '@/types';
 import { toast } from 'sonner';
-
-interface PatientData {
-  name: string;
-  sex: 'masculino' | 'feminino';
-  birthDate: string;
-  age: number;
-  admissionDate: string;
-  admissionTime?: string;
-  diagnosis: string;
-  specialty?: string;
-  expectedDischargeDate: string;
-  originCity: string;
-  isTFD: boolean;
-  tfdType?: string;
-  department: string;
-  occupationDays: number;
-}
 
 export const useAddPatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ bedId, patient }: { bedId: string; patient: PatientData }) => {
-      const { data: patientData, error: patientError } = await supabase
+    mutationFn: async ({ bedId, patientData }: { bedId: string; patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'> }) => {
+      // Primeiro, inserir o paciente
+      const { data: patient, error: patientError } = await supabase
         .from('patients')
         .insert({
-          name: patient.name,
-          sex: patient.sex,
-          birth_date: patient.birthDate,
-          age: patient.age,
-          admission_date: patient.admissionDate,
-          admission_time: patient.admissionTime,
-          diagnosis: patient.diagnosis,
-          specialty: patient.specialty,
-          expected_discharge_date: patient.expectedDischargeDate,
-          origin_city: patient.originCity,
-          occupation_days: patient.occupationDays,
-          is_tfd: patient.isTFD,
-          tfd_type: patient.tfdType,
+          name: patientData.name,
+          sex: patientData.sex,
+          birth_date: patientData.birthDate,
+          age: patientData.age,
+          admission_date: patientData.admissionDate,
+          admission_time: patientData.admissionTime,
+          diagnosis: patientData.diagnosis,
+          specialty: patientData.specialty,
+          expected_discharge_date: patientData.expectedDischargeDate,
+          origin_city: patientData.originCity,
+          is_tfd: patientData.isTFD,
+          tfd_type: patientData.tfdType,
+          department: patientData.department as any,
           bed_id: bedId,
-          department: patient.department as any
+          occupation_days: 0
         })
         .select()
         .single();
 
       if (patientError) throw patientError;
 
+      // Então, atualizar o leito para ocupado
       const { error: bedError } = await supabase
         .from('beds')
-        .update({ is_occupied: true, is_reserved: false })
+        .update({ 
+          is_occupied: true,
+          is_reserved: false
+        })
         .eq('id', bedId);
 
       if (bedError) throw bedError;
 
-      return patientData;
+      // Se havia uma reserva, removê-la
+      const { error: reservationError } = await supabase
+        .from('bed_reservations')
+        .delete()
+        .eq('bed_id', bedId);
+
+      // Não lançar erro se não havia reserva para deletar
+      if (reservationError && reservationError.code !== 'PGRST116') {
+        console.warn('Erro ao remover reserva:', reservationError);
+      }
+
+      return patient;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
-      toast.success('Paciente internado com sucesso!');
+      toast.success('Paciente admitido com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao internar paciente:', error);
-      toast.error('Erro ao internar paciente');
+      console.error('Erro ao admitir paciente:', error);
+      toast.error('Erro ao admitir paciente');
     }
   });
 };
@@ -76,33 +76,23 @@ export const useDischargePatient = () => {
     mutationFn: async ({ bedId, patientId, dischargeData }: { 
       bedId: string; 
       patientId: string; 
-      dischargeData: { dischargeType: string; dischargeDate: string; } 
+      dischargeData: { dischargeType: string; dischargeDate: string } 
     }) => {
-      const { data: patient, error: fetchError } = await supabase
+      // Buscar dados do paciente
+      const { data: patient, error: patientError } = await supabase
         .from('patients')
         .select('*')
         .eq('id', patientId)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (patientError) throw patientError;
 
+      // Calcular dias de internação
       const admissionDate = new Date(patient.admission_date);
       const dischargeDate = new Date(dischargeData.dischargeDate);
       const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Adicionar ao controle de alta
-      const { error: dischargeControlError } = await supabase
-        .from('discharge_control')
-        .insert({
-          patient_id: patientId,
-          patient_name: patient.name,
-          bed_id: bedId,
-          department: patient.department,
-          discharge_requested_at: new Date().toISOString()
-        });
-
-      if (dischargeControlError) throw dischargeControlError;
-
+      // Inserir na tabela de altas
       const { error: dischargeError } = await supabase
         .from('patient_discharges')
         .insert({
@@ -114,28 +104,30 @@ export const useDischargePatient = () => {
           admission_date: patient.admission_date,
           admission_time: patient.admission_time,
           discharge_date: dischargeData.dischargeDate,
+          expected_discharge_date: patient.expected_discharge_date,
           diagnosis: patient.diagnosis,
           specialty: patient.specialty,
-          expected_discharge_date: patient.expected_discharge_date,
           origin_city: patient.origin_city,
           occupation_days: patient.occupation_days,
           actual_stay_days: actualStayDays,
           is_tfd: patient.is_tfd,
           tfd_type: patient.tfd_type,
-          bed_id: patient.bed_id || bedId,
-          department: patient.department as any,
-          discharge_type: dischargeData.dischargeType as any
+          department: patient.department,
+          discharge_type: dischargeData.dischargeType as any,
+          bed_id: bedId
         });
 
       if (dischargeError) throw dischargeError;
 
-      const { error: deleteError } = await supabase
+      // Remover paciente da tabela de pacientes
+      const { error: deletePatientError } = await supabase
         .from('patients')
         .delete()
         .eq('id', patientId);
 
-      if (deleteError) throw deleteError;
+      if (deletePatientError) throw deletePatientError;
 
+      // Liberar o leito
       const { error: bedError } = await supabase
         .from('beds')
         .update({ is_occupied: false })
@@ -146,12 +138,11 @@ export const useDischargePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
-      queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
-      toast.success('Alta solicitada e paciente movido para monitoramento!');
+      toast.success('Alta realizada com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao dar alta:', error);
-      toast.error('Erro ao realizar alta');
+      toast.error('Erro ao dar alta');
     }
   });
 };
@@ -160,61 +151,66 @@ export const useTransferPatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ patientId, fromBedId, toBedId, notes }: { 
+    mutationFn: async ({ patientId, fromBedId, toBedId }: { 
       patientId: string; 
       fromBedId: string; 
-      toBedId: string; 
-      notes?: string; 
+      toBedId: string 
     }) => {
-      const { data: patient, error: fetchError } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('id', patientId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const { data: toBed, error: bedError } = await supabase
+      // Buscar dados do leito de destino
+      const { data: toBed, error: toBedError } = await supabase
         .from('beds')
         .select('department')
         .eq('id', toBedId)
         .single();
 
-      if (bedError) throw bedError;
+      if (toBedError) throw toBedError;
 
+      // Buscar dados do leito de origem
+      const { data: fromBed, error: fromBedError } = await supabase
+        .from('beds')
+        .select('department')
+        .eq('id', fromBedId)
+        .single();
+
+      if (fromBedError) throw fromBedError;
+
+      // Registrar a transferência
       const { error: transferError } = await supabase
         .from('patient_transfers')
         .insert({
           patient_id: patientId,
           from_bed_id: fromBedId,
           to_bed_id: toBedId,
-          from_department: patient.department as any,
-          to_department: toBed.department as any,
-          notes: notes
+          from_department: fromBed.department,
+          to_department: toBed.department,
+          transfer_date: new Date().toISOString()
         });
 
       if (transferError) throw transferError;
 
-      const { error: updatePatientError } = await supabase
+      // Atualizar paciente com novo leito e departamento
+      const { error: patientError } = await supabase
         .from('patients')
-        .update({ 
+        .update({
           bed_id: toBedId,
-          department: toBed.department as any
+          department: toBed.department
         })
         .eq('id', patientId);
 
-      if (updatePatientError) throw updatePatientError;
+      if (patientError) throw patientError;
 
-      const { error: fromBedError } = await supabase
+      // Liberar leito de origem
+      const { error: fromBedUpdateError } = await supabase
         .from('beds')
         .update({ is_occupied: false })
         .eq('id', fromBedId);
 
-      if (fromBedError) throw fromBedError;
+      if (fromBedUpdateError) throw fromBedUpdateError;
 
+      // Ocupar leito de destino
       const { error: toBedUpdateError } = await supabase
         .from('beds')
-        .update({ is_occupied: true })
+        .update({ is_occupied: true, is_reserved: false })
         .eq('id', toBedId);
 
       if (toBedUpdateError) throw toBedUpdateError;
@@ -225,7 +221,7 @@ export const useTransferPatient = () => {
     },
     onError: (error) => {
       console.error('Erro ao transferir paciente:', error);
-      toast.error('Erro ao realizar transferência');
+      toast.error('Erro ao transferir paciente');
     }
   });
 };

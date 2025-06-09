@@ -20,6 +20,7 @@ interface BedCardProps {
       birthDate: string;
       age: number;
       admissionDate: string;
+      admissionTime?: string;
       diagnosis: string;
       specialty?: string;
       expectedDischargeDate: string;
@@ -81,8 +82,11 @@ const NewBedCard: React.FC<BedCardProps> = ({
   return (
     <Card className={`w-full ${getStatusColor()} transition-all hover:shadow-md`}>
       <CardHeader className="pb-2">
-        <CardTitle className="flex justify-between items-center text-sm">
-          <span className="font-bold">{bed.name}</span>
+        <CardTitle className="flex justify-between items-start text-sm">
+          <div className="space-y-1">
+            <span className="font-bold">{bed.name}</span>
+            <div className="text-xs text-gray-600 font-normal">{bed.department}</div>
+          </div>
           <div className="flex items-center gap-2">
             {getStatusBadge()}
             {bed.isCustom && onDeleteBed && (
@@ -171,6 +175,12 @@ const NewBedCard: React.FC<BedCardProps> = ({
                 <Calendar className="h-3 w-3" />
                 <span>Admissão: {formatDate(bed.patient.admissionDate)}</span>
               </div>
+              {bed.patient.admissionTime && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  <span>Hora: {bed.patient.admissionTime}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 <span>DPA: {formatDate(bed.patient.expectedDischargeDate)}</span>

@@ -1,5 +1,5 @@
 
-import { Bed, Department } from '@/types';
+import { Bed } from '@/types';
 
 export const getInitialBeds = (): Bed[] => {
   const beds: Bed[] = [];
