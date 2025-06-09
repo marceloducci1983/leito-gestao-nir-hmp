@@ -3,7 +3,7 @@ import { useBedsData, useDischargedPatientsData } from '@/hooks/queries/useSupab
 import { useRealtimeSubscriptions } from '@/hooks/useRealtimeSubscriptions';
 import { useAddPatient, useDischargePatient, useTransferPatient } from '@/hooks/mutations/usePatientMutations';
 import { useAddReservation } from '@/hooks/mutations/useReservationMutations';
-import { transformSupabaseBeds, transformDischargedPatients } from '@/utils/dataTransformers';
+import { transformBedsData, transformDischargedPatientsData } from '@/utils/dataTransformers';
 import { useMemo } from 'react';
 
 export const useSupabaseBeds = () => {
@@ -21,8 +21,8 @@ export const useSupabaseBeds = () => {
 
   // Transform and memoize data
   const centralData = useMemo(() => {
-    const beds = bedsData ? transformSupabaseBeds(bedsData) : [];
-    const archivedPatients = dischargedData ? transformDischargedPatients(dischargedData) : [];
+    const beds = bedsData ? transformBedsData(bedsData) : [];
+    const archivedPatients = dischargedData ? transformDischargedPatientsData(dischargedData) : [];
     const dischargeMonitoring = archivedPatients; // Same data for now
 
     return {
