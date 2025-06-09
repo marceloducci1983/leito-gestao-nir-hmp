@@ -30,14 +30,16 @@ const NewReservationForm: React.FC<NewReservationFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Reservation form data:', formData);
+    
+    // Submit with correct property names
     const submitData = {
       patient_name: formData.patient_name,
       origin_clinic: formData.origin_clinic,
-      diagnosis: formData.diagnosis,
-      bed_id: bedId,
-      department: department
+      diagnosis: formData.diagnosis
     };
 
+    console.log('Submitting reservation data:', submitData);
     onSubmit(submitData);
     resetForm();
     onClose();

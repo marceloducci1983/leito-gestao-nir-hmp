@@ -15,6 +15,8 @@ export const useAddReservation = () => {
         diagnosis: string; 
       } 
     }) => {
+      console.log('Adding reservation with data:', { bedId, reservation });
+      
       // Buscar dados do leito para obter o departamento
       const { data: bed, error: bedError } = await supabase
         .from('beds')
@@ -22,7 +24,10 @@ export const useAddReservation = () => {
         .eq('id', bedId)
         .single();
 
-      if (bedError) throw bedError;
+      if (bedError) {
+        console.error('Error fetching bed:', bedError);
+        throw bedError;
+      }
 
       // Inserir a reserva
       const { data: reservationData, error: reservationError } = await supabase
@@ -37,7 +42,10 @@ export const useAddReservation = () => {
         .select()
         .single();
 
-      if (reservationError) throw reservationError;
+      if (reservationError) {
+        console.error('Error inserting reservation:', reservationError);
+        throw reservationError;
+      }
 
       // Atualizar o leito como reservado
       const { error: bedUpdateError } = await supabase
@@ -45,7 +53,10 @@ export const useAddReservation = () => {
         .update({ is_reserved: true })
         .eq('id', bedId);
 
-      if (bedUpdateError) throw bedUpdateError;
+      if (bedUpdateError) {
+        console.error('Error updating bed reservation status:', bedUpdateError);
+        throw bedUpdateError;
+      }
 
       return reservationData;
     },

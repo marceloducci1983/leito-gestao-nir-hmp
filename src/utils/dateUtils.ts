@@ -39,3 +39,27 @@ export const isValidDate = (dateString: string): boolean => {
   const date = new Date(year, month - 1, day);
   return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
 };
+
+export const convertDateToISO = (dateString: string): string => {
+  // Convert DD/MM/YYYY to YYYY-MM-DD
+  const parts = dateString.split('/');
+  if (parts.length !== 3) return '';
+  
+  const day = parts[0].padStart(2, '0');
+  const month = parts[1].padStart(2, '0');
+  const year = parts[2];
+  
+  return `${year}-${month}-${day}`;
+};
+
+export const convertISOToDisplayDate = (isoDate: string): string => {
+  // Convert YYYY-MM-DD to DD/MM/YYYY
+  if (!isoDate) return '';
+  
+  const date = new Date(isoDate);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+};

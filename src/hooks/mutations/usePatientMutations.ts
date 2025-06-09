@@ -9,13 +9,15 @@ export const useAddPatient = () => {
 
   return useMutation({
     mutationFn: async ({ bedId, patientData }: { bedId: string; patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'> }) => {
+      console.log('Adding patient with data:', patientData);
+      
       // Primeiro, inserir o paciente
       const { data: patient, error: patientError } = await supabase
         .from('patients')
         .insert({
           name: patientData.name,
           sex: patientData.sex,
-          birth_date: patientData.birthDate,
+          birth_date: patientData.birthDate, // Already in ISO format from form
           age: patientData.age,
           admission_date: patientData.admissionDate,
           admission_time: patientData.admissionTime,
@@ -32,7 +34,10 @@ export const useAddPatient = () => {
         .select()
         .single();
 
-      if (patientError) throw patientError;
+      if (patientError) {
+        console.error('Error inserting patient:', patientError);
+        throw patientError;
+      }
 
       // Então, atualizar o leito para ocupado
       const { error: bedError } = await supabase
@@ -43,7 +48,10 @@ export const useAddPatient = () => {
         })
         .eq('id', bedId);
 
-      if (bedError) throw bedError;
+      if (bedError) {
+        console.error('Error updating bed:', bedError);
+        throw bedError;
+      }
 
       // Se havia uma reserva, removê-la
       const { error: reservationError } = await supabase

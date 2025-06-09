@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Patient } from '@/types';
-import { calculateAge, isValidDate } from '@/utils/dateUtils';
+import { calculateAge, isValidDate, convertDateToISO } from '@/utils/dateUtils';
 
 interface NewPatientFormProps {
   isOpen: boolean;
@@ -63,10 +64,15 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form data before submission:', formData);
+    
+    // Convert birth date to ISO format for database
+    const birthDateISO = convertDateToISO(formData.birthDate);
+    
     const patientData = {
       name: formData.name,
       sex: formData.sex,
-      birthDate: formData.birthDate,
+      birthDate: birthDateISO, // Send in ISO format
       age: formData.age,
       admissionDate: formData.admissionDate,
       admissionTime: formData.admissionTime,
@@ -80,6 +86,7 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
       occupationDays: 0
     };
 
+    console.log('Patient data being submitted:', patientData);
     onSubmit(patientData);
     onClose();
   };
