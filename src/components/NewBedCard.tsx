@@ -110,14 +110,14 @@ const NewBedCard: React.FC<BedCardProps> = ({
           <div className="space-y-2">
             <Button 
               size="sm" 
-              className="w-full bg-blue-500 hover:bg-blue-600"
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               onClick={() => onReserveBed(bed.id)}
             >
               RESERVAR LEITO
             </Button>
             <Button 
               size="sm" 
-              className="w-full bg-green-500 hover:bg-green-600"
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               onClick={() => onAdmitPatient(bed.id)}
             >
               ADMITIR PACIENTE
@@ -145,7 +145,7 @@ const NewBedCard: React.FC<BedCardProps> = ({
             <div className="flex gap-1">
               <Button 
                 size="sm" 
-                className="flex-1 bg-green-500 hover:bg-green-600"
+                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                 onClick={() => onAdmitPatient(bed.id)}
               >
                 ADMITIR
@@ -154,7 +154,7 @@ const NewBedCard: React.FC<BedCardProps> = ({
                 size="sm" 
                 variant="outline"
                 onClick={() => onDeleteReservation(bed.id)}
-                className="px-2"
+                className="px-2 hover:bg-red-50 hover:border-red-300 transition-colors duration-200"
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -164,7 +164,7 @@ const NewBedCard: React.FC<BedCardProps> = ({
 
         {/* Occupied Bed */}
         {bed.isOccupied && bed.patient && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="text-xs space-y-1">
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3" />
@@ -207,33 +207,40 @@ const NewBedCard: React.FC<BedCardProps> = ({
                 )}
               </div>
             </div>
-            <div className="flex gap-1">
+            
+            {/* Modern Action Buttons with 3D Effect */}
+            <div className="grid grid-cols-1 gap-2">
+              {/* Edit Button */}
               <Button 
                 size="sm" 
-                variant="outline"
                 onClick={() => onEditPatient(bed.id)}
-                className="flex-1"
+                className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:via-amber-600 hover:to-amber-700 text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0 relative overflow-hidden group"
               >
-                <Edit className="h-3 w-3 mr-1" />
-                EDITAR
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-transparent opacity-30 group-hover:opacity-50 transition-opacity duration-200"></div>
+                <Edit className="h-4 w-4 mr-2 relative z-10" />
+                <span className="relative z-10">EDITAR</span>
               </Button>
+
+              {/* Transfer Button */}
               <Button 
                 size="sm" 
-                variant="outline"
                 onClick={() => onTransferPatient(bed.id)}
-                className="flex-1"
+                className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-purple-600 hover:from-indigo-600 hover:via-purple-600 hover:to-purple-700 text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0 relative overflow-hidden group"
               >
-                <ArrowRightLeft className="h-3 w-3 mr-1" />
-                TRANSFERIR
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-300 to-transparent opacity-30 group-hover:opacity-50 transition-opacity duration-200"></div>
+                <ArrowRightLeft className="h-4 w-4 mr-2 relative z-10" />
+                <span className="relative z-10">TRANSFERIR</span>
               </Button>
+
+              {/* Discharge Button */}
               <Button 
                 size="sm" 
-                variant="outline"
                 onClick={() => onDischargePatient(bed.id)}
-                className="flex-1"
+                className="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0 relative overflow-hidden group"
               >
-                <LogOut className="h-3 w-3 mr-1" />
-                ALTA
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-300 to-transparent opacity-30 group-hover:opacity-50 transition-opacity duration-200"></div>
+                <LogOut className="h-4 w-4 mr-2 relative z-10" />
+                <span className="relative z-10">DAR ALTA</span>
               </Button>
             </div>
           </div>
