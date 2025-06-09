@@ -31,11 +31,11 @@ const Index = () => {
           </TabsContent>
           
           <TabsContent value="indicators" className="mt-0">
-            <IndicatorsPanel />
+            <IndicatorsPanel data={centralData} />
           </TabsContent>
           
           <TabsContent value="expected-discharges" className="mt-0">
-            <ExpectedDischargesPanel />
+            <ExpectedDischargesPanel data={centralData} />
           </TabsContent>
           
           <TabsContent value="tfd" className="mt-0">
@@ -51,7 +51,7 @@ const Index = () => {
           </TabsContent>
           
           <TabsContent value="archive" className="mt-0">
-            <ArchivePanel />
+            <ArchivePanel archivedPatients={centralData.archivedPatients} />
           </TabsContent>
           
           <TabsContent value="nir" className="mt-0">

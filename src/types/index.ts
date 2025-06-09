@@ -6,6 +6,7 @@ export interface Patient {
   birthDate: string;
   age: number;
   admissionDate: string;
+  admissionTime?: string;
   diagnosis: string;
   specialty?: string;
   expectedDischargeDate: string;

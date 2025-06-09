@@ -13,7 +13,10 @@ interface NewPatientFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'>) => void;
+  bedId?: string;
+  department?: string;
   patient?: Patient | null;
+  patientData?: Patient | null;
   isEditing?: boolean;
 }
 
@@ -21,23 +24,28 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  bedId,
+  department,
   patient,
+  patientData,
   isEditing = false
 }) => {
+  const currentPatient = patient || patientData;
+  
   const [formData, setFormData] = useState({
-    name: patient?.name || '',
-    sex: patient?.sex || 'masculino',
-    birthDate: patient?.birthDate || '',
-    age: patient?.age || 0,
-    admissionDate: patient?.admissionDate || new Date().toISOString().split('T')[0],
-    admissionTime: patient?.admissionTime || new Date().toTimeString().slice(0, 5),
-    diagnosis: patient?.diagnosis || '',
-    specialty: patient?.specialty || '',
-    expectedDischargeDate: patient?.expectedDischargeDate || '',
-    originCity: patient?.originCity || '',
-    isTFD: patient?.isTFD || false,
-    tfdType: patient?.tfdType || '',
-    department: patient?.department || 'CLINICA MEDICA'
+    name: currentPatient?.name || '',
+    sex: currentPatient?.sex || 'masculino' as 'masculino' | 'feminino',
+    birthDate: currentPatient?.birthDate || '',
+    age: currentPatient?.age || 0,
+    admissionDate: currentPatient?.admissionDate || new Date().toISOString().split('T')[0],
+    admissionTime: currentPatient?.admissionTime || new Date().toTimeString().slice(0, 5),
+    diagnosis: currentPatient?.diagnosis || '',
+    specialty: currentPatient?.specialty || '',
+    expectedDischargeDate: currentPatient?.expectedDischargeDate || '',
+    originCity: currentPatient?.originCity || '',
+    isTFD: currentPatient?.isTFD || false,
+    tfdType: currentPatient?.tfdType || '',
+    department: currentPatient?.department || department || 'CLINICA MEDICA'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,7 +53,7 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
     
     const patientData = {
       name: formData.name,
-      sex: formData.sex as 'masculino' | 'feminino',
+      sex: formData.sex,
       birthDate: formData.birthDate,
       age: formData.age,
       admissionDate: formData.admissionDate,
@@ -87,7 +95,7 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
 
             <div>
               <Label htmlFor="sex">Sexo *</Label>
-              <Select value={formData.sex} onValueChange={(value) => setFormData({ ...formData, sex: value })}>
+              <Select value={formData.sex} onValueChange={(value: 'masculino' | 'feminino') => setFormData({ ...formData, sex: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
