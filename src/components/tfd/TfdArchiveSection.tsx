@@ -66,7 +66,8 @@ const TfdArchiveSection: React.FC = () => {
         <div className="space-y-3">
           {filteredArchives.map((archive) => {
             const patientData = archive.patient_data as TfdPatientData;
-            const interventions = Array.isArray(archive.interventions) ? archive.interventions as TfdIntervention[] : [];
+            const interventions = Array.isArray(archive.interventions) ? 
+              (archive.interventions as unknown as TfdIntervention[]) : [];
             
             return (
               <Card key={archive.id} className="bg-gray-50 border-gray-300">
