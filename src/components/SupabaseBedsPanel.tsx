@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
-import BedCard from '@/components/BedCard';
+import NewBedCard from '@/components/NewBedCard';
 import { Department } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -119,7 +119,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {departmentBeds.map(bed => (
-                  <BedCard
+                  <NewBedCard
                     key={bed.id}
                     bed={bed}
                     onReserveBed={handleReserveBed}

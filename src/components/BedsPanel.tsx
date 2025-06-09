@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import BedCard from './BedCard';
+import NewBedCard from './NewBedCard';
 import ReservationForm from './forms/ReservationForm';
 import PatientForm from './forms/PatientForm';
 import DischargeForm from './forms/DischargeForm';
@@ -289,7 +289,7 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
       {/* Beds Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {departmentBeds.map((bed) => (
-          <BedCard
+          <NewBedCard
             key={bed.id}
             bed={bed}
             onReserveBed={handleReserveBed}
