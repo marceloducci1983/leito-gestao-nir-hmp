@@ -28,6 +28,14 @@ export interface SupabaseBed {
   updated_at?: string;
 }
 
+// Interface for creating new beds
+interface CreateBedData {
+  name: string;
+  department: string;
+  status?: 'available' | 'occupied' | 'reserved';
+  is_custom?: boolean;
+}
+
 export const useBeds = () => {
   const [beds, setBeds] = useState<SupabaseBed[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,11 +63,16 @@ export const useBeds = () => {
     }
   };
 
-  const createBed = async (bedData: Partial<SupabaseBed>) => {
+  const createBed = async (bedData: CreateBedData) => {
     try {
       const { data, error } = await supabase
         .from('beds')
-        .insert([bedData])
+        .insert([{
+          name: bedData.name,
+          department: bedData.department,
+          status: bedData.status || 'available',
+          is_custom: bedData.is_custom || false
+        }])
         .select()
         .single();
       

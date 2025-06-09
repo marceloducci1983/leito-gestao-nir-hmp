@@ -111,6 +111,22 @@ export const usePatients = () => {
       const today = new Date();
       const daysOccupied = Math.ceil((today.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
+      // Map discharge type to database enum values
+      const mapDischargeType = (type: string) => {
+        switch (type) {
+          case 'POR MELHORA':
+            return 'melhora';
+          case 'EVASÃO':
+            return 'evasao';
+          case 'TRANSFERENCIA':
+            return 'transferencia';
+          case 'OBITO':
+            return 'obito';
+          default:
+            return 'melhora';
+        }
+      };
+
       // Create discharge record
       const { error: dischargeError } = await supabase
         .from('discharge_records')
@@ -129,7 +145,7 @@ export const usePatients = () => {
           tfd_type: patient.tfd_type,
           discharge_date: new Date().toISOString().split('T')[0],
           discharge_time: new Date().toTimeString().split(' ')[0],
-          discharge_type: dischargeType,
+          discharge_type: mapDischargeType(dischargeType),
           days_occupied: daysOccupied
         }]);
 
