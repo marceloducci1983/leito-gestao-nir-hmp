@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -312,26 +311,11 @@ const DischargeMonitoringPanel: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {readmissions.map((readmission, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{readmission.patient_name}</h4>
-                        <Badge variant="outline">{readmission.days_between} dias</Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Alta:</span> {new Date(readmission.discharge_date).toLocaleDateString()}
-                        </div>
-                        <div>
-                          <span className="font-medium">Reinternação:</span> {new Date(readmission.readmission_date).toLocaleDateString()}
-                        </div>
-                        <div>
-                          <span className="font-medium">Diagnóstico:</span> {readmission.diagnosis}
-                        </div>
-                        <div>
-                          <span className="font-medium">Origem:</span> {readmission.origin_city}
-                        </div>
-                      </div>
-                    </div>
+                    <ReadmissionCard 
+                      key={index} 
+                      readmission={readmission}
+                      investigation={null} // Será implementado com query específica
+                    />
                   ))}
                 </div>
               )}

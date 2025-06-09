@@ -15,7 +15,11 @@ export type Database = {
           created_at: string
           id: string
           investigated: boolean
+          investigated_at: string | null
+          investigated_by: string | null
           investigation_date: string | null
+          investigation_notes: string | null
+          investigation_status: string | null
           patient_id: string
           updated_at: string
         }
@@ -24,7 +28,11 @@ export type Database = {
           created_at?: string
           id?: string
           investigated?: boolean
+          investigated_at?: string | null
+          investigated_by?: string | null
           investigation_date?: string | null
+          investigation_notes?: string | null
+          investigation_status?: string | null
           patient_id: string
           updated_at?: string
         }
@@ -33,7 +41,11 @@ export type Database = {
           created_at?: string
           id?: string
           investigated?: boolean
+          investigated_at?: string | null
+          investigated_by?: string | null
           investigation_date?: string | null
+          investigation_notes?: string | null
+          investigation_status?: string | null
           patient_id?: string
           updated_at?: string
         }
@@ -434,11 +446,87 @@ export type Database = {
           },
         ]
       }
+      tfd_archives: {
+        Row: {
+          archived_at: string
+          archived_by: string | null
+          id: string
+          interventions: Json | null
+          patient_data: Json
+          patient_id: string
+          patient_name: string
+        }
+        Insert: {
+          archived_at?: string
+          archived_by?: string | null
+          id?: string
+          interventions?: Json | null
+          patient_data: Json
+          patient_id: string
+          patient_name: string
+        }
+        Update: {
+          archived_at?: string
+          archived_by?: string | null
+          id?: string
+          interventions?: Json | null
+          patient_data?: Json
+          patient_id?: string
+          patient_name?: string
+        }
+        Relationships: []
+      }
+      tfd_interventions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          intervention_type: string
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          intervention_type: string
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          intervention_type?: string
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_average_discharge_time_by_department: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          department: string
+          avg_discharge_time_hours: number
+          total_discharges: number
+        }[]
+      }
+      get_delayed_discharges: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          patient_name: string
+          department: string
+          discharge_requested_at: string
+          discharge_effective_at: string
+          delay_hours: number
+          justification: string
+        }[]
+      }
       get_department_stats: {
         Args: Record<PropertyKey, never>
         Returns: {

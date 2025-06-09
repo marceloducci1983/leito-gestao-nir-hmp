@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -117,6 +116,51 @@ export const useCompleteDischarge = () => {
     onError: (error) => {
       console.error('Erro ao efetivar alta:', error);
       toast.error('Erro ao efetivar alta. Tente novamente.');
+    }
+  });
+};
+
+// Adicionar nova função para integração automática com painel de leitos
+export const useRequestDischargeFromBed = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      patientId,
+      patientName,
+      bedId,
+      department
+    }: {
+      patientId: string;
+      patientName: string;
+      bedId: string;
+      department: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('discharge_control')
+        .insert({
+          patient_id: patientId,
+          patient_name: patientName,
+          bed_id: bedId,
+          department: department,
+          status: 'pending',
+          discharge_requested_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Erro ao solicitar alta:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
+      toast.success('Alta solicitada! Aguardando confirmação no Monitoramento de Altas.');
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao solicitar alta');
+      console.error('Erro:', error);
     }
   });
 };
