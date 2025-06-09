@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Patient } from '@/types';
+import { calculateAge, isValidDate } from '@/utils/dateUtils';
 
 interface NewPatientFormProps {
   isOpen: boolean;
@@ -47,6 +47,18 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
     tfdType: currentPatient?.tfdType || '',
     department: currentPatient?.department || department || 'CLINICA MEDICA'
   });
+
+  // Calculate age automatically when birth date changes
+  useEffect(() => {
+    if (formData.birthDate && isValidDate(formData.birthDate)) {
+      const calculatedAge = calculateAge(formData.birthDate);
+      setFormData(prev => ({ ...prev, age: calculatedAge }));
+    }
+  }, [formData.birthDate]);
+
+  const handleBirthDateChange = (value: string) => {
+    setFormData(prev => ({ ...prev, birthDate: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,20 +127,27 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
                 type="text"
                 placeholder="DD/MM/AAAA"
                 value={formData.birthDate}
-                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                onChange={(e) => handleBirthDateChange(e.target.value)}
                 required
               />
+              {formData.birthDate && !isValidDate(formData.birthDate) && (
+                <p className="text-sm text-red-600 mt-1">Formato inválido. Use DD/MM/AAAA</p>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="age">Idade *</Label>
+              <Label htmlFor="age">Idade</Label>
               <Input
                 id="age"
                 type="number"
                 value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
-                required
+                readOnly
+                className="bg-gray-100"
+                placeholder="Calculada automaticamente"
               />
+              {formData.age > 0 && (
+                <p className="text-sm text-green-600 mt-1">IDADE: {formData.age} anos</p>
+              )}
             </div>
           </div>
 
@@ -210,17 +229,12 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
             {formData.isTFD && (
               <div>
                 <Label htmlFor="tfdType">Tipo de TFD</Label>
-                <Select value={formData.tfdType} onValueChange={(value) => setFormData({ ...formData, tfdType: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo de TFD" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INTERNO">TFD Interno</SelectItem>
-                    <SelectItem value="EXTERNO">TFD Externo</SelectItem>
-                    <SelectItem value="REGULACAO">Regulação</SelectItem>
-                    <SelectItem value="URGENCIA">Urgência</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="tfdType"
+                  placeholder="Digite o tipo de TFD"
+                  value={formData.tfdType}
+                  onChange={(e) => setFormData({ ...formData, tfdType: e.target.value })}
+                />
               </div>
             )}
           </div>

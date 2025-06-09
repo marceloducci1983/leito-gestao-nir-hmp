@@ -7,7 +7,8 @@ import NewReservationForm from '@/components/forms/NewReservationForm';
 import DischargeModal from '@/components/forms/DischargeModal';
 import TransferModal from '@/components/forms/TransferModal';
 import { Department, Patient } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
@@ -156,12 +157,21 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   // Handlers para submissão dos formulários
   const submitReservation = async (reservationData: any) => {
     try {
-      await addReservation({ bedId: selectedBedId, reservation: reservationData });
+      await addReservation({ 
+        bedId: selectedBedId, 
+        reservation: {
+          patient_name: reservationData.patient_name,
+          origin_clinic: reservationData.origin_clinic,
+          diagnosis: reservationData.diagnosis
+        }
+      });
+      setShowReservationForm(false);
       toast({
         title: "Leito reservado com sucesso",
         description: `Reserva para ${reservationData.patient_name}`,
       });
     } catch (error) {
+      console.error('Erro ao reservar leito:', error);
       toast({
         title: "Erro",
         description: "Erro ao reservar leito",
@@ -173,11 +183,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const submitPatient = async (patientData: any) => {
     try {
       await addPatient({ bedId: selectedBedId, patientData });
+      setShowPatientForm(false);
       toast({
         title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
         description: `${patientData.name} - ${patientData.diagnosis}`,
       });
     } catch (error) {
+      console.error('Erro ao admitir/editar paciente:', error);
       toast({
         title: "Erro",
         description: isEditingPatient ? "Erro ao editar paciente" : "Erro ao admitir paciente",
@@ -198,11 +210,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
           dischargeDate: new Date().toISOString().split('T')[0]
         }
       });
+      setShowDischargeModal(false);
       toast({
         title: "Alta realizada com sucesso",
         description: `${selectedPatient.name} - ${dischargeType}`,
       });
     } catch (error) {
+      console.error('Erro ao dar alta:', error);
       toast({
         title: "Erro",
         description: "Erro ao dar alta",
@@ -220,11 +234,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         fromBedId: selectedBedId,
         toBedId: targetBedId
       });
+      setShowTransferModal(false);
       toast({
         title: "Transferência realizada com sucesso",
         description: `${selectedPatient.name} transferido para ${targetDepartment}`,
       });
     } catch (error) {
+      console.error('Erro ao transferir paciente:', error);
       toast({
         title: "Erro",
         description: "Erro ao transferir paciente",
@@ -250,51 +266,58 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         </div>
       </div>
 
-      {/* Layout dos departamentos lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <Tabs value={selectedDepartment} onValueChange={(value) => setSelectedDepartment(value as Department)} className="w-full">
+        <TabsList className="grid w-full grid-cols-7">
+          {departments.map(department => {
+            const departmentBeds = centralData.beds.filter(bed => bed.department === department);
+            const occupiedCount = departmentBeds.filter(bed => bed.isOccupied).length;
+            const reservedCount = departmentBeds.filter(bed => bed.isReserved).length;
+            const availableCount = departmentBeds.length - occupiedCount - reservedCount;
+            
+            return (
+              <TabsTrigger key={department} value={department} className="text-xs">
+                <div className="flex flex-col items-center">
+                  <span className="font-medium">{department}</span>
+                  <div className="text-xs text-gray-500">
+                    <span className="text-green-600">{availableCount}</span>/
+                    <span className="text-red-600">{occupiedCount}</span>/
+                    <span className="text-yellow-600">{reservedCount}</span>
+                  </div>
+                </div>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
         {departments.map(department => {
           const departmentBeds = centralData.beds.filter(bed => bed.department === department);
           const sortedBeds = sortBedsByCustomOrder(departmentBeds, department);
-          const occupiedCount = sortedBeds.filter(bed => bed.isOccupied).length;
-          const reservedCount = sortedBeds.filter(bed => bed.isReserved).length;
-          const availableCount = sortedBeds.length - occupiedCount - reservedCount;
 
           return (
-            <Card key={department} className="flex-1">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  <div className="space-y-2">
-                    <span className="block">{department}</span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <span className="text-green-600">Disponíveis: {availableCount}</span>
-                      <span className="text-red-600">Ocupados: {occupiedCount}</span>
-                      <span className="text-yellow-600">Reservados: {reservedCount}</span>
-                      <span className="text-gray-600">Total: {sortedBeds.length}</span>
-                    </div>
+            <TabsContent key={department} value={department} className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {sortedBeds.map(bed => (
+                      <NewBedCard
+                        key={bed.id}
+                        bed={bed}
+                        onReserveBed={handleReserveBed}
+                        onAdmitPatient={handleAdmitPatient}
+                        onEditPatient={handleEditPatient}
+                        onTransferPatient={handleTransferPatient}
+                        onDischargePatient={handleDischargePatient}
+                        onDeleteReservation={handleDeleteReservation}
+                        onDeleteBed={handleDeleteBed}
+                      />
+                    ))}
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
-                  {sortedBeds.map(bed => (
-                    <NewBedCard
-                      key={bed.id}
-                      bed={bed}
-                      onReserveBed={handleReserveBed}
-                      onAdmitPatient={handleAdmitPatient}
-                      onEditPatient={handleEditPatient}
-                      onTransferPatient={handleTransferPatient}
-                      onDischargePatient={handleDischargePatient}
-                      onDeleteReservation={handleDeleteReservation}
-                      onDeleteBed={handleDeleteBed}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
           );
         })}
-      </div>
+      </Tabs>
 
       {/* Modais */}
       <NewReservationForm
