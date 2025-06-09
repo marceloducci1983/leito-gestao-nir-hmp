@@ -74,15 +74,65 @@ export const useArchiveTfdPatient = () => {
         throw archiveError;
       }
 
-      // Depois dar alta ao paciente (move para patient_discharges)
-      const { error: dischargeError } = await supabase.rpc('discharge_patient', {
-        patient_id: patientId,
-        discharge_type: 'POR MELHORA'
-      });
+      // Depois dar alta ao paciente através da tabela patient_discharges
+      const { data: patientDataFromDb } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', patientId)
+        .single();
 
-      if (dischargeError) {
-        console.error('Erro ao dar alta ao paciente:', dischargeError);
-        throw dischargeError;
+      if (patientDataFromDb) {
+        // Inserir na tabela de altas
+        const { error: dischargeError } = await supabase
+          .from('patient_discharges')
+          .insert({
+            patient_id: patientId,
+            name: patientDataFromDb.name,
+            sex: patientDataFromDb.sex,
+            birth_date: patientDataFromDb.birth_date,
+            age: patientDataFromDb.age,
+            admission_date: patientDataFromDb.admission_date,
+            discharge_date: new Date().toISOString().split('T')[0],
+            diagnosis: patientDataFromDb.diagnosis,
+            specialty: patientDataFromDb.specialty,
+            expected_discharge_date: patientDataFromDb.expected_discharge_date,
+            origin_city: patientDataFromDb.origin_city,
+            occupation_days: patientDataFromDb.occupation_days || 0,
+            actual_stay_days: Math.ceil((new Date().getTime() - new Date(patientDataFromDb.admission_date).getTime()) / (1000 * 60 * 60 * 24)),
+            is_tfd: patientDataFromDb.is_tfd,
+            tfd_type: patientDataFromDb.tfd_type,
+            bed_id: patientDataFromDb.bed_id || '',
+            department: patientDataFromDb.department,
+            discharge_type: 'POR MELHORA'
+          });
+
+        if (dischargeError) {
+          console.error('Erro ao dar alta ao paciente:', dischargeError);
+          throw dischargeError;
+        }
+
+        // Remover paciente da tabela patients
+        const { error: deleteError } = await supabase
+          .from('patients')
+          .delete()
+          .eq('id', patientId);
+
+        if (deleteError) {
+          console.error('Erro ao remover paciente:', deleteError);
+          throw deleteError;
+        }
+
+        // Atualizar status do leito
+        if (patientDataFromDb.bed_id) {
+          const { error: bedError } = await supabase
+            .from('beds')
+            .update({ is_occupied: false })
+            .eq('id', patientDataFromDb.bed_id);
+
+          if (bedError) {
+            console.error('Erro ao atualizar leito:', bedError);
+          }
+        }
       }
 
       return archiveData;

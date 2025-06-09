@@ -6,15 +6,27 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Archive, Calendar, MapPin } from 'lucide-react';
 import { useTfdArchives } from '@/hooks/queries/useTfdQueries';
 
+interface TfdPatientData {
+  originCity?: string;
+  diagnosis?: string;
+  tfdType?: string;
+}
+
+interface TfdIntervention {
+  intervention_type: string;
+  description: string;
+}
+
 const TfdArchiveSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: archives = [], isLoading } = useTfdArchives();
 
-  const filteredArchives = archives.filter(archive =>
-    archive.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    archive.patient_data?.originCity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    archive.patient_data?.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredArchives = archives.filter(archive => {
+    const patientData = archive.patient_data as TfdPatientData;
+    return archive.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patientData?.originCity?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (patientData?.diagnosis?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+  });
 
   if (isLoading) {
     return (
@@ -52,69 +64,74 @@ const TfdArchiveSection: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredArchives.map((archive) => (
-            <Card key={archive.id} className="bg-gray-50 border-gray-300">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Archive className="h-5 w-5 text-gray-600" />
-                    {archive.patient_name}
-                  </CardTitle>
-                  <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                    Caso Resolvido
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
-                  <div>
-                    <p className="font-medium text-gray-600">Data de Arquivo</p>
-                    <p className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(archive.archived_at).toLocaleDateString()}
-                    </p>
+          {filteredArchives.map((archive) => {
+            const patientData = archive.patient_data as TfdPatientData;
+            const interventions = Array.isArray(archive.interventions) ? archive.interventions as TfdIntervention[] : [];
+            
+            return (
+              <Card key={archive.id} className="bg-gray-50 border-gray-300">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Archive className="h-5 w-5 text-gray-600" />
+                      {archive.patient_name}
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                      Caso Resolvido
+                    </Badge>
                   </div>
-                  
-                  <div>
-                    <p className="font-medium text-gray-600">Município</p>
-                    <p className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      {archive.patient_data?.originCity || 'N/A'}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="font-medium text-gray-600">Diagnóstico</p>
-                    <p>{archive.patient_data?.diagnosis || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <p className="font-medium text-gray-600">Tipo TFD</p>
-                    <p>{archive.patient_data?.tfdType || 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Mostrar intervenções se existirem */}
-                {archive.interventions && archive.interventions.length > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                    <p className="font-medium text-sm text-blue-800 mb-2">
-                      Intervenções Realizadas ({archive.interventions.length}):
-                    </p>
-                    <div className="space-y-1">
-                      {archive.interventions.slice(0, 3).map((intervention: any, index: number) => (
-                        <div key={index} className="text-xs text-blue-700">
-                          <strong>{intervention.intervention_type}:</strong> {intervention.description}
-                        </div>
-                      ))}
-                      {archive.interventions.length > 3 && (
-                        <p className="text-xs text-blue-600">+ {archive.interventions.length - 3} mais...</p>
-                      )}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                    <div>
+                      <p className="font-medium text-gray-600">Data de Arquivo</p>
+                      <p className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(archive.archived_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="font-medium text-gray-600">Município</p>
+                      <p className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {patientData?.originCity || 'N/A'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="font-medium text-gray-600">Diagnóstico</p>
+                      <p>{patientData?.diagnosis || 'N/A'}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="font-medium text-gray-600">Tipo TFD</p>
+                      <p>{patientData?.tfdType || 'N/A'}</p>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Mostrar intervenções se existirem */}
+                  {interventions.length > 0 && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                      <p className="font-medium text-sm text-blue-800 mb-2">
+                        Intervenções Realizadas ({interventions.length}):
+                      </p>
+                      <div className="space-y-1">
+                        {interventions.slice(0, 3).map((intervention, index) => (
+                          <div key={index} className="text-xs text-blue-700">
+                            <strong>{intervention.intervention_type}:</strong> {intervention.description}
+                          </div>
+                        ))}
+                        {interventions.length > 3 && (
+                          <p className="text-xs text-blue-600">+ {interventions.length - 3} mais...</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

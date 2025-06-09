@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp } from 'lucide-react';
 import { useDischargeControl, useReadmissions, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
+import ReadmissionCard from '@/components/readmissions/ReadmissionCard';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
