@@ -182,7 +182,7 @@ export const useSupabaseBeds = () => {
           is_tfd: patient.isTFD,
           tfd_type: patient.tfdType,
           bed_id: bedId,
-          department: patient.department
+          department: patient.department as any
         })
         .select()
         .single();
@@ -245,7 +245,7 @@ export const useSupabaseBeds = () => {
           is_tfd: patient.is_tfd,
           tfd_type: patient.tfd_type,
           bed_id: patient.bed_id || bedId,
-          department: patient.department,
+          department: patient.department as any,
           discharge_type: dischargeData.dischargeType as any
         });
 
@@ -285,7 +285,7 @@ export const useSupabaseBeds = () => {
           origin_clinic: reservation.originClinic,
           diagnosis: reservation.diagnosis,
           bed_id: bedId,
-          department: reservation.department
+          department: reservation.department as any
         });
 
       if (reservationError) throw reservationError;
@@ -336,8 +336,8 @@ export const useSupabaseBeds = () => {
           patient_id: patientId,
           from_bed_id: fromBedId,
           to_bed_id: toBedId,
-          from_department: patient.department,
-          to_department: toBed.department,
+          from_department: patient.department as any,
+          to_department: toBed.department as any,
           notes: notes
         });
 
@@ -347,7 +347,7 @@ export const useSupabaseBeds = () => {
         .from('patients')
         .update({ 
           bed_id: toBedId,
-          department: toBed.department
+          department: toBed.department as any
         })
         .eq('id', patientId);
 
