@@ -1,108 +1,65 @@
 
 import React, { useState } from 'react';
-import LoginScreen from '@/components/LoginScreen';
-import NavigationBar from '@/components/NavigationBar';
-import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import BedsManagement from '@/components/BedsManagement';
+import IndicatorsPanel from '@/components/IndicatorsPanel';
+import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
 import ArchivePanel from '@/components/ArchivePanel';
 import DischargeMonitoring from '@/components/DischargeMonitoring';
-import IndicatorsPanel from '@/components/IndicatorsPanel';
-import PlaceholderPanel from '@/components/PlaceholderPanel';
-import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
-import { Bed, DischargedPatient } from '@/types';
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Skip login for now since we don't have auth setup
-  const [activeTab, setActiveTab] = useState('PAINEL DE LEITOS');
-  
-  // Central data state that flows from SupabaseBedsPanel to other modules
-  const [centralData, setCentralData] = useState<{
-    beds: Bed[];
-    archivedPatients: DischargedPatient[];
-    dischargeMonitoring: DischargedPatient[];
-  }>({
+  const [centralData, setCentralData] = useState({
     beds: [],
     archivedPatients: [],
     dischargeMonitoring: []
   });
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setActiveTab('PAINEL DE LEITOS');
-  };
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
-
-  const handleDataChange = (data: {
-    beds: Bed[];
-    archivedPatients: DischargedPatient[];
-    dischargeMonitoring: DischargedPatient[];
-  }) => {
+  const handleDataChange = (data: any) => {
     setCentralData(data);
-  };
-
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
-  const renderActivePanel = () => {
-    switch (activeTab) {
-      case 'PAINEL DE LEITOS':
-        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
-      case 'ARQUIVO':
-        return <ArchivePanel archivedPatients={centralData.archivedPatients} />;
-      case 'MONITORAMENTO DE ALTAS':
-        return <DischargeMonitoring dischargeMonitoring={centralData.dischargeMonitoring} />;
-      case 'INDICADORES':
-        return (
-          <IndicatorsPanel 
-            beds={centralData.beds} 
-            archivedPatients={centralData.archivedPatients}
-          />
-        );
-      case 'ALTAS PREVISTAS':
-        return <ExpectedDischargesPanel beds={centralData.beds} />;
-      case 'EM TFD':
-        return (
-          <PlaceholderPanel
-            title="EM TFD"
-            description="Módulo específico para gerenciamento de pacientes em Tratamento Fora do Domicílio."
-          />
-        );
-      case 'ALERTAS DE INTERVENÇÃO':
-        return (
-          <PlaceholderPanel
-            title="ALERTAS DE INTERVENÇÃO"
-            description="Sistema de alertas para situações que requerem intervenção médica ou administrativa urgente."
-          />
-        );
-      case 'NIR':
-        return (
-          <PlaceholderPanel
-            title="NIR"
-            description="Módulo do Núcleo Interno de Regulação para gestão de fluxos e regulação de leitos."
-          />
-        );
-      default:
-        return <SupabaseBedsPanel onDataChange={handleDataChange} />;
-    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavigationBar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        onLogout={handleLogout}
-      />
-      <main className="container mx-auto px-4 py-6">
-        {renderActivePanel()}
-      </main>
+      <div className="container mx-auto p-4">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Sistema de Gestão Hospitalar
+          </h1>
+          <p className="text-gray-600">
+            Gestão completa de leitos, pacientes e indicadores hospitalares
+          </p>
+        </div>
+
+        <Tabs defaultValue="gestao-leitos" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="gestao-leitos">Gestão de Leitos</TabsTrigger>
+            <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
+            <TabsTrigger value="altas-previstas">Altas Previstas</TabsTrigger>
+            <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
+            <TabsTrigger value="monitoramento">Monitoramento</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="gestao-leitos" className="space-y-6">
+            <BedsManagement onDataChange={handleDataChange} />
+          </TabsContent>
+
+          <TabsContent value="indicadores" className="space-y-6">
+            <IndicatorsPanel data={centralData} />
+          </TabsContent>
+
+          <TabsContent value="altas-previstas" className="space-y-6">
+            <ExpectedDischargesPanel data={centralData} />
+          </TabsContent>
+
+          <TabsContent value="arquivo" className="space-y-6">
+            <ArchivePanel />
+          </TabsContent>
+
+          <TabsContent value="monitoramento" className="space-y-6">
+            <DischargeMonitoring />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

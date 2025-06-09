@@ -1,341 +1,237 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Printer, Calendar, Clock, Users, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useExpectedDischarges } from '@/hooks/useExpectedDischarges';
-import DischargeTable from '@/components/discharges/DischargeTable';
-import DischargeCard from '@/components/discharges/DischargeCard';
-import DischargeFiltersComponent from '@/components/discharges/DischargeFilters';
-import { Bed, Department } from '@/types';
-import { DischargeFilters } from '@/types/discharges';
-import jsPDF from 'jspdf';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { FileText, User, Calendar, MapPin, Stethoscope } from 'lucide-react';
+import { format, addDays, isWithinInterval } from 'date-fns';
 
 interface ExpectedDischargesPanelProps {
-  beds: Bed[];
+  data: {
+    beds: any[];
+    archivedPatients: any[];
+    dischargeMonitoring: any[];
+  };
 }
 
-const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ beds }) => {
-  const [filters, setFilters] = useState<DischargeFilters>({
-    sortBy: 'expectedDischargeDate',
-    sortOrder: 'asc'
-  });
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
-  
-  const { toast } = useToast();
-  const expectedDischarges = useExpectedDischarges(beds, filters);
+const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data }) => {
+  const { discharges24h, discharges48h } = useMemo(() => {
+    const today = new Date();
+    const tomorrow = addDays(today, 1);
+    const dayAfterTomorrow = addDays(today, 2);
 
-  const departments: Department[] = [
-    'CLINICA MEDICA',
-    'PRONTO SOCORRO', 
-    'CLINICA CIRURGICA',
-    'UTI ADULTO',
-    'UTI NEONATAL',
-    'PEDIATRIA',
-    'MATERNIDADE'
-  ];
+    const occupiedBeds = data.beds.filter(bed => bed.isOccupied && bed.patient);
+    
+    const discharges24h = occupiedBeds.filter(bed => {
+      const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
+      return isWithinInterval(expectedDischarge, { start: today, end: tomorrow });
+    });
 
-  const generatePDF = () => {
-    try {
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.width;
-      const margin = 20;
-      let yPosition = margin;
+    const discharges48h = occupiedBeds.filter(bed => {
+      const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
+      return isWithinInterval(expectedDischarge, { start: addDays(today, 1), end: dayAfterTomorrow });
+    });
 
-      // Header
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('RELATÓRIO DE ALTAS PREVISTAS', pageWidth / 2, yPosition, { align: 'center' });
-      
-      yPosition += 10;
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
-      
-      yPosition += 15;
+    return { discharges24h, discharges48h };
+  }, [data.beds]);
 
-      // Summary
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('RESUMO:', margin, yPosition);
-      
-      yPosition += 7;
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`• Total de altas previstas: ${expectedDischarges.totalCount}`, margin + 5, yPosition);
-      
-      yPosition += 5;
-      pdf.text(`• Altas em 24h: ${expectedDischarges.urgent24h}`, margin + 5, yPosition);
-      
-      yPosition += 5;
-      pdf.text(`• Altas em 48h: ${expectedDischarges.upcoming48h}`, margin + 5, yPosition);
-      
-      yPosition += 15;
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), 'dd/MM/yyyy');
+  };
 
-      // 24h Discharges
-      if (expectedDischarges.groups.within24Hours.length > 0) {
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('ALTAS PREVISTAS - 24 HORAS', margin, yPosition);
-        yPosition += 10;
+  const calculateAge = (birthDate: string) => {
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
 
-        expectedDischarges.groups.within24Hours.forEach((discharge) => {
-          if (yPosition > 250) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`• ${discharge.patient.name}`, margin + 5, yPosition);
-          
-          yPosition += 5;
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`  Nascimento: ${new Date(discharge.patient.birthDate).toLocaleDateString('pt-BR')} (${discharge.patient.age} anos)`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  DPA: ${new Date(discharge.patient.expectedDischargeDate).toLocaleString('pt-BR')}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Município: ${discharge.patient.originCity}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Setor: ${discharge.patient.department} - Leito: ${discharge.patient.bedId}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Diagnóstico: ${discharge.patient.diagnosis}`, margin + 10, yPosition);
-          
-          yPosition += 8;
-        });
-
-        yPosition += 10;
-      }
-
-      // 48h Discharges
-      if (expectedDischarges.groups.within48Hours.length > 0) {
-        if (yPosition > 200) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('ALTAS PREVISTAS - 48 HORAS', margin, yPosition);
-        yPosition += 10;
-
-        expectedDischarges.groups.within48Hours.forEach((discharge) => {
-          if (yPosition > 250) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`• ${discharge.patient.name}`, margin + 5, yPosition);
-          
-          yPosition += 5;
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`  Nascimento: ${new Date(discharge.patient.birthDate).toLocaleDateString('pt-BR')} (${discharge.patient.age} anos)`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  DPA: ${new Date(discharge.patient.expectedDischargeDate).toLocaleString('pt-BR')}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Município: ${discharge.patient.originCity}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Setor: ${discharge.patient.department} - Leito: ${discharge.patient.bedId}`, margin + 10, yPosition);
-          
-          yPosition += 4;
-          pdf.text(`  Diagnóstico: ${discharge.patient.diagnosis}`, margin + 10, yPosition);
-          
-          yPosition += 8;
-        });
-      }
-
-      pdf.save(`altas-previstas-${new Date().toISOString().split('T')[0]}.pdf`);
-      
-      toast({
-        title: "PDF gerado com sucesso",
-        description: "O relatório de altas previstas foi baixado",
-      });
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast({
-        title: "Erro ao gerar PDF",
-        description: "Ocorreu um erro ao gerar o relatório",
-        variant: "destructive",
-      });
+  const handlePrint = () => {
+    const printContent = document.getElementById('discharges-content');
+    if (printContent) {
+      const newWindow = window.open('', '_blank');
+      newWindow?.document.write(`
+        <html>
+          <head>
+            <title>Altas Previstas</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .section { margin-bottom: 30px; }
+              .section h2 { color: #333; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+              .patient-list { display: grid; gap: 15px; }
+              .patient-item { border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+              .patient-header { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+              .patient-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+              .info-item { display: flex; align-items: center; gap: 5px; }
+              .highlight { background-color: #fffbea; border-left: 4px solid #f59e0b; padding-left: 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Relatório de Altas Previstas</h1>
+              <p>Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+            </div>
+            ${printContent.innerHTML}
+          </body>
+        </html>
+      `);
+      newWindow?.document.close();
+      newWindow?.print();
     }
   };
 
+  const PatientCard = ({ bed, isUrgent = false }: { bed: any; isUrgent?: boolean }) => (
+    <Card className={`${isUrgent ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}>
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="font-semibold text-lg">{bed.patient.name}</span>
+              <Badge variant="outline">{bed.name} - {bed.department}</Badge>
+            </div>
+            {isUrgent && (
+              <Badge className="bg-orange-500">Urgente - 24h</Badge>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3 w-3" />
+              <span>Nascimento: {formatDate(bed.patient.birthDate)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="h-3 w-3" />
+              <span>Idade: {calculateAge(bed.patient.birthDate)} anos</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3 w-3" />
+              <span>Admissão: {formatDate(bed.patient.admissionDate)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3 w-3" />
+              <span className="font-medium">Origem: {bed.patient.originCity}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3 w-3 text-orange-600" />
+              <span className="font-medium text-orange-600">
+                DPA: {formatDate(bed.patient.expectedDischargeDate)}
+              </span>
+            </div>
+            {bed.patient.specialty && (
+              <div className="flex items-center gap-2">
+                <Stethoscope className="h-3 w-3" />
+                <span>Especialidade: {bed.patient.specialty}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-start gap-2">
+            <Stethoscope className="h-3 w-3 mt-1" />
+            <span className="text-sm">{bed.patient.diagnosis}</span>
+          </div>
+          
+          {bed.patient.isTFD && (
+            <Badge variant="secondary" className="text-xs">
+              TFD {bed.patient.tfdType && `- ${bed.patient.tfdType}`}
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">ALTAS PREVISTAS</h1>
-          <p className="text-gray-600">Acompanhamento de pacientes com alta prevista nas próximas 24h e 48h</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
-            variant="outline"
-          >
-            {viewMode === 'table' ? 'Visualizar Cards' : 'Visualizar Tabela'}
-          </Button>
-          <Button onClick={generatePDF} className="flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            IMPRIMIR
-          </Button>
-        </div>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Altas Previstas</h1>
+        <Button onClick={handlePrint} variant="outline">
+          <FileText className="mr-2 h-4 w-4" />
+          IMPRIMIR
+        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div id="discharges-content" className="space-y-6">
+        {/* 24h Discharges */}
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="text-orange-600">Altas 24h ({discharges24h.length} pacientes)</span>
+                <Badge className="bg-orange-500">{discharges24h.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {discharges24h.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  Nenhum paciente com alta prevista para as próximas 24 horas.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {discharges24h.map((bed) => (
+                    <PatientCard key={bed.id} bed={bed} isUrgent={true} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 48h Discharges */}
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="text-blue-600">Altas 48h ({discharges48h.length} pacientes)</span>
+                <Badge variant="outline">{discharges48h.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {discharges48h.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  Nenhum paciente com alta prevista para 48 horas.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {discharges48h.map((bed) => (
+                    <PatientCard key={bed.id} bed={bed} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Summary */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Total de Altas
-            </CardTitle>
+          <CardHeader>
+            <CardTitle>Resumo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">{expectedDischarges.totalCount}</div>
-            <p className="text-xs text-gray-500">Próximas 48 horas</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-600 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Altas 24h
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">{expectedDischarges.urgent24h}</div>
-            <p className="text-xs text-red-500">Urgente</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-600 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Altas 48h
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-700">{expectedDischarges.upcoming48h}</div>
-            <p className="text-xs text-yellow-500">Programadas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Última Atualização
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-bold text-gray-700">{new Date().toLocaleTimeString('pt-BR')}</div>
-            <p className="text-xs text-gray-500">Tempo real</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{discharges24h.length}</div>
+                <div className="text-sm text-gray-600">Altas em 24h</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{discharges48h.length}</div>
+                <div className="text-sm text-gray-600">Altas em 48h</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-600">{discharges24h.length + discharges48h.length}</div>
+                <div className="text-sm text-gray-600">Total de Altas</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Filters */}
-      <DischargeFiltersComponent
-        filters={filters}
-        onFiltersChange={setFilters}
-        departments={departments}
-      />
-
-      {/* Content */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">Todas as Altas ({expectedDischarges.totalCount})</TabsTrigger>
-          <TabsTrigger value="24h" className="text-red-600">24 Horas ({expectedDischarges.urgent24h})</TabsTrigger>
-          <TabsTrigger value="48h" className="text-yellow-600">48 Horas ({expectedDischarges.upcoming48h})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-6">
-          {viewMode === 'table' ? (
-            <div className="space-y-8">
-              <DischargeTable
-                discharges={expectedDischarges.groups.within24Hours}
-                title="ALTAS PREVISTAS - 24 HORAS"
-                variant="24h"
-              />
-              <DischargeTable
-                discharges={expectedDischarges.groups.within48Hours}
-                title="ALTAS PREVISTAS - 48 HORAS"
-                variant="48h"
-              />
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {expectedDischarges.groups.within24Hours.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-red-700">ALTAS PREVISTAS - 24 HORAS</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {expectedDischarges.groups.within24Hours.map((discharge) => (
-                      <DischargeCard key={discharge.patient.id} discharge={discharge} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {expectedDischarges.groups.within48Hours.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-yellow-700">ALTAS PREVISTAS - 48 HORAS</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {expectedDischarges.groups.within48Hours.map((discharge) => (
-                      <DischargeCard key={discharge.patient.id} discharge={discharge} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="24h">
-          {viewMode === 'table' ? (
-            <DischargeTable
-              discharges={expectedDischarges.groups.within24Hours}
-              title="ALTAS PREVISTAS - 24 HORAS"
-              variant="24h"
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {expectedDischarges.groups.within24Hours.map((discharge) => (
-                <DischargeCard key={discharge.patient.id} discharge={discharge} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="48h">
-          {viewMode === 'table' ? (
-            <DischargeTable
-              discharges={expectedDischarges.groups.within48Hours}
-              title="ALTAS PREVISTAS - 48 HORAS"
-              variant="48h"
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {expectedDischarges.groups.within48Hours.map((discharge) => (
-                <DischargeCard key={discharge.patient.id} discharge={discharge} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

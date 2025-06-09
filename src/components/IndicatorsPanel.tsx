@@ -1,219 +1,331 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Printer, Activity, Users, Clock, TrendingUp, Building } from 'lucide-react';
-import IndicatorCard from './indicators/IndicatorCard';
-import DateRangePicker from './indicators/DateRangePicker';
-import OccupationChart from './indicators/OccupationChart';
-import { useIndicators } from '@/hooks/useIndicators';
-import { Bed, DischargedPatient } from '@/types';
-import { DateFilter } from '@/types/indicators';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, FileText } from 'lucide-react';
+import { format, subDays, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface IndicatorsPanelProps {
-  beds: Bed[];
-  archivedPatients: DischargedPatient[];
+  data: {
+    beds: any[];
+    archivedPatients: any[];
+    dischargeMonitoring: any[];
+  };
 }
 
-const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ 
-  beds, 
-  archivedPatients 
-}) => {
-  const today = new Date().toISOString().split('T')[0];
-  const [dateFilter, setDateFilter] = useState<DateFilter>({
-    startDate: today,
-    endDate: today
-  });
-  
-  const indicators = useIndicators(beds, archivedPatients, dateFilter);
-  const { toast } = useToast();
+const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
+  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 30));
+  const [endDate, setEndDate] = useState<Date>(new Date());
 
-  const getOccupationColor = (rate: number) => {
-    if (rate >= 85) return 'red';
-    if (rate >= 70) return 'yellow';
-    return 'green';
-  };
+  const departments = [
+    'CLINICA MEDICA',
+    'PRONTO SOCORRO', 
+    'CLINICA CIRURGICA',
+    'UTI ADULTO',
+    'UTI NEONATAL',
+    'PEDIATRIA',
+    'MATERNIDADE'
+  ];
 
-  const handlePrintPDF = async () => {
-    try {
-      const element = document.getElementById('indicators-dashboard');
-      if (!element) return;
+  const indicators = useMemo(() => {
+    const { beds, archivedPatients } = data;
 
-      toast({
-        title: "Gerando relatório...",
-        description: "Por favor, aguarde enquanto o PDF é criado.",
-      });
+    // Calculate overall occupancy rate
+    const totalBeds = beds.length;
+    const occupiedBeds = beds.filter(bed => bed.isOccupied).length;
+    const overallOccupancyRate = totalBeds > 0 ? (occupiedBeds / totalBeds) * 100 : 0;
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-      });
+    // Calculate department occupancy rates
+    const departmentOccupancy = departments.map(dept => {
+      const deptBeds = beds.filter(bed => bed.department === dept);
+      const deptOccupied = deptBeds.filter(bed => bed.isOccupied).length;
+      const deptTotal = deptBeds.length;
+      const occupancyRate = deptTotal > 0 ? (deptOccupied / deptTotal) * 100 : 0;
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 30;
+      return {
+        department: dept,
+        total: deptTotal,
+        occupied: deptOccupied,
+        available: deptTotal - deptOccupied,
+        occupancyRate: occupancyRate
+      };
+    });
 
-      // Header
-      pdf.setFontSize(16);
-      pdf.text('RELATÓRIO DE INDICADORES - NIR - HMP', pdfWidth / 2, 15, { align: 'center' });
-      
-      pdf.setFontSize(10);
-      pdf.text(`Período: ${dateFilter.startDate} até ${dateFilter.endDate}`, pdfWidth / 2, 25, { align: 'center' });
-      pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pdfWidth / 2, 30, { align: 'center' });
+    // Calculate patients per day by department
+    const patientsPerDay = departments.map(dept => {
+      const deptPatients = beds.filter(bed => bed.department === dept && bed.isOccupied).length;
+      return {
+        department: dept,
+        patients: deptPatients
+      };
+    });
 
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+    // Calculate average length of stay
+    const relevantDischarges = archivedPatients.filter(patient => {
+      const dischargeDate = new Date(patient.dischargeDate);
+      return dischargeDate >= startDate && dischargeDate <= endDate;
+    });
 
-      pdf.save(`indicadores_${dateFilter.startDate}_${dateFilter.endDate}.pdf`);
+    const totalStayDays = relevantDischarges.reduce((sum, patient) => sum + patient.actualStayDays, 0);
+    const averageStay = relevantDischarges.length > 0 ? totalStayDays / relevantDischarges.length : 0;
 
-      toast({
-        title: "Relatório gerado com sucesso!",
-        description: "O arquivo PDF foi baixado.",
-      });
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast({
-        title: "Erro ao gerar relatório",
-        description: "Não foi possível criar o arquivo PDF.",
-        variant: "destructive",
-      });
+    return {
+      overallOccupancyRate,
+      departmentOccupancy,
+      patientsPerDay,
+      averageStay,
+      totalDischarges: relevantDischarges.length
+    };
+  }, [data, startDate, endDate, departments]);
+
+  const handlePrint = () => {
+    const printContent = document.getElementById('indicators-content');
+    if (printContent) {
+      const newWindow = window.open('', '_blank');
+      newWindow?.document.write(`
+        <html>
+          <head>
+            <title>Relatório de Indicadores</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .period { text-align: center; margin-bottom: 20px; color: #666; }
+              .indicator { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; }
+              .indicator h3 { margin-top: 0; color: #333; }
+              .department-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+              .department-item { padding: 10px; border: 1px solid #eee; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Relatório de Indicadores Hospitalares</h1>
+            </div>
+            <div class="period">
+              <p>Período: ${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}</p>
+            </div>
+            ${printContent.innerHTML}
+          </body>
+        </html>
+      `);
+      newWindow?.document.close();
+      newWindow?.print();
     }
   };
 
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658'];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">INDICADORES</h2>
-          <p className="text-gray-600">Dashboard de indicadores hospitalares em tempo real</p>
+        <h1 className="text-2xl font-bold text-gray-900">Indicadores</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">De:</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "dd/MM/yyyy") : "Selecione"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => date && setStartDate(date)}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Até:</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "dd/MM/yyyy") : "Selecione"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => date && setEndDate(date)}
+                  disabled={(date) => date > new Date() || date < startDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Button onClick={handlePrint} variant="outline">
+            <FileText className="mr-2 h-4 w-4" />
+            IMPRIMIR
+          </Button>
         </div>
-        <Button onClick={handlePrintPDF} className="gap-2">
-          <Printer className="h-4 w-4" />
-          IMPRIMIR PDF
-        </Button>
       </div>
 
-      {/* Date Range Picker */}
-      <DateRangePicker 
-        dateFilter={dateFilter}
-        onDateFilterChange={setDateFilter}
-      />
-
-      {/* Dashboard Content */}
-      <div id="indicators-dashboard" className="space-y-6">
-        
-        {/* Main Indicators Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          {/* Taxa de Ocupação Geral */}
-          <IndicatorCard
-            title="TAXA DE OCUPAÇÃO GERAL"
-            value={`${indicators.occupationRate}%`}
-            subtitle={`${indicators.occupiedBeds}/${indicators.totalBeds} leitos ocupados`}
-            color={getOccupationColor(indicators.occupationRate)}
-            icon={<Activity className="h-5 w-5" />}
-          />
-
-          {/* Pacientes Dia Geral */}
-          <IndicatorCard
-            title="PACIENTES DIA GERAL"
-            value={indicators.dailyPatients}
-            subtitle="Admissões hoje"
-            color="blue"
-            icon={<Users className="h-5 w-5" />}
-          />
-
-          {/* Total de Leitos */}
-          <IndicatorCard
-            title="TOTAL DE LEITOS"
-            value={indicators.totalBeds}
-            subtitle="Capacidade total"
-            color="green"
-            icon={<Building className="h-5 w-5" />}
-          />
-
-          {/* Média Geral de Permanência */}
-          <IndicatorCard
-            title="TEMPO MÉDIO GERAL"
-            value={`${indicators.averageStayByDepartment.reduce((acc, dept) => 
-              acc + (dept.averageStayDays * dept.totalDischarges), 0) / 
-              indicators.averageStayByDepartment.reduce((acc, dept) => 
-              acc + dept.totalDischarges, 0) || 0}`.slice(0, 4)} 
-            subtitle="Dias de permanência"
-            color="yellow"
-            icon={<Clock className="h-5 w-5" />}
-          />
-        </div>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Taxa de Ocupação por Departamento - Gráfico de Barras */}
-          <IndicatorCard
-            title="TAXA DE OCUPAÇÃO POR SETOR"
-            value=""
-            color="blue"
-          >
-            <OccupationChart data={indicators.occupationByDepartment} type="bar" />
-          </IndicatorCard>
-
-          {/* Pacientes por Setor */}
-          <IndicatorCard
-            title="PACIENTES DIA POR SETOR"
-            value=""
-            color="green"
-          >
-            <div className="space-y-2">
-              {indicators.dailyPatientsByDepartment.map((dept, index) => (
-                <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
-                  <span className="text-xs font-medium">{dept.department}</span>
-                  <span className="text-sm font-bold text-green-600">{dept.dailyAdmissions}</span>
-                </div>
-              ))}
-            </div>
-          </IndicatorCard>
-        </div>
-
-        {/* Tempo Médio de Permanência por Setor */}
-        <IndicatorCard
-          title="TEMPO MÉDIO DE PERMANÊNCIA POR SETOR"
-          value=""
-          color="yellow"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {indicators.averageStayByDepartment.map((dept, index) => (
-              <div key={index} className="p-3 bg-white rounded border">
-                <div className="text-xs font-medium text-gray-600 mb-1">{dept.department}</div>
-                <div className="text-lg font-bold text-yellow-600">{dept.averageStayDays} dias</div>
-                <div className="text-xs text-gray-500">{dept.totalDischarges} altas no período</div>
+      <div id="indicators-content" className="space-y-6">
+        {/* Overall Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Taxa de Ocupação Geral</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {indicators.overallOccupancyRate.toFixed(1)}%
               </div>
-            ))}
-          </div>
-        </IndicatorCard>
+            </CardContent>
+          </Card>
 
-        {/* Detalhamento por Setor */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {indicators.occupationByDepartment.map((dept, index) => (
-            <IndicatorCard
-              key={index}
-              title={dept.department}
-              value={`${dept.occupationRate.toFixed(1)}%`}
-              subtitle={`${dept.occupiedBeds}/${dept.totalBeds} leitos`}
-              color={getOccupationColor(dept.occupationRate)}
-              icon={<TrendingUp className="h-4 w-4" />}
-            />
-          ))}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Total de Leitos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-600">
+                {data.beds.length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Taxa Média de Permanência</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {indicators.averageStay.toFixed(1)} dias
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Total de Altas (Período)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {indicators.totalDischarges}
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Department Occupancy Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Taxa de Ocupação por Departamento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={indicators.departmentOccupancy}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  fontSize={10}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="occupancyRate" fill="#8884d8" name="Taxa de Ocupação (%)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Patients per Department Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pacientes por Departamento (Atual)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={indicators.patientsPerDay}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ department, patients }) => `${department}: ${patients}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="patients"
+                >
+                  {indicators.patientsPerDay.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Department Details Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalhamento por Departamento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Departamento</th>
+                    <th className="text-center p-2">Total de Leitos</th>
+                    <th className="text-center p-2">Ocupados</th>
+                    <th className="text-center p-2">Disponíveis</th>
+                    <th className="text-center p-2">Taxa de Ocupação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {indicators.departmentOccupancy.map(dept => (
+                    <tr key={dept.department} className="border-b">
+                      <td className="p-2 font-medium">{dept.department}</td>
+                      <td className="text-center p-2">{dept.total}</td>
+                      <td className="text-center p-2 text-red-600">{dept.occupied}</td>
+                      <td className="text-center p-2 text-green-600">{dept.available}</td>
+                      <td className="text-center p-2">
+                        <span className={`px-2 py-1 rounded text-sm ${
+                          dept.occupancyRate >= 90 ? 'bg-red-100 text-red-800' :
+                          dept.occupancyRate >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {dept.occupancyRate.toFixed(1)}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
