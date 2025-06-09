@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import NewBedCard from './NewBedCard';
 import ReservationForm from './forms/ReservationForm';
-import PatientForm from './forms/PatientForm';
+import NewPatientForm from './forms/NewPatientForm';
 import DischargeForm from './forms/DischargeForm';
 import TransferForm from './forms/TransferForm';
 import { Bed, Patient, BedReservation, Department, DischargedPatient } from '@/types';
@@ -126,7 +127,7 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
     });
   };
 
-  const submitPatient = (patientData: Omit<Patient, 'id' | 'occupationDays'>) => {
+  const submitPatient = (patientData: any) => {
     const patient: Patient = {
       ...patientData,
       id: generateId(),
@@ -310,7 +311,7 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
         onSubmit={submitReservation}
       />
 
-      <PatientForm
+      <NewPatientForm
         isOpen={showPatientForm}
         onClose={() => setShowPatientForm(false)}
         onSubmit={submitPatient}

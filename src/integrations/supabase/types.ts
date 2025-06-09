@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alert_investigations: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          investigated: boolean
+          investigation_date: string | null
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          investigated?: boolean
+          investigation_date?: string | null
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          investigated?: boolean
+          investigation_date?: string | null
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bed_occupations: {
         Row: {
           bed_id: string | null
@@ -168,10 +198,53 @@ export type Database = {
         }
         Relationships: []
       }
+      discharge_control: {
+        Row: {
+          bed_id: string
+          created_at: string
+          department: string
+          discharge_effective_at: string | null
+          discharge_requested_at: string
+          id: string
+          justification: string | null
+          patient_id: string
+          patient_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bed_id: string
+          created_at?: string
+          department: string
+          discharge_effective_at?: string | null
+          discharge_requested_at?: string
+          id?: string
+          justification?: string | null
+          patient_id: string
+          patient_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bed_id?: string
+          created_at?: string
+          department?: string
+          discharge_effective_at?: string | null
+          discharge_requested_at?: string
+          id?: string
+          justification?: string | null
+          patient_id?: string
+          patient_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patient_discharges: {
         Row: {
           actual_stay_days: number
           admission_date: string
+          admission_time: string | null
           age: number
           bed_id: string
           birth_date: string
@@ -194,6 +267,7 @@ export type Database = {
         Insert: {
           actual_stay_days: number
           admission_date: string
+          admission_time?: string | null
           age: number
           bed_id: string
           birth_date: string
@@ -216,6 +290,7 @@ export type Database = {
         Update: {
           actual_stay_days?: number
           admission_date?: string
+          admission_time?: string | null
           age?: number
           bed_id?: string
           birth_date?: string
@@ -291,6 +366,7 @@ export type Database = {
       patients: {
         Row: {
           admission_date: string
+          admission_time: string | null
           age: number
           bed_id: string | null
           birth_date: string
@@ -310,6 +386,7 @@ export type Database = {
         }
         Insert: {
           admission_date: string
+          admission_time?: string | null
           age: number
           bed_id?: string | null
           birth_date: string
@@ -329,6 +406,7 @@ export type Database = {
         }
         Update: {
           admission_date?: string
+          admission_time?: string | null
           age?: number
           bed_id?: string | null
           birth_date?: string
@@ -361,7 +439,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_readmissions_within_30_days: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          patient_name: string
+          discharge_date: string
+          readmission_date: string
+          diagnosis: string
+          origin_city: string
+          days_between: number
+        }[]
+      }
     }
     Enums: {
       department_type:

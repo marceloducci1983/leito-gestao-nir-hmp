@@ -1,121 +1,71 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Patient } from '@/types';
 
 interface NewPatientFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (patientData: any) => void;
-  bedId: string;
-  department: string;
+  onSubmit: (patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'>) => void;
+  patient?: Patient | null;
   isEditing?: boolean;
-  patientData?: any;
 }
 
 const NewPatientForm: React.FC<NewPatientFormProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  bedId,
-  department,
-  isEditing = false,
-  patientData
+  patient,
+  isEditing = false
 }) => {
   const [formData, setFormData] = useState({
-    name: patientData?.name || '',
-    sex: patientData?.sex || '',
-    birth_date: patientData?.birth_date ? new Date(patientData.birth_date) : null,
-    age: patientData?.age || '',
-    admission_date: patientData?.admission_date ? new Date(patientData.admission_date) : new Date(),
-    diagnosis: patientData?.diagnosis || '',
-    specialty: patientData?.specialty || '',
-    expected_discharge_date: patientData?.expected_discharge_date ? new Date(patientData.expected_discharge_date) : null,
-    origin_city: patientData?.origin_city || '',
-    is_tfd: patientData?.is_tfd || false,
-    tfd_type: patientData?.tfd_type || ''
+    name: patient?.name || '',
+    sex: patient?.sex || 'masculino',
+    birthDate: patient?.birthDate || '',
+    age: patient?.age || 0,
+    admissionDate: patient?.admissionDate || new Date().toISOString().split('T')[0],
+    admissionTime: patient?.admissionTime || new Date().toTimeString().slice(0, 5),
+    diagnosis: patient?.diagnosis || '',
+    specialty: patient?.specialty || '',
+    expectedDischargeDate: patient?.expectedDischargeDate || '',
+    originCity: patient?.originCity || '',
+    isTFD: patient?.isTFD || false,
+    tfdType: patient?.tfdType || '',
+    department: patient?.department || 'CLINICA MEDICA'
   });
-
-  const calculateAge = (birthDate: Date) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-
-  const handleBirthDateChange = (date: Date | undefined) => {
-    if (date) {
-      const age = calculateAge(date);
-      setFormData(prev => ({
-        ...prev,
-        birth_date: date,
-        age: age.toString()
-      }));
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const submitData = {
+    const patientData = {
       name: formData.name,
-      sex: formData.sex,
-      birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : '',
-      age: parseInt(formData.age),
-      admission_date: format(formData.admission_date, 'yyyy-MM-dd'),
+      sex: formData.sex as 'masculino' | 'feminino',
+      birthDate: formData.birthDate,
+      age: formData.age,
+      admissionDate: formData.admissionDate,
+      admissionTime: formData.admissionTime,
       diagnosis: formData.diagnosis,
       specialty: formData.specialty,
-      expected_discharge_date: formData.expected_discharge_date ? format(formData.expected_discharge_date, 'yyyy-MM-dd') : '',
-      origin_city: formData.origin_city,
-      is_tfd: formData.is_tfd,
-      tfd_type: formData.is_tfd ? formData.tfd_type : null,
-      bed_id: bedId,
-      department: department,
-      occupation_days: 0
+      expectedDischargeDate: formData.expectedDischargeDate,
+      originCity: formData.originCity,
+      isTFD: formData.isTFD,
+      tfdType: formData.tfdType,
+      department: formData.department,
+      occupationDays: 0
     };
 
-    onSubmit(submitData);
-    onClose();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      sex: '',
-      birth_date: null,
-      age: '',
-      admission_date: new Date(),
-      diagnosis: '',
-      specialty: '',
-      expected_discharge_date: null,
-      origin_city: '',
-      is_tfd: false,
-      tfd_type: ''
-    });
-  };
-
-  const handleClose = () => {
-    resetForm();
+    onSubmit(patientData);
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -126,20 +76,20 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Nome do Paciente*</Label>
+              <Label htmlFor="name">Nome Completo *</Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="sex">Sexo*</Label>
-              <Select value={formData.sex} onValueChange={(value) => setFormData(prev => ({ ...prev, sex: value }))}>
+              <Label htmlFor="sex">Sexo *</Label>
+              <Select value={formData.sex} onValueChange={(value) => setFormData({ ...formData, sex: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o sexo" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="masculino">Masculino</SelectItem>
@@ -151,153 +101,124 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Data de Nascimento*</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.birth_date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.birth_date ? format(formData.birth_date, "dd/MM/yyyy") : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.birth_date}
-                    onSelect={handleBirthDateChange}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="birthDate">Data de Nascimento *</Label>
+              <Input
+                id="birthDate"
+                type="text"
+                placeholder="DD/MM/AAAA"
+                value={formData.birthDate}
+                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                required
+              />
             </div>
 
             <div>
-              <Label htmlFor="age">Idade</Label>
+              <Label htmlFor="age">Idade *</Label>
               <Input
                 id="age"
+                type="number"
                 value={formData.age}
-                readOnly
-                className="bg-gray-100"
+                onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
+                required
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Data de Admissão*</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(formData.admission_date, "dd/MM/yyyy")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.admission_date}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, admission_date: date }))}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="admissionDate">Data de Admissão *</Label>
+              <Input
+                id="admissionDate"
+                type="date"
+                value={formData.admissionDate}
+                onChange={(e) => setFormData({ ...formData, admissionDate: e.target.value })}
+                required
+              />
             </div>
 
             <div>
-              <Label>Data Provável de Alta*</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.expected_discharge_date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.expected_discharge_date ? format(formData.expected_discharge_date, "dd/MM/yyyy") : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.expected_discharge_date}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, expected_discharge_date: date }))}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="admissionTime">Hora de Admissão *</Label>
+              <Input
+                id="admissionTime"
+                type="time"
+                value={formData.admissionTime}
+                onChange={(e) => setFormData({ ...formData, admissionTime: e.target.value })}
+                required
+              />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="diagnosis">Diagnóstico*</Label>
+            <Label htmlFor="diagnosis">Diagnóstico *</Label>
             <Textarea
               id="diagnosis"
               value={formData.diagnosis}
-              onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
+              onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
               required
             />
           </div>
 
-          <div>
-            <Label htmlFor="specialty">Especialidade</Label>
-            <Input
-              id="specialty"
-              value={formData.specialty}
-              onChange={(e) => setFormData(prev => ({ ...prev, specialty: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="origin_city">Município de Origem*</Label>
-            <Input
-              id="origin_city"
-              value={formData.origin_city}
-              onChange={(e) => setFormData(prev => ({ ...prev, origin_city: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="is_tfd"
-                checked={formData.is_tfd}
-                onChange={(e) => setFormData(prev => ({ ...prev, is_tfd: e.target.checked, tfd_type: e.target.checked ? prev.tfd_type : '' }))}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="specialty">Especialidade</Label>
+              <Input
+                id="specialty"
+                value={formData.specialty}
+                onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
               />
-              <Label htmlFor="is_tfd">TFD (Tratamento Fora de Domicílio)</Label>
             </div>
 
-            {formData.is_tfd && (
+            <div>
+              <Label htmlFor="expectedDischargeDate">Data Provável de Alta</Label>
+              <Input
+                id="expectedDischargeDate"
+                type="date"
+                value={formData.expectedDischargeDate}
+                onChange={(e) => setFormData({ ...formData, expectedDischargeDate: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="originCity">Município de Origem *</Label>
+            <Input
+              id="originCity"
+              value={formData.originCity}
+              onChange={(e) => setFormData({ ...formData, originCity: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isTFD"
+                checked={formData.isTFD}
+                onCheckedChange={(checked) => setFormData({ ...formData, isTFD: checked })}
+              />
+              <Label htmlFor="isTFD">Paciente TFD</Label>
+            </div>
+
+            {formData.isTFD && (
               <div>
-                <Label htmlFor="tfd_type">Tipo de TFD</Label>
-                <Input
-                  id="tfd_type"
-                  value={formData.tfd_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tfd_type: e.target.value }))}
-                  placeholder="Digite o tipo de TFD"
-                />
+                <Label htmlFor="tfdType">Tipo de TFD</Label>
+                <Select value={formData.tfdType} onValueChange={(value) => setFormData({ ...formData, tfdType: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de TFD" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INTERNO">TFD Interno</SelectItem>
+                    <SelectItem value="EXTERNO">TFD Externo</SelectItem>
+                    <SelectItem value="REGULACAO">Regulação</SelectItem>
+                    <SelectItem value="URGENCIA">Urgência</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit">

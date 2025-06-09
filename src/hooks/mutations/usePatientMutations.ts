@@ -1,14 +1,30 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Patient } from '@/types';
 import { toast } from 'sonner';
+
+interface PatientData {
+  name: string;
+  sex: 'masculino' | 'feminino';
+  birthDate: string;
+  age: number;
+  admissionDate: string;
+  admissionTime?: string;
+  diagnosis: string;
+  specialty?: string;
+  expectedDischargeDate: string;
+  originCity: string;
+  isTFD: boolean;
+  tfdType?: string;
+  department: string;
+  occupationDays: number;
+}
 
 export const useAddPatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ bedId, patient }: { bedId: string; patient: Omit<Patient, 'id' | 'bedId'> }) => {
+    mutationFn: async ({ bedId, patient }: { bedId: string; patient: PatientData }) => {
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .insert({
@@ -17,6 +33,7 @@ export const useAddPatient = () => {
           birth_date: patient.birthDate,
           age: patient.age,
           admission_date: patient.admissionDate,
+          admission_time: patient.admissionTime,
           diagnosis: patient.diagnosis,
           specialty: patient.specialty,
           expected_discharge_date: patient.expectedDischargeDate,
@@ -34,7 +51,7 @@ export const useAddPatient = () => {
 
       const { error: bedError } = await supabase
         .from('beds')
-        .update({ is_occupied: true })
+        .update({ is_occupied: true, is_reserved: false })
         .eq('id', bedId);
 
       if (bedError) throw bedError;
@@ -73,6 +90,19 @@ export const useDischargePatient = () => {
       const dischargeDate = new Date(dischargeData.dischargeDate);
       const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
+      // Adicionar ao controle de alta
+      const { error: dischargeControlError } = await supabase
+        .from('discharge_control')
+        .insert({
+          patient_id: patientId,
+          patient_name: patient.name,
+          bed_id: bedId,
+          department: patient.department,
+          discharge_requested_at: new Date().toISOString()
+        });
+
+      if (dischargeControlError) throw dischargeControlError;
+
       const { error: dischargeError } = await supabase
         .from('patient_discharges')
         .insert({
@@ -82,6 +112,7 @@ export const useDischargePatient = () => {
           birth_date: patient.birth_date,
           age: patient.age,
           admission_date: patient.admission_date,
+          admission_time: patient.admission_time,
           discharge_date: dischargeData.dischargeDate,
           diagnosis: patient.diagnosis,
           specialty: patient.specialty,
@@ -115,7 +146,8 @@ export const useDischargePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
-      toast.success('Alta realizada com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
+      toast.success('Alta solicitada e paciente movido para monitoramento!');
     },
     onError: (error) => {
       console.error('Erro ao dar alta:', error);

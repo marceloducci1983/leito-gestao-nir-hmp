@@ -1,65 +1,66 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import BedsManagement from '@/components/BedsManagement';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Toaster } from '@/components/ui/toaster';
+import NavigationBar from '@/components/NavigationBar';
+import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
 import IndicatorsPanel from '@/components/IndicatorsPanel';
 import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
+import TfdPanel from '@/components/TfdPanel';
+import AlertsPanel from '@/components/AlertsPanel';
+import DischargeMonitoringPanel from '@/components/DischargeMonitoringPanel';
 import ArchivePanel from '@/components/ArchivePanel';
-import DischargeMonitoring from '@/components/DischargeMonitoring';
+import NirPanel from '@/components/NirPanel';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('beds');
   const [centralData, setCentralData] = useState({
     beds: [],
     archivedPatients: [],
     dischargeMonitoring: []
   });
 
-  const handleDataChange = (data: any) => {
-    setCentralData(data);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-4">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema de Gestão Hospitalar
-          </h1>
-          <p className="text-gray-600">
-            Gestão completa de leitos, pacientes e indicadores hospitalares
-          </p>
-        </div>
-
-        <Tabs defaultValue="gestao-leitos" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="gestao-leitos">Gestão de Leitos</TabsTrigger>
-            <TabsTrigger value="indicadores">Indicadores</TabsTrigger>
-            <TabsTrigger value="altas-previstas">Altas Previstas</TabsTrigger>
-            <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
-            <TabsTrigger value="monitoramento">Monitoramento</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="gestao-leitos" className="space-y-6">
-            <BedsManagement onDataChange={handleDataChange} />
+      <NavigationBar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsContent value="beds" className="mt-0">
+            <SupabaseBedsPanel onDataChange={setCentralData} />
           </TabsContent>
-
-          <TabsContent value="indicadores" className="space-y-6">
-            <IndicatorsPanel data={centralData} />
+          
+          <TabsContent value="indicators" className="mt-0">
+            <IndicatorsPanel />
           </TabsContent>
-
-          <TabsContent value="altas-previstas" className="space-y-6">
-            <ExpectedDischargesPanel data={centralData} />
+          
+          <TabsContent value="expected-discharges" className="mt-0">
+            <ExpectedDischargesPanel />
           </TabsContent>
-
-          <TabsContent value="arquivo" className="space-y-6">
-            <ArchivePanel archivedPatients={centralData.archivedPatients} />
+          
+          <TabsContent value="tfd" className="mt-0">
+            <TfdPanel />
           </TabsContent>
-
-          <TabsContent value="monitoramento" className="space-y-6">
-            <DischargeMonitoring dischargeMonitoring={centralData.dischargeMonitoring} />
+          
+          <TabsContent value="alerts" className="mt-0">
+            <AlertsPanel />
+          </TabsContent>
+          
+          <TabsContent value="discharge-monitoring" className="mt-0">
+            <DischargeMonitoringPanel />
+          </TabsContent>
+          
+          <TabsContent value="archive" className="mt-0">
+            <ArchivePanel />
+          </TabsContent>
+          
+          <TabsContent value="nir" className="mt-0">
+            <NirPanel />
           </TabsContent>
         </Tabs>
       </div>
+      
+      <Toaster />
     </div>
   );
 };
