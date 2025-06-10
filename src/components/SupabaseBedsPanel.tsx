@@ -24,7 +24,7 @@ interface SupabaseBedsPanelProps {
 }
 
 const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) => {
-  const { centralData, isLoading, error, addPatient, dischargePatient, addReservation, transferPatient } = useSupabaseBeds();
+  const { centralData, isLoading, error, addPatient, transferPatient, addReservation, requestDischarge } = useSupabaseBeds();
   const deleteReservationMutation = useDeleteReservation();
   const updatePatientMutation = useUpdatePatient();
   const { toast } = useToast();
@@ -120,9 +120,13 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const handleDischargePatient = (bedId: string) => {
     const bed = centralData.beds.find(b => b.id === bedId);
     if (bed && bed.patient) {
-      setSelectedBedId(bedId);
-      setSelectedPatient(bed.patient);
-      setShowDischargeModal(true);
+      // Nova funcionalidade: Solicitar alta em vez de dar alta diretamente
+      requestDischarge({
+        patientId: bed.patient.id,
+        patientName: bed.patient.name,
+        bedId: bedId,
+        department: bed.department
+      });
     }
   };
 
@@ -173,25 +177,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
       setIsEditingPatient(false);
     } catch (error) {
       console.error('Erro ao processar paciente:', error);
-    }
-  };
-
-  const submitDischarge = async (dischargeType: string) => {
-    if (!selectedPatient) return;
-
-    try {
-      await dischargePatient({
-        bedId: selectedBedId,
-        patientId: selectedPatient.id,
-        dischargeData: {
-          dischargeType: dischargeType,
-          dischargeDate: new Date().toISOString().split('T')[0]
-        }
-      });
-      setShowDischargeModal(false);
-      setSelectedPatient(null);
-    } catch (error) {
-      console.error('Erro ao dar alta:', error);
     }
   };
 
@@ -304,29 +289,17 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
       />
 
       {selectedPatient && (
-        <>
-          <DischargeModal
-            isOpen={showDischargeModal}
-            onClose={() => {
-              setShowDischargeModal(false);
-              setSelectedPatient(null);
-            }}
-            onSubmit={submitDischarge}
-            patientName={selectedPatient.name}
-          />
-
-          <TransferModal
-            isOpen={showTransferModal}
-            onClose={() => {
-              setShowTransferModal(false);
-              setSelectedPatient(null);
-            }}
-            onSubmit={submitTransfer}
-            patientName={selectedPatient.name}
-            availableBeds={availableBedsForTransfer}
-            currentDepartment={selectedPatient.department}
-          />
-        </>
+        <TransferModal
+          isOpen={showTransferModal}
+          onClose={() => {
+            setShowTransferModal(false);
+            setSelectedPatient(null);
+          }}
+          onSubmit={submitTransfer}
+          patientName={selectedPatient.name}
+          availableBeds={availableBedsForTransfer}
+          currentDepartment={selectedPatient.department}
+        />
       )}
     </div>
   );

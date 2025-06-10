@@ -27,6 +27,9 @@ export const useRealtimeSubscriptions = () => {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'discharge_control' }, () => {
         queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
+        queryClient.invalidateQueries({ queryKey: ['discharge_stats_department'] });
+        queryClient.invalidateQueries({ queryKey: ['discharge_stats_city'] });
+        queryClient.invalidateQueries({ queryKey: ['delayed_discharges'] });
       })
       .subscribe();
 

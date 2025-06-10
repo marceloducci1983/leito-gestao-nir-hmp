@@ -508,6 +508,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_discharge_and_restore_patient: {
+        Args: { p_discharge_id: string }
+        Returns: boolean
+      }
+      complete_discharge_and_remove_patient: {
+        Args: { p_discharge_id: string; p_justification?: string }
+        Returns: boolean
+      }
       get_average_discharge_time_by_department: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -538,6 +546,23 @@ export type Database = {
           occupation_rate: number
         }[]
       }
+      get_discharge_time_stats_by_city: {
+        Args: { p_start_date?: string; p_end_date?: string }
+        Returns: {
+          origin_city: string
+          avg_hours: number
+          total_discharges: number
+        }[]
+      }
+      get_discharge_time_stats_by_department: {
+        Args: { p_start_date?: string; p_end_date?: string }
+        Returns: {
+          department: string
+          avg_hours: number
+          total_discharges: number
+          delayed_discharges: number
+        }[]
+      }
       get_readmissions_within_30_days: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -548,6 +573,15 @@ export type Database = {
           origin_city: string
           days_between: number
         }[]
+      }
+      request_discharge_for_patient: {
+        Args: {
+          p_patient_id: string
+          p_patient_name: string
+          p_bed_id: string
+          p_department: string
+        }
+        Returns: string
       }
     }
     Enums: {

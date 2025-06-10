@@ -7,9 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp } from 'lucide-react';
+import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp, Download } from 'lucide-react';
 import { useDischargeControl, useReadmissions, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
+import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges } from '@/hooks/queries/useDischargeStatsQueries';
 import ReadmissionCard from '@/components/readmissions/ReadmissionCard';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -18,11 +19,16 @@ const DischargeMonitoringPanel: React.FC = () => {
   const [justification, setJustification] = useState<{ [key: string]: string }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'oldest' | 'newest'>('oldest');
+  const [reportStartDate, setReportStartDate] = useState('');
+  const [reportEndDate, setReportEndDate] = useState('');
 
   // Queries
   const { data: dischargeControls = [], isLoading } = useDischargeControl();
   const { data: readmissions = [] } = useReadmissions();
   const { data: departmentStats = [] } = useDepartmentStats();
+  const { data: dischargeStatsByDept = [] } = useDischargeStatsByDepartment();
+  const { data: dischargeStatsByCity = [] } = useDischargeStatsByCity();
+  const { data: delayedDischarges = [] } = useDelayedDischarges();
 
   // Mutations
   const cancelDischargeMutation = useCancelDischarge();
@@ -68,21 +74,19 @@ const DischargeMonitoringPanel: React.FC = () => {
     });
   };
 
-  // Preparar dados para gráficos
-  const avgDischargeTimeData = departmentStats.map(stat => ({
-    name: stat.department,
-    tempo: Math.random() * 3 + 2, // Dados simulados - substituir por dados reais
-    ocupacao: stat.occupation_rate
-  }));
+  const generatePDFReport = (period: string) => {
+    toast.success(`Gerando relatório ${period}...`);
+    // Implementação da geração de PDF seria aqui
+  };
 
-  const readmissionTrendData = [
-    { month: 'Jan', readmissions: 12 },
-    { month: 'Fev', readmissions: 8 },
-    { month: 'Mar', readmissions: 15 },
-    { month: 'Abr', readmissions: 10 },
-    { month: 'Mai', readmissions: 7 },
-    { month: 'Jun', readmissions: 9 }
-  ];
+  const generateCustomReport = () => {
+    if (!reportStartDate || !reportEndDate) {
+      toast.error('Selecione as datas de início e fim para o relatório personalizado.');
+      return;
+    }
+    toast.success(`Gerando relatório de ${reportStartDate} até ${reportEndDate}...`);
+    // Implementação da geração de PDF personalizado seria aqui
+  };
 
   if (isLoading) {
     return (
@@ -246,16 +250,16 @@ const DischargeMonitoringPanel: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Tempo Médio de Alta por Departamento</CardTitle>
+                <CardTitle>Tempo Médio de Alta por Departamento (horas)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={avgDischargeTimeData}>
+                  <BarChart data={dischargeStatsByDept}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
                     <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
                     <Tooltip />
-                    <Bar dataKey="tempo" fill="#3b82f6" />
+                    <Bar dataKey="avg_hours" fill="#3b82f6" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -263,16 +267,16 @@ const DischargeMonitoringPanel: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Taxa de Ocupação por Departamento</CardTitle>
+                <CardTitle>Tempo Médio de Alta por Município (horas)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={departmentStats}>
+                  <BarChart data={dischargeStatsByCity.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
-                    <YAxis label={{ value: '%', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip formatter={(value) => [`${value}%`, 'Taxa de Ocupação']} />
-                    <Bar dataKey="occupation_rate" fill="#10b981" />
+                    <XAxis dataKey="origin_city" angle={-45} textAnchor="end" height={80} />
+                    <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Bar dataKey="avg_hours" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -281,18 +285,36 @@ const DischargeMonitoringPanel: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Tendência de Reinternações (Últimos 6 Meses)</CardTitle>
+              <CardTitle>Altas com Demora Superior a 5 Horas</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={readmissionTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="readmissions" stroke="#ef4444" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+              {delayedDischarges.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  Nenhuma alta com demora superior a 5 horas registrada.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {delayedDischarges.map((delayed, index) => (
+                    <div key={index} className="p-4 border rounded-lg bg-orange-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{delayed.patient_name}</h4>
+                          <p className="text-sm text-gray-600">{delayed.department}</p>
+                          <p className="text-sm">
+                            Tempo de espera: <span className="font-medium text-orange-600">{delayed.delay_hours}h</span>
+                          </p>
+                        </div>
+                        {delayed.justification && (
+                          <div className="max-w-md">
+                            <p className="text-sm font-medium">Justificativa:</p>
+                            <p className="text-sm text-gray-700">{delayed.justification}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -316,7 +338,7 @@ const DischargeMonitoringPanel: React.FC = () => {
                     <ReadmissionCard 
                       key={index} 
                       readmission={readmission}
-                      investigation={null} // Será implementado com query específica
+                      investigation={null}
                     />
                   ))}
                 </div>
@@ -328,29 +350,44 @@ const DischargeMonitoringPanel: React.FC = () => {
         <TabsContent value="reports" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Gerar Relatórios em PDF</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Gerar Relatórios em PDF
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="h-20 flex-col">
-                  <Calendar className="h-6 w-6 mb-2" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => generatePDFReport('mensal')}
+                >
+                  <Download className="h-6 w-6 mb-2" />
                   Relatório Mensal
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Calendar className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => generatePDFReport('trimestral')}
+                >
+                  <Download className="h-6 w-6 mb-2" />
                   Relatório Trimestral
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Calendar className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => generatePDFReport('semestral')}
+                >
+                  <Download className="h-6 w-6 mb-2" />
                   Relatório Semestral
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Calendar className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => generatePDFReport('anual')}
+                >
+                  <Download className="h-6 w-6 mb-2" />
                   Relatório Anual
-                </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Calendar className="h-6 w-6 mb-2" />
-                  Período Personalizado
                 </Button>
               </div>
               
@@ -359,13 +396,24 @@ const DischargeMonitoringPanel: React.FC = () => {
                 <div className="flex gap-4 items-end">
                   <div>
                     <label className="text-sm text-gray-600">De:</label>
-                    <Input type="date" />
+                    <Input 
+                      type="date" 
+                      value={reportStartDate}
+                      onChange={(e) => setReportStartDate(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="text-sm text-gray-600">Até:</label>
-                    <Input type="date" />
+                    <Input 
+                      type="date" 
+                      value={reportEndDate}
+                      onChange={(e) => setReportEndDate(e.target.value)}
+                    />
                   </div>
-                  <Button>Gerar PDF</Button>
+                  <Button onClick={generateCustomReport}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Gerar PDF
+                  </Button>
                 </div>
               </div>
             </CardContent>
