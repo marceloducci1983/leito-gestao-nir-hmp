@@ -265,7 +265,11 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 
   const handleEditBedClick = (bed: any) => {
     if (showEditBedMode) {
-      setSelectedBedForEdit(bed);
+      setSelectedBedForEdit({
+        id: bed.id,
+        name: bed.name,
+        department: bed.department
+      });
       setBedModal(true);
     }
   };

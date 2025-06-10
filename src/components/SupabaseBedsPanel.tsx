@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
+import { useCreateBed, useUpdateBed, useDeleteBed } from '@/hooks/mutations/useBedMutations';
 import NewBedCard from '@/components/NewBedCard';
 import NewPatientForm from '@/components/forms/NewPatientForm';
 import NewReservationForm from '@/components/forms/NewReservationForm';
@@ -30,6 +31,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const { centralData, isLoading, error, addPatient, transferPatient, addReservation, requestDischarge } = useSupabaseBeds();
   const deleteReservationMutation = useDeleteReservation();
   const updatePatientMutation = useUpdatePatient();
+  const deleteBedMutation = useDeleteBed();
   const { toast } = useToast();
 
   // Estados para controlar os modais
@@ -149,6 +151,14 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     }
   };
 
+  const handleDeleteBed = async (bedId: string) => {
+    try {
+      await deleteBedMutation.mutateAsync(bedId);
+    } catch (error) {
+      console.error('Erro ao excluir leito:', error);
+    }
+  };
+
   // Handlers para submissão dos formulários
   const submitReservation = async (reservationData: any) => {
     try {
@@ -220,7 +230,11 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   };
 
   const handleEditBed = (bed: any) => {
-    setSelectedBedForEdit(bed);
+    setSelectedBedForEdit({
+      id: bed.id,
+      name: bed.name,
+      department: bed.department
+    });
     setShowBedModal(true);
   };
 
@@ -285,6 +299,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
                         onTransferPatient={handleTransferPatient}
                         onDischargePatient={handleDischargePatient}
                         onDeleteReservation={handleDeleteReservation}
+                        onDeleteBed={bed.isCustom ? handleDeleteBed : undefined}
                       />
                     ))}
                   </div>
@@ -354,3 +369,5 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 };
 
 export default SupabaseBedsPanel;
+
+}

@@ -516,6 +516,10 @@ export type Database = {
         Args: { p_discharge_id: string; p_justification?: string }
         Returns: boolean
       }
+      create_bed: {
+        Args: { p_name: string; p_department: string }
+        Returns: string
+      }
       get_average_discharge_time_by_department: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -582,6 +586,10 @@ export type Database = {
           p_department: string
         }
         Returns: string
+      }
+      update_bed: {
+        Args: { p_bed_id: string; p_name: string; p_department: string }
+        Returns: boolean
       }
     }
     Enums: {

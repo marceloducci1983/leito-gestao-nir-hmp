@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCreateBed, useUpdateBed } from '@/hooks/mutations/useBedMutations';
 import { Department } from '@/types';
 
 interface BedManagementModalProps {
@@ -27,42 +27,51 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   bedData,
   isEditing = false
 }) => {
-  const [bedName, setBedName] = useState(bedData?.name || '');
-  const [selectedDepartment, setSelectedDepartment] = useState<Department>(
-    bedData?.department || 'CLINICA MEDICA'
-  );
-  const { toast } = useToast();
+  const [bedName, setBedName] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
 
-  const handleSubmit = () => {
+  const createBedMutation = useCreateBed();
+  const updateBedMutation = useUpdateBed();
+
+  useEffect(() => {
+    if (bedData) {
+      setBedName(bedData.name);
+      setSelectedDepartment(bedData.department);
+    } else {
+      setBedName('');
+      setSelectedDepartment('CLINICA MEDICA');
+    }
+  }, [bedData, isOpen]);
+
+  const handleSubmit = async () => {
     if (!bedName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome do leito é obrigatório",
-        variant: "destructive",
-      });
       return;
     }
 
-    if (!selectedDepartment) {
-      toast({
-        title: "Erro",
-        description: "Setor é obrigatório",
-        variant: "destructive",
-      });
-      return;
+    try {
+      if (isEditing && bedData?.id) {
+        await updateBedMutation.mutateAsync({
+          bedId: bedData.id,
+          name: bedName.trim(),
+          department: selectedDepartment
+        });
+      } else {
+        await createBedMutation.mutateAsync({
+          name: bedName.trim(),
+          department: selectedDepartment
+        });
+      }
+
+      // Reset form and close modal
+      setBedName('');
+      setSelectedDepartment('CLINICA MEDICA');
+      onClose();
+    } catch (error) {
+      console.error('Erro ao processar leito:', error);
     }
-
-    // Aqui seria implementada a lógica para criar/editar leito
-    toast({
-      title: isEditing ? "Leito editado" : "Leito criado",
-      description: `Leito "${bedName}" ${isEditing ? 'editado' : 'criado'} no setor ${selectedDepartment}`,
-    });
-
-    // Resetar form
-    setBedName('');
-    setSelectedDepartment('CLINICA MEDICA');
-    onClose();
   };
+
+  const isLoading = createBedMutation.isPending || updateBedMutation.isPending;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -79,12 +88,17 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
               value={bedName}
               onChange={(e) => setBedName(e.target.value)}
               placeholder="Ex: 101A, UTI-05, etc."
+              disabled={isLoading}
             />
           </div>
 
           <div>
             <Label htmlFor="bed-department">Setor/Departamento</Label>
-            <Select value={selectedDepartment} onValueChange={(value) => setSelectedDepartment(value as Department)}>
+            <Select 
+              value={selectedDepartment} 
+              onValueChange={(value) => setSelectedDepartment(value as Department)}
+              disabled={isLoading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o setor" />
               </SelectTrigger>
@@ -99,11 +113,20 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              className="flex-1"
+              disabled={isLoading}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} className="flex-1">
-              {isEditing ? 'Salvar Alterações' : 'Criar Leito'}
+            <Button 
+              onClick={handleSubmit} 
+              className="flex-1"
+              disabled={isLoading || !bedName.trim()}
+            >
+              {isLoading ? 'Processando...' : (isEditing ? 'Salvar Alterações' : 'Criar Leito')}
             </Button>
           </div>
         </div>
