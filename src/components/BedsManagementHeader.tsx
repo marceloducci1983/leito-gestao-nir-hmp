@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, Settings, Edit } from 'lucide-react';
 import { Department, Bed } from '@/types';
 
 interface BedsManagementHeaderProps {
@@ -11,6 +11,8 @@ interface BedsManagementHeaderProps {
   onDepartmentSelect: (department: Department) => void;
   departmentBeds: Bed[];
   onCreateNewBed: () => void;
+  onManageSectors: () => void;
+  onEditBed?: () => void;
 }
 
 const BedsManagementHeader: React.FC<BedsManagementHeaderProps> = ({
@@ -18,7 +20,9 @@ const BedsManagementHeader: React.FC<BedsManagementHeaderProps> = ({
   selectedDepartment,
   onDepartmentSelect,
   departmentBeds,
-  onCreateNewBed
+  onCreateNewBed,
+  onManageSectors,
+  onEditBed
 }) => {
   const occupiedCount = departmentBeds.filter(bed => bed.isOccupied).length;
   const reservedCount = departmentBeds.filter(bed => bed.isReserved).length;
@@ -52,10 +56,22 @@ const BedsManagementHeader: React.FC<BedsManagementHeaderProps> = ({
                 <span className="text-yellow-600">Reservados: {reservedCount}</span>
                 <span className="text-gray-600">Total: {departmentBeds.length}</span>
               </div>
-              <Button onClick={onCreateNewBed} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                CRIAR NOVO LEITO
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={onManageSectors} variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  GERENCIAR SETORES
+                </Button>
+                {onEditBed && (
+                  <Button onClick={onEditBed} variant="outline" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    EDITAR LEITOS
+                  </Button>
+                )}
+                <Button onClick={onCreateNewBed} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  CRIAR NOVO LEITO
+                </Button>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>

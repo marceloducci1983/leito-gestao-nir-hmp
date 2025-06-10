@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import NewBedCard from '@/components/NewBedCard';
@@ -6,6 +5,8 @@ import NewPatientForm from '@/components/forms/NewPatientForm';
 import NewReservationForm from '@/components/forms/NewReservationForm';
 import DischargeModal from '@/components/forms/DischargeModal';
 import TransferModal from '@/components/forms/TransferModal';
+import SectorManagementModal from '@/components/forms/SectorManagementModal';
+import BedManagementModal from '@/components/forms/BedManagementModal';
 import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
 import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
 import { Department, Patient } from '@/types';
@@ -14,6 +15,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
+import { Button } from '@/components/ui/button';
+import { Settings, Plus } from 'lucide-react';
 
 interface SupabaseBedsPanelProps {
   onDataChange?: (data: {
@@ -40,6 +43,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const [showDischargeModal, setShowDischargeModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [isEditingPatient, setIsEditingPatient] = useState(false);
+  const [showSectorModal, setShowSectorModal] = useState(false);
+  const [showBedModal, setShowBedModal] = useState(false);
+  const [selectedBedForEdit, setSelectedBedForEdit] = useState<any>(null);
 
   // Update parent component with data
   React.useEffect(() => {
@@ -204,12 +210,36 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
       department: bed.department
     }));
 
+  const handleManageSectors = () => {
+    setShowSectorModal(true);
+  };
+
+  const handleCreateNewBed = () => {
+    setSelectedBedForEdit(null);
+    setShowBedModal(true);
+  };
+
+  const handleEditBed = (bed: any) => {
+    setSelectedBedForEdit(bed);
+    setShowBedModal(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Painel de Leitos</h1>
-        <div className="text-sm text-gray-600">
-          {centralData.beds.filter(bed => bed.isOccupied).length} / {centralData.beds.length} leitos ocupados
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            {centralData.beds.filter(bed => bed.isOccupied).length} / {centralData.beds.length} leitos ocupados
+          </div>
+          <Button onClick={handleManageSectors} variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            GERENCIAR SETORES
+          </Button>
+          <Button onClick={handleCreateNewBed} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            CRIAR LEITO
+          </Button>
         </div>
       </div>
 
@@ -301,6 +331,24 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
           currentDepartment={selectedPatient.department}
         />
       )}
+
+      {/* New Management Modals */}
+      <SectorManagementModal
+        isOpen={showSectorModal}
+        onClose={() => setShowSectorModal(false)}
+        departments={departments}
+      />
+
+      <BedManagementModal
+        isOpen={showBedModal}
+        onClose={() => {
+          setShowBedModal(false);
+          setSelectedBedForEdit(null);
+        }}
+        departments={departments}
+        bedData={selectedBedForEdit}
+        isEditing={!!selectedBedForEdit}
+      />
     </div>
   );
 };

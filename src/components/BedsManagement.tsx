@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { Department, Bed } from '@/types';
@@ -13,6 +12,8 @@ import NewPatientForm from './forms/NewPatientForm';
 import NewReservationForm from './forms/NewReservationForm';
 import DischargeModal from './forms/DischargeModal';
 import TransferModal from './forms/TransferModal';
+import SectorManagementModal from './forms/SectorManagementModal';
+import BedManagementModal from './forms/BedManagementModal';
 
 interface BedsManagementProps {
   onDataChange?: (data: any) => void;
@@ -50,6 +51,12 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
     'PEDIATRIA',
     'MATERNIDADE'
   ];
+
+  // Novos estados para os modais
+  const [showSectorModal, setShowSectorModal] = useState(false);
+  const [showBedModal, setBedModal] = useState(false);
+  const [showEditBedMode, setShowEditBedMode] = useState(false);
+  const [selectedBedForEdit, setSelectedBedForEdit] = useState<any>(null);
 
   // Update parent component with data
   useEffect(() => {
@@ -137,19 +144,8 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   };
 
   const handleCreateNewBed = async () => {
-    try {
-      // Logic to create new bed would be implemented here
-      toast({
-        title: "Novo leito criado",
-        description: `Leito adicionado ao ${selectedDepartment}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao criar novo leito",
-        variant: "destructive",
-      });
-    }
+    setSelectedBedForEdit(null);
+    setBedModal(true);
   };
 
   const handleDeleteBed = async (bedId: string) => {
@@ -255,6 +251,25 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
       department: bed.department
     }));
 
+  const handleManageSectors = () => {
+    setShowSectorModal(true);
+  };
+
+  const handleEditBedMode = () => {
+    setShowEditBedMode(!showEditBedMode);
+    toast({
+      title: showEditBedMode ? "Modo de edição desativado" : "Modo de edição ativado",
+      description: showEditBedMode ? "Clique em 'EDITAR LEITOS' para ativar novamente" : "Clique em qualquer leito para editá-lo",
+    });
+  };
+
+  const handleEditBedClick = (bed: any) => {
+    if (showEditBedMode) {
+      setSelectedBedForEdit(bed);
+      setBedModal(true);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <BedsManagementHeader
@@ -263,6 +278,8 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
         onDepartmentSelect={setSelectedDepartment}
         departmentBeds={departmentBeds}
         onCreateNewBed={handleCreateNewBed}
+        onManageSectors={handleManageSectors}
+        onEditBed={handleEditBedMode}
       />
 
       <Card>
@@ -275,6 +292,8 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
           onDischargePatient={handleDischargePatient}
           onDeleteReservation={handleDeleteReservation}
           onDeleteBed={handleDeleteBed}
+          showEditBedMode={showEditBedMode}
+          onEditBedClick={handleEditBedClick}
         />
       </Card>
 
@@ -316,6 +335,25 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
           />
         </>
       )}
+
+      {/* New Management Modals */}
+      <SectorManagementModal
+        isOpen={showSectorModal}
+        onClose={() => setShowSectorModal(false)}
+        departments={departments}
+      />
+
+      <BedManagementModal
+        isOpen={showBedModal}
+        onClose={() => {
+          setBedModal(false);
+          setSelectedBedForEdit(null);
+          setShowEditBedMode(false);
+        }}
+        departments={departments}
+        bedData={selectedBedForEdit}
+        isEditing={!!selectedBedForEdit}
+      />
     </div>
   );
 };
