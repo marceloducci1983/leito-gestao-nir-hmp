@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useCreateBed, useUpdateBed, useDeleteBed } from '@/hooks/mutations/useBedMutations';
@@ -369,5 +370,3 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
 };
 
 export default SupabaseBedsPanel;
-
-}
