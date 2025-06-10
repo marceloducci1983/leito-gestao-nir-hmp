@@ -74,8 +74,9 @@ export const isSameDaySaoPaulo = (date1: Date | string, date2: Date | string): b
   return format(d1, 'yyyy-MM-dd') === format(d2, 'yyyy-MM-dd');
 };
 
-// Função para verificar se uma data está dentro de um período (inclusivo)
+// Função corrigida para verificar se uma data está dentro de um período (inclusivo)
 export const isDateWithinPeriodSaoPaulo = (date: Date | string, startDate: Date | string, endDate: Date | string): boolean => {
+  // Converter as datas para objetos Date e adicionar timezone de São Paulo
   const targetDate = toZonedTime(typeof date === 'string' ? new Date(date) : date, SAO_PAULO_TIMEZONE);
   const start = toZonedTime(typeof startDate === 'string' ? new Date(startDate) : startDate, SAO_PAULO_TIMEZONE);
   const end = toZonedTime(typeof endDate === 'string' ? new Date(endDate) : endDate, SAO_PAULO_TIMEZONE);
@@ -85,5 +86,14 @@ export const isDateWithinPeriodSaoPaulo = (date: Date | string, startDate: Date 
   const startDay = format(start, 'yyyy-MM-dd');
   const endDay = format(end, 'yyyy-MM-dd');
   
+  // Comparação inclusiva (>= e <=)
   return targetDay >= startDay && targetDay <= endDay;
+};
+
+// Nova função para verificar se uma data é exatamente o dia especificado
+export const isExactDaySaoPaulo = (date: Date | string, targetDate: Date | string): boolean => {
+  const d1 = toZonedTime(typeof date === 'string' ? new Date(date) : date, SAO_PAULO_TIMEZONE);
+  const d2 = toZonedTime(typeof targetDate === 'string' ? new Date(targetDate) : targetDate, SAO_PAULO_TIMEZONE);
+  
+  return format(d1, 'yyyy-MM-dd') === format(d2, 'yyyy-MM-dd');
 };

@@ -6,8 +6,16 @@ import { ExpectedDischarge, DischargeGroups, DischargeFilters } from '@/types/di
 export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) => {
   const expectedDischarges = useMemo(() => {
     const now = new Date();
-    const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    const fortyEightHoursFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    
+    const dayAfterTomorrow = new Date(now);
+    dayAfterTomorrow.setDate(now.getDate() + 2);
+
+    // Definir horas, minutos, segundos e ms para zero para comparar apenas datas
+    now.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    dayAfterTomorrow.setHours(0, 0, 0, 0);
 
     // Filter beds with occupied patients that have expected discharge dates
     const occupiedBeds = beds.filter(bed => 
@@ -20,6 +28,15 @@ export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) =
       .map(bed => {
         const patient = bed.patient!;
         const expectedDate = new Date(patient.expectedDischargeDate);
+        
+        // Definir horas, minutos, segundos e ms para zero para comparar apenas datas
+        expectedDate.setHours(0, 0, 0, 0);
+        
+        const expectedDateStr = expectedDate.toISOString().split('T')[0];
+        const nowStr = now.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        
+        // Calcular horas aproximadas até a alta
         const hoursUntilDischarge = Math.ceil((expectedDate.getTime() - now.getTime()) / (1000 * 60 * 60));
         
         return {
@@ -39,12 +56,21 @@ export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) =
             specialty: patient.specialty
           },
           hoursUntilDischarge,
-          isUrgent: expectedDate <= twentyFourHoursFromNow
+          isUrgent: expectedDateStr === nowStr || expectedDateStr === tomorrowStr
         };
       })
       .filter(discharge => {
         const expectedDate = new Date(discharge.patient.expectedDischargeDate);
-        return expectedDate <= fortyEightHoursFromNow && expectedDate >= now;
+        expectedDate.setHours(0, 0, 0, 0);
+        
+        const dayAfterTomorrowStr = dayAfterTomorrow.toISOString().split('T')[0];
+        const expectedDateStr = expectedDate.toISOString().split('T')[0];
+        const nowStr = now.toISOString().split('T')[0];
+        
+        // Incluir apenas datas hoje, amanhã ou depois de amanhã
+        return expectedDateStr === nowStr || 
+               expectedDateStr === tomorrow.toISOString().split('T')[0] || 
+               expectedDateStr === dayAfterTomorrowStr;
       });
 
     // Apply filters

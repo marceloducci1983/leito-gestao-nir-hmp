@@ -69,3 +69,29 @@ export const formatDateTime = (dateString: string | Date): string => {
 export const formatDate = (dateString: string | Date): string => {
   return formatDateSaoPaulo(dateString);
 };
+
+// Nova função para comparar apenas datas (ignorando horas) usando ISO strings
+export const isSameDay = (date1: Date | string, date2: Date | string): boolean => {
+  const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
+  const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
+  
+  return d1.toISOString().split('T')[0] === d2.toISOString().split('T')[0];
+};
+
+// Nova função para verificar se uma data está entre hoje e N dias à frente
+export const isWithinDays = (date: Date | string, days: number): boolean => {
+  const checkDate = typeof date === 'string' ? new Date(date) : date;
+  const today = new Date();
+  const futureDate = new Date();
+  
+  // Resetar horas para comparar apenas datas
+  today.setHours(0, 0, 0, 0);
+  checkDate.setHours(0, 0, 0, 0);
+  futureDate.setHours(0, 0, 0, 0);
+  
+  // Definir data futura
+  futureDate.setDate(today.getDate() + days);
+  
+  // Verificar se a data está no intervalo (inclusivo)
+  return checkDate >= today && checkDate <= futureDate;
+};

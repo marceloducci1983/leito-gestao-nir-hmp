@@ -57,7 +57,7 @@ const DischargeTable: React.FC<DischargeTableProps> = ({ discharges, title, vari
                   {discharge.patient.diagnosis}
                 </TableCell>
                 <TableCell className="bg-orange-50 font-bold text-orange-800">
-                  {formatDateTime(discharge.patient.expectedDischargeDate)}
+                  {formatDate(discharge.patient.expectedDischargeDate)}
                   <div className="text-xs text-orange-600">({discharge.hoursUntilDischarge}h)</div>
                 </TableCell>
                 <TableCell className="bg-purple-50 font-bold text-purple-800">

@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, User, Calendar, MapPin, Stethoscope } from 'lucide-react';
 import { format, addDays } from 'date-fns';
-import { getCurrentDateTimeSaoPaulo, isDateWithinPeriodSaoPaulo, formatDateSaoPaulo } from '@/utils/timezoneUtils';
+import { 
+  getCurrentDateTimeSaoPaulo, 
+  isExactDaySaoPaulo, 
+  isDateWithinPeriodSaoPaulo, 
+  formatDateSaoPaulo 
+} from '@/utils/timezoneUtils';
+import { calculateAge } from '@/utils/dateUtils';
 
 interface ExpectedDischargesPanelProps {
   data: {
@@ -17,6 +23,7 @@ interface ExpectedDischargesPanelProps {
 
 const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data }) => {
   const { discharges24h, discharges48h } = useMemo(() => {
+    // Obter a data atual e calcular a data de amanhã e depois de amanhã
     const today = getCurrentDateTimeSaoPaulo();
     const tomorrow = addDays(today, 1);
     const dayAfterTomorrow = addDays(today, 2);
@@ -30,32 +37,41 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
       totalPacientes: occupiedBeds.length
     });
     
+    // Altas para hoje ou amanhã (próximas 24h)
     const discharges24h = occupiedBeds.filter(bed => {
       if (!bed.patient?.expectedDischargeDate) return false;
       
       const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
-      const isWithin24h = isDateWithinPeriodSaoPaulo(expectedDischarge, today, tomorrow);
+      
+      // Verificar se a alta está prevista para hoje OU amanhã
+      const isToday = isExactDaySaoPaulo(expectedDischarge, today);
+      const isTomorrow = isExactDaySaoPaulo(expectedDischarge, tomorrow);
+      const isWithin24h = isToday || isTomorrow;
       
       if (isWithin24h) {
         console.log('Paciente 24h:', {
           nome: bed.patient.name,
           dpa: formatDateSaoPaulo(expectedDischarge),
           hoje: format(today, 'dd/MM/yyyy'),
-          amanha: format(tomorrow, 'dd/MM/yyyy')
+          amanha: format(tomorrow, 'dd/MM/yyyy'),
+          isToday,
+          isTomorrow
         });
       }
       
       return isWithin24h;
     });
 
+    // Altas para depois de amanhã (48h)
     const discharges48h = occupiedBeds.filter(bed => {
       if (!bed.patient?.expectedDischargeDate) return false;
       
       const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
-      // 48h são as altas do dia seguinte ao amanhã
-      const isAfterTomorrow = isDateWithinPeriodSaoPaulo(expectedDischarge, addDays(tomorrow, 1), dayAfterTomorrow);
       
-      if (isAfterTomorrow) {
+      // Verificar se a alta está prevista EXATAMENTE para o dia depois de amanhã
+      const isDayAfterTomorrow = isExactDaySaoPaulo(expectedDischarge, dayAfterTomorrow);
+      
+      if (isDayAfterTomorrow) {
         console.log('Paciente 48h:', {
           nome: bed.patient.name,
           dpa: formatDateSaoPaulo(expectedDischarge),
@@ -63,24 +79,11 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
         });
       }
       
-      return isAfterTomorrow;
+      return isDayAfterTomorrow;
     });
 
     return { discharges24h, discharges48h };
   }, [data.beds]);
-
-  const calculateAge = (birthDate: string) => {
-    const birth = new Date(birthDate);
-    const today = getCurrentDateTimeSaoPaulo();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
 
   const handlePrint = () => {
     const printContent = document.getElementById('discharges-content');
