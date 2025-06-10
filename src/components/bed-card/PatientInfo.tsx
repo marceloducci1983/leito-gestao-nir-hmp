@@ -2,6 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { User, Calendar, MapPin, Stethoscope } from 'lucide-react';
+import { formatDate, formatDateTime } from '@/utils/dateUtils';
 
 interface PatientData {
   id: string;
@@ -25,10 +26,6 @@ interface PatientInfoProps {
 }
 
 export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
   const calculateOccupationDays = (admissionDate: string) => {
     const admission = new Date(admissionDate);
     const today = new Date();

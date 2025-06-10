@@ -3,6 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ExpectedDischarge } from '@/types/discharges';
+import { formatDate, formatDateTime } from '@/utils/dateUtils';
 
 interface DischargeTableProps {
   discharges: ExpectedDischarge[];
@@ -11,14 +12,6 @@ interface DischargeTableProps {
 }
 
 const DischargeTable: React.FC<DischargeTableProps> = ({ discharges, title, variant }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
-  };
-
   if (discharges.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">

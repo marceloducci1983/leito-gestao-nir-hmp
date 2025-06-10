@@ -1,4 +1,6 @@
 
+import { formatDateTimeSaoPaulo, formatDateSaoPaulo } from './timezoneUtils';
+
 export const calculateAge = (birthDate: string): number => {
   // Parse date in DD/MM/YYYY format
   const parts = birthDate.split('/');
@@ -53,13 +55,17 @@ export const convertDateToISO = (dateString: string): string => {
 };
 
 export const convertISOToDisplayDate = (isoDate: string): string => {
-  // Convert YYYY-MM-DD to DD/MM/YYYY
+  // Convert YYYY-MM-DD to DD/MM/YYYY using São Paulo timezone
   if (!isoDate) return '';
   
-  const date = new Date(isoDate);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  
-  return `${day}/${month}/${year}`;
+  return formatDateSaoPaulo(isoDate);
+};
+
+// Função para formatar data e hora no fuso horário de São Paulo
+export const formatDateTime = (dateString: string | Date): string => {
+  return formatDateTimeSaoPaulo(dateString);
+};
+
+export const formatDate = (dateString: string | Date): string => {
+  return formatDateSaoPaulo(dateString);
 };

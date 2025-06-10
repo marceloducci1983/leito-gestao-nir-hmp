@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, User, Stethoscope, Bed, AlertTriangle } from 'lucide-react';
 import { ExpectedDischarge } from '@/types/discharges';
+import { formatDate, formatDateTime } from '@/utils/dateUtils';
 
 interface DischargeCardProps {
   discharge: ExpectedDischarge;
@@ -11,14 +12,6 @@ interface DischargeCardProps {
 
 const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
   const { patient, hoursUntilDischarge, isUrgent } = discharge;
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
-  };
 
   return (
     <Card className={`transition-all hover:shadow-md ${isUrgent ? 'border-red-300 bg-red-50' : 'border-yellow-300 bg-yellow-50'}`}>
