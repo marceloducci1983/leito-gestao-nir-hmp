@@ -34,10 +34,10 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   const updateBedMutation = useUpdateBed();
 
   useEffect(() => {
-    if (bedData) {
+    if (bedData && isOpen) {
       setBedName(bedData.name);
       setSelectedDepartment(bedData.department);
-    } else {
+    } else if (isOpen) {
       setBedName('');
       setSelectedDepartment('CLINICA MEDICA');
     }
@@ -45,8 +45,11 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
   const handleSubmit = async () => {
     if (!bedName.trim()) {
+      console.log('Bed name is required');
       return;
     }
+
+    console.log('Submitting bed:', { bedName: bedName.trim(), selectedDepartment, isEditing });
 
     try {
       if (isEditing && bedData?.id) {
