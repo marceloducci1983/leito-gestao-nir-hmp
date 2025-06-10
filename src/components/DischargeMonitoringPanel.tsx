@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,13 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp, Download } from 'lucide-react';
+import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp, Download, RefreshCw } from 'lucide-react';
 import { useDischargeControl, useReadmissions, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
-import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges } from '@/hooks/queries/useDischargeStatsQueries';
+import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
 import ReadmissionCard from '@/components/readmissions/ReadmissionCard';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { formatDateTimeSaoPaulo } from '@/utils/timezoneUtils';
 
 const DischargeMonitoringPanel: React.FC = () => {
   const [justification, setJustification] = useState<{ [key: string]: string }>({});
@@ -23,12 +23,13 @@ const DischargeMonitoringPanel: React.FC = () => {
   const [reportEndDate, setReportEndDate] = useState('');
 
   // Queries
-  const { data: dischargeControls = [], isLoading } = useDischargeControl();
+  const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
   const { data: readmissions = [] } = useReadmissions();
   const { data: departmentStats = [] } = useDepartmentStats();
-  const { data: dischargeStatsByDept = [] } = useDischargeStatsByDepartment();
-  const { data: dischargeStatsByCity = [] } = useDischargeStatsByCity();
-  const { data: delayedDischarges = [] } = useDelayedDischarges();
+  const { data: dischargeStatsByDept = [], refetch: refetchStatsByDept } = useDischargeStatsByDepartment();
+  const { data: dischargeStatsByCity = [], refetch: refetchStatsByCity } = useDischargeStatsByCity();
+  const { data: delayedDischarges = [], refetch: refetchDelayedDischarges } = useDelayedDischarges();
+  const { data: generalStats, refetch: refetchGeneralStats } = useDischargeGeneralStats();
 
   // Mutations
   const cancelDischargeMutation = useCancelDischarge();
@@ -74,6 +75,15 @@ const DischargeMonitoringPanel: React.FC = () => {
     });
   };
 
+  const handleRefreshData = () => {
+    toast.info('Atualizando dados...');
+    refetchDischargeControl();
+    refetchStatsByDept();
+    refetchStatsByCity();
+    refetchDelayedDischarges();
+    refetchGeneralStats();
+  };
+
   const generatePDFReport = (period: string) => {
     toast.success(`Gerando relatório ${period}...`);
     // Implementação da geração de PDF seria aqui
@@ -100,7 +110,15 @@ const DischargeMonitoringPanel: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Monitoramento de Altas</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          <Button
+            variant="outline"
+            onClick={handleRefreshData}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Atualizar
+          </Button>
           <Badge variant="secondary" className="text-lg px-3 py-1">
             {pendingDischarges.length} altas pendentes
           </Badge>
@@ -184,7 +202,7 @@ const DischargeMonitoringPanel: React.FC = () => {
                               <p className="text-gray-600">Solicitado em</p>
                               <p className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                {new Date(discharge.discharge_requested_at).toLocaleString()}
+                                {formatDateTimeSaoPaulo(discharge.discharge_requested_at)}
                               </p>
                             </div>
                             
@@ -247,21 +265,51 @@ const DischargeMonitoringPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
+          {/* Debug info para verificar dados */}
+          {process.env.NODE_ENV === 'development' && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-blue-800">Debug - Status dos Dados</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p><strong>Controles de Alta:</strong> {dischargeControls.length}</p>
+                    <p><strong>Pendentes:</strong> {pendingDischarges.length}</p>
+                    <p><strong>Completadas:</strong> {completedDischarges.length}</p>
+                  </div>
+                  <div>
+                    <p><strong>Stats por Dept:</strong> {dischargeStatsByDept.length}</p>
+                    <p><strong>Stats por Cidade:</strong> {dischargeStatsByCity.length}</p>
+                    <p><strong>Altas Atrasadas:</strong> {delayedDischarges.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Tempo Médio de Alta por Departamento (horas)</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dischargeStatsByDept}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
-                    <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
-                    <Bar dataKey="avg_hours" fill="#3b82f6" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {dischargeStatsByDept.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Nenhum dado de estatísticas por departamento encontrado.</p>
+                    <p className="text-sm">Dados aparecem após altas serem processadas.</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={dischargeStatsByDept}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
+                      <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip />
+                      <Bar dataKey="avg_hours" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -270,15 +318,22 @@ const DischargeMonitoringPanel: React.FC = () => {
                 <CardTitle>Tempo Médio de Alta por Município (horas)</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dischargeStatsByCity.slice(0, 10)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="origin_city" angle={-45} textAnchor="end" height={80} />
-                    <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
-                    <Bar dataKey="avg_hours" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {dischargeStatsByCity.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Nenhum dado de estatísticas por município encontrado.</p>
+                    <p className="text-sm">Dados aparecem após altas serem processadas.</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={dischargeStatsByCity.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="origin_city" angle={-45} textAnchor="end" height={80} />
+                      <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip />
+                      <Bar dataKey="avg_hours" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -302,6 +357,12 @@ const DischargeMonitoringPanel: React.FC = () => {
                           <p className="text-sm text-gray-600">{delayed.department}</p>
                           <p className="text-sm">
                             Tempo de espera: <span className="font-medium text-orange-600">{delayed.delay_hours}h</span>
+                          </p>
+                          <p className="text-sm">
+                            Solicitado: {formatDateTimeSaoPaulo(delayed.discharge_requested_at)}
+                          </p>
+                          <p className="text-sm">
+                            Efetivado: {formatDateTimeSaoPaulo(delayed.discharge_effective_at)}
                           </p>
                         </div>
                         {delayed.justification && (

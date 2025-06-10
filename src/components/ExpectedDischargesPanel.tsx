@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, User, Calendar, MapPin, Stethoscope } from 'lucide-react';
-import { format, addDays, isWithinInterval } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import { getCurrentDateTimeSaoPaulo, isDateWithinPeriodSaoPaulo, formatDateSaoPaulo } from '@/utils/timezoneUtils';
 
 interface ExpectedDischargesPanelProps {
   data: {
@@ -16,32 +17,61 @@ interface ExpectedDischargesPanelProps {
 
 const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data }) => {
   const { discharges24h, discharges48h } = useMemo(() => {
-    const today = new Date();
+    const today = getCurrentDateTimeSaoPaulo();
     const tomorrow = addDays(today, 1);
     const dayAfterTomorrow = addDays(today, 2);
 
     const occupiedBeds = data.beds.filter(bed => bed.isOccupied && bed.patient);
     
+    console.log('Calculando altas previstas:', {
+      hoje: format(today, 'dd/MM/yyyy'),
+      amanha: format(tomorrow, 'dd/MM/yyyy'),
+      depoisAmanha: format(dayAfterTomorrow, 'dd/MM/yyyy'),
+      totalPacientes: occupiedBeds.length
+    });
+    
     const discharges24h = occupiedBeds.filter(bed => {
+      if (!bed.patient?.expectedDischargeDate) return false;
+      
       const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
-      return isWithinInterval(expectedDischarge, { start: today, end: tomorrow });
+      const isWithin24h = isDateWithinPeriodSaoPaulo(expectedDischarge, today, tomorrow);
+      
+      if (isWithin24h) {
+        console.log('Paciente 24h:', {
+          nome: bed.patient.name,
+          dpa: formatDateSaoPaulo(expectedDischarge),
+          hoje: format(today, 'dd/MM/yyyy'),
+          amanha: format(tomorrow, 'dd/MM/yyyy')
+        });
+      }
+      
+      return isWithin24h;
     });
 
     const discharges48h = occupiedBeds.filter(bed => {
+      if (!bed.patient?.expectedDischargeDate) return false;
+      
       const expectedDischarge = new Date(bed.patient.expectedDischargeDate);
-      return isWithinInterval(expectedDischarge, { start: addDays(today, 1), end: dayAfterTomorrow });
+      // 48h são as altas do dia seguinte ao amanhã
+      const isAfterTomorrow = isDateWithinPeriodSaoPaulo(expectedDischarge, addDays(tomorrow, 1), dayAfterTomorrow);
+      
+      if (isAfterTomorrow) {
+        console.log('Paciente 48h:', {
+          nome: bed.patient.name,
+          dpa: formatDateSaoPaulo(expectedDischarge),
+          depoisAmanha: format(dayAfterTomorrow, 'dd/MM/yyyy')
+        });
+      }
+      
+      return isAfterTomorrow;
     });
 
     return { discharges24h, discharges48h };
   }, [data.beds]);
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy');
-  };
-
   const calculateAge = (birthDate: string) => {
     const birth = new Date(birthDate);
-    const today = new Date();
+    const today = getCurrentDateTimeSaoPaulo();
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     
@@ -76,7 +106,7 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
           <body>
             <div class="header">
               <h1>Relatório de Altas Previstas</h1>
-              <p>Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}</p>
+              <p>Gerado em: ${format(getCurrentDateTimeSaoPaulo(), "dd/MM/yyyy 'às' HH:mm")}</p>
             </div>
             ${printContent.innerHTML}
           </body>
@@ -105,7 +135,7 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3" />
-              <span>Nascimento: {formatDate(bed.patient.birthDate)}</span>
+              <span>Nascimento: {formatDateSaoPaulo(bed.patient.birthDate)}</span>
             </div>
             <div className="flex items-center gap-2">
               <User className="h-3 w-3" />
@@ -113,7 +143,7 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3" />
-              <span>Admissão: {formatDate(bed.patient.admissionDate)}</span>
+              <span>Admissão: {formatDateSaoPaulo(bed.patient.admissionDate)}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-3 w-3" />
@@ -122,7 +152,7 @@ const ExpectedDischargesPanel: React.FC<ExpectedDischargesPanelProps> = ({ data 
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3 text-orange-600" />
               <span className="font-medium text-orange-600">
-                DPA: {formatDate(bed.patient.expectedDischargeDate)}
+                DPA: {formatDateSaoPaulo(bed.patient.expectedDischargeDate)}
               </span>
             </div>
             {bed.patient.specialty && (
