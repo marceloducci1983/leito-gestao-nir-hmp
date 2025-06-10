@@ -45,6 +45,7 @@ interface BedCardProps {
   onDischargePatient: (bedId: string) => void;
   onDeleteReservation: (bedId: string) => void;
   onDeleteBed?: (bedId: string) => void;
+  editMode?: boolean;
 }
 
 const NewBedCard: React.FC<BedCardProps> = ({
@@ -55,7 +56,8 @@ const NewBedCard: React.FC<BedCardProps> = ({
   onTransferPatient,
   onDischargePatient,
   onDeleteReservation,
-  onDeleteBed
+  onDeleteBed,
+  editMode = false
 }) => {
   return (
     <Card className={`w-full ${getBedStatusColor(bed.isOccupied, bed.isReserved)} transition-all hover:shadow-md`}>
