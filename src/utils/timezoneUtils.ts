@@ -1,5 +1,6 @@
 
-import { format, parseISO, toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
 // Fuso horário de São Paulo
@@ -30,8 +31,7 @@ export const formatDateTimeSaoPaulo = (dateString: string | Date, formatString: 
     const saoPauloDate = toZonedTime(date, SAO_PAULO_TIMEZONE);
     
     return format(saoPauloDate, formatString, { 
-      locale: ptBR,
-      timeZone: SAO_PAULO_TIMEZONE 
+      locale: ptBR
     });
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -58,12 +58,12 @@ export const getCurrentDateTimeSaoPaulo = (): Date => {
 
 export const getCurrentDateSaoPaulo = (): string => {
   const now = getCurrentDateTimeSaoPaulo();
-  return format(now, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE });
+  return format(now, 'yyyy-MM-dd');
 };
 
 export const getCurrentTimeSaoPaulo = (): string => {
   const now = getCurrentDateTimeSaoPaulo();
-  return format(now, 'HH:mm', { timeZone: SAO_PAULO_TIMEZONE });
+  return format(now, 'HH:mm');
 };
 
 // Função para comparar datas considerando apenas o dia (sem hora)
@@ -71,8 +71,7 @@ export const isSameDaySaoPaulo = (date1: Date | string, date2: Date | string): b
   const d1 = toZonedTime(typeof date1 === 'string' ? new Date(date1) : date1, SAO_PAULO_TIMEZONE);
   const d2 = toZonedTime(typeof date2 === 'string' ? new Date(date2) : date2, SAO_PAULO_TIMEZONE);
   
-  return format(d1, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE }) === 
-         format(d2, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE });
+  return format(d1, 'yyyy-MM-dd') === format(d2, 'yyyy-MM-dd');
 };
 
 // Função para verificar se uma data está dentro de um período (inclusivo)
@@ -81,10 +80,10 @@ export const isDateWithinPeriodSaoPaulo = (date: Date | string, startDate: Date 
   const start = toZonedTime(typeof startDate === 'string' ? new Date(startDate) : startDate, SAO_PAULO_TIMEZONE);
   const end = toZonedTime(typeof endDate === 'string' ? new Date(endDate) : endDate, SAO_PAULO_TIMEZONE);
   
-  // Normalizar para início e fim do dia
-  const targetDay = format(targetDate, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE });
-  const startDay = format(start, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE });
-  const endDay = format(end, 'yyyy-MM-dd', { timeZone: SAO_PAULO_TIMEZONE });
+  // Normalizar para início e fim do dia para comparação correta
+  const targetDay = format(targetDate, 'yyyy-MM-dd');
+  const startDay = format(start, 'yyyy-MM-dd');
+  const endDay = format(end, 'yyyy-MM-dd');
   
   return targetDay >= startDay && targetDay <= endDay;
 };
