@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, User, Activity, FileText, Archive } from 'lucide-react';
+import { Calendar, MapPin, User, Activity, FileText, Archive, ChevronDown, ChevronUp } from 'lucide-react';
 import TfdInterventionModal from '@/components/forms/TfdInterventionModal';
 import { useArchiveTfdPatient } from '@/hooks/mutations/useTfdMutations';
 import { useTfdInterventions } from '@/hooks/queries/useTfdQueries';
@@ -15,6 +15,7 @@ interface TfdPatientCardProps {
 
 const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
   const [showInterventionModal, setShowInterventionModal] = useState(false);
+  const [showAllInterventions, setShowAllInterventions] = useState(false);
   const archiveTfdMutation = useArchiveTfdPatient();
   const { data: interventions = [] } = useTfdInterventions(patient.id);
 
@@ -33,6 +34,8 @@ const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
       }
     }
   };
+
+  const displayedInterventions = showAllInterventions ? interventions : interventions.slice(0, 3);
 
   return (
     <>
@@ -104,16 +107,47 @@ const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
           {/* Mostrar intervenções existentes */}
           {interventions.length > 0 && (
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p className="font-medium text-sm text-blue-800 mb-2">Intervenções Realizadas:</p>
-              <div className="space-y-1">
-                {interventions.slice(0, 2).map((intervention: any) => (
-                  <div key={intervention.id} className="text-xs text-blue-700">
-                    <strong>{intervention.intervention_type}:</strong> {intervention.description.substring(0, 50)}...
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-medium text-sm text-blue-800">
+                  Intervenções Realizadas ({interventions.length}):
+                </p>
+                {interventions.length > 3 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAllInterventions(!showAllInterventions)}
+                    className="h-6 px-2 text-blue-600 hover:text-blue-800"
+                  >
+                    {showAllInterventions ? (
+                      <>
+                        <ChevronUp className="h-3 w-3 mr-1" />
+                        Menos
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-3 w-3 mr-1" />
+                        Ver todas
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {displayedInterventions.map((intervention: any, index: number) => (
+                  <div key={intervention.id} className="p-2 bg-white rounded border border-blue-200">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded">
+                        {intervention.intervention_type}
+                      </span>
+                      <span className="text-xs text-blue-600">
+                        {new Date(intervention.created_at).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-700">
+                      {intervention.description}
+                    </p>
                   </div>
                 ))}
-                {interventions.length > 2 && (
-                  <p className="text-xs text-blue-600">+ {interventions.length - 2} mais...</p>
-                )}
               </div>
             </div>
           )}
