@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,13 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Building, AlertCircle, FileText, TrendingUp, Download, RefreshCw } from 'lucide-react';
-import { useDischargeControl, useReadmissions, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
+import { Clock, Calendar, Building, AlertCircle, FileText, Download, RefreshCw } from 'lucide-react';
+import { useDischargeControl, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
-import ReadmissionCard from '@/components/readmissions/ReadmissionCard';
 import { toast } from 'sonner';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatDateTimeSaoPaulo } from '@/utils/timezoneUtils';
 
 const DischargeMonitoringPanel: React.FC = () => {
@@ -24,7 +24,6 @@ const DischargeMonitoringPanel: React.FC = () => {
 
   // Queries
   const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
-  const { data: readmissions = [] } = useReadmissions();
   const { data: departmentStats = [] } = useDepartmentStats();
   const { data: dischargeStatsByDept = [], refetch: refetchStatsByDept } = useDischargeStatsByDepartment();
   const { data: dischargeStatsByCity = [], refetch: refetchStatsByCity } = useDischargeStatsByCity();
@@ -48,6 +47,22 @@ const DischargeMonitoringPanel: React.FC = () => {
       const dateB = new Date(b.discharge_requested_at).getTime();
       return sortBy === 'oldest' ? dateA - dateB : dateB - dateA;
     });
+
+  // Converter dados para minutos
+  const dischargeStatsByDeptInMinutes = dischargeStatsByDept.map(stat => ({
+    ...stat,
+    avg_minutes: Math.round((stat.avg_hours || 0) * 60)
+  }));
+
+  const dischargeStatsByCityInMinutes = dischargeStatsByCity.map(stat => ({
+    ...stat,
+    avg_minutes: Math.round((stat.avg_hours || 0) * 60)
+  }));
+
+  const delayedDischargesInMinutes = delayedDischarges.map(delayed => ({
+    ...delayed,
+    delay_minutes: Math.round((delayed.delay_hours || 0) * 60)
+  }));
 
   const calculateWaitTime = (requestedAt: string) => {
     const requested = new Date(requestedAt);
@@ -122,22 +137,16 @@ const DischargeMonitoringPanel: React.FC = () => {
           <Badge variant="secondary" className="text-lg px-3 py-1">
             {pendingDischarges.length} altas pendentes
           </Badge>
-          <Badge variant="outline" className="text-lg px-3 py-1">
-            {readmissions.length} reinternações (30 dias)
-          </Badge>
         </div>
       </div>
 
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending">
             Altas Pendentes ({pendingDischarges.length})
           </TabsTrigger>
           <TabsTrigger value="analytics">
             Dashboard Analítico
-          </TabsTrigger>
-          <TabsTrigger value="readmissions">
-            Reinternações ({readmissions.length})
           </TabsTrigger>
           <TabsTrigger value="reports">
             Relatórios
@@ -291,22 +300,22 @@ const DischargeMonitoringPanel: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Tempo Médio de Alta por Departamento (horas)</CardTitle>
+                <CardTitle>Tempo Médio de Alta por Departamento (minutos)</CardTitle>
               </CardHeader>
               <CardContent>
-                {dischargeStatsByDept.length === 0 ? (
+                {dischargeStatsByDeptInMinutes.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <p>Nenhum dado de estatísticas por departamento encontrado.</p>
                     <p className="text-sm">Dados aparecem após altas serem processadas.</p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={dischargeStatsByDept}>
+                    <BarChart data={dischargeStatsByDeptInMinutes}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
-                      <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                      <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
                       <Tooltip />
-                      <Bar dataKey="avg_hours" fill="#3b82f6" />
+                      <Bar dataKey="avg_minutes" fill="#3b82f6" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -315,22 +324,22 @@ const DischargeMonitoringPanel: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Tempo Médio de Alta por Município (horas)</CardTitle>
+                <CardTitle>Tempo Médio de Alta por Município (minutos)</CardTitle>
               </CardHeader>
               <CardContent>
-                {dischargeStatsByCity.length === 0 ? (
+                {dischargeStatsByCityInMinutes.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <p>Nenhum dado de estatísticas por município encontrado.</p>
                     <p className="text-sm">Dados aparecem após altas serem processadas.</p>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={dischargeStatsByCity.slice(0, 10)}>
+                    <BarChart data={dischargeStatsByCityInMinutes.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="origin_city" angle={-45} textAnchor="end" height={80} />
-                      <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                      <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
                       <Tooltip />
-                      <Bar dataKey="avg_hours" fill="#10b981" />
+                      <Bar dataKey="avg_minutes" fill="#10b981" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -343,20 +352,20 @@ const DischargeMonitoringPanel: React.FC = () => {
               <CardTitle>Altas com Demora Superior a 5 Horas</CardTitle>
             </CardHeader>
             <CardContent>
-              {delayedDischarges.length === 0 ? (
+              {delayedDischargesInMinutes.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
                   Nenhuma alta com demora superior a 5 horas registrada.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {delayedDischarges.map((delayed, index) => (
+                  {delayedDischargesInMinutes.map((delayed, index) => (
                     <div key={index} className="p-4 border rounded-lg bg-orange-50">
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold">{delayed.patient_name}</h4>
                           <p className="text-sm text-gray-600">{delayed.department}</p>
                           <p className="text-sm">
-                            Tempo de espera: <span className="font-medium text-orange-600">{delayed.delay_hours}h</span>
+                            Tempo de espera: <span className="font-medium text-orange-600">{delayed.delay_minutes}min</span>
                           </p>
                           <p className="text-sm">
                             Solicitado: {formatDateTimeSaoPaulo(delayed.discharge_requested_at)}
@@ -373,34 +382,6 @@ const DischargeMonitoringPanel: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="readmissions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Reinternações em 30 Dias
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {readmissions.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  Nenhuma reinternação registrada nos últimos 30 dias.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {readmissions.map((readmission, index) => (
-                    <ReadmissionCard 
-                      key={index} 
-                      readmission={readmission}
-                      investigation={null}
-                    />
                   ))}
                 </div>
               )}

@@ -7,14 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, CheckCircle, XCircle, Calendar, Clock } from 'lucide-react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useUpdateInvestigation } from '@/hooks/mutations/useInvestigationMutations';
 
 const AlertsPanel: React.FC = () => {
   const { centralData, isLoading } = useSupabaseBeds();
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const queryClient = useQueryClient();
 
   // Calcular pacientes com mais de 15 dias
   const longStayPatients = centralData.beds
@@ -44,7 +43,7 @@ const AlertsPanel: React.FC = () => {
 
   // Buscar investigações
   const { data: investigations = [] } = useQuery({
-    queryKey: ['investigations'],
+    queryKey: ['alert_investigations'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('alert_investigations')
@@ -54,38 +53,28 @@ const AlertsPanel: React.FC = () => {
     }
   });
 
-  // Mutation para marcar investigação
-  const investigateMutation = useMutation({
-    mutationFn: async ({ patientId, alertType, investigated }: { 
-      patientId: string; 
-      alertType: 'long_stay' | 'readmission'; 
-      investigated: boolean 
-    }) => {
-      const { data, error } = await supabase
-        .from('alert_investigations')
-        .upsert({
-          patient_id: patientId,
-          alert_type: alertType,
-          investigated,
-          investigation_date: investigated ? new Date().toISOString() : null
-        });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['investigations'] });
-      toast.success('Status de investigação atualizado!');
-    }
-  });
+  // Usar hook de mutation atualizado
+  const updateInvestigationMutation = useUpdateInvestigation();
 
-  const handleInvestigate = (patientId: string, alertType: 'long_stay' | 'readmission', investigated: boolean) => {
+  const handleInvestigate = async (patientId: string, alertType: 'long_stay' | 'readmission_30_days', investigated: boolean) => {
+    const status = investigated ? 'investigated' : 'not_investigated';
     const message = investigated ? 'marcar como investigado' : 'marcar como não investigado';
+    
     if (confirm(`Deseja ${message} este alerta?`)) {
-      investigateMutation.mutate({ patientId, alertType, investigated });
+      try {
+        await updateInvestigationMutation.mutateAsync({
+          patientId,
+          alertType,
+          status,
+          notes: alertType === 'readmission_30_days' ? 'Reinternação investigada via painel de alertas' : 'Permanência longa investigada via painel de alertas'
+        });
+      } catch (error) {
+        console.error('Erro ao atualizar investigação:', error);
+      }
     }
   };
 
-  const getInvestigationStatus = (patientId: string, alertType: 'long_stay' | 'readmission') => {
+  const getInvestigationStatus = (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => {
     return investigations.find(inv => inv.patient_id === patientId && inv.alert_type === alertType);
   };
 
@@ -195,12 +184,12 @@ const AlertsPanel: React.FC = () => {
                         </div>
                         
                         <div className="flex flex-col gap-2 ml-4">
-                          {investigation?.investigated === true ? (
+                          {investigation?.investigation_status === 'investigated' ? (
                             <Badge variant="default" className="bg-green-100 text-green-700 border-green-200">
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Investigado
                             </Badge>
-                          ) : investigation?.investigated === false ? (
+                          ) : investigation?.investigation_status === 'not_investigated' ? (
                             <Badge variant="destructive">
                               <XCircle className="h-4 w-4 mr-1" />
                               Não Investigado
@@ -212,6 +201,7 @@ const AlertsPanel: React.FC = () => {
                                 variant="outline"
                                 className="bg-green-50 hover:bg-green-100 border-green-200"
                                 onClick={() => handleInvestigate(patient.id, 'long_stay', true)}
+                                disabled={updateInvestigationMutation.isPending}
                               >
                                 <CheckCircle className="h-4 w-4" />
                                 Investigado
@@ -221,6 +211,7 @@ const AlertsPanel: React.FC = () => {
                                 variant="outline"
                                 className="bg-red-50 hover:bg-red-100 border-red-200"
                                 onClick={() => handleInvestigate(patient.id, 'long_stay', false)}
+                                disabled={updateInvestigationMutation.isPending}
                               >
                                 <XCircle className="h-4 w-4" />
                                 Não Investigado
@@ -249,7 +240,9 @@ const AlertsPanel: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {readmissions.map((readmission, index) => {
-                const investigation = getInvestigationStatus(`readmission-${index}`, 'readmission');
+                // Criar um ID único para reinternações baseado no nome do paciente e data
+                const readmissionId = `${readmission.patient_name}_${readmission.discharge_date}_${readmission.readmission_date}`.replace(/\s+/g, '_');
+                const investigation = getInvestigationStatus(readmissionId, 'readmission_30_days');
                 
                 return (
                   <Card key={index} className="hover:shadow-md transition-shadow">
@@ -291,12 +284,12 @@ const AlertsPanel: React.FC = () => {
                         </div>
                         
                         <div className="flex flex-col gap-2 ml-4">
-                          {investigation?.investigated === true ? (
+                          {investigation?.investigation_status === 'investigated' ? (
                             <Badge variant="default" className="bg-green-100 text-green-700 border-green-200">
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Investigado
                             </Badge>
-                          ) : investigation?.investigated === false ? (
+                          ) : investigation?.investigation_status === 'not_investigated' ? (
                             <Badge variant="destructive">
                               <XCircle className="h-4 w-4 mr-1" />
                               Não Investigado
@@ -307,7 +300,8 @@ const AlertsPanel: React.FC = () => {
                                 size="sm"
                                 variant="outline"
                                 className="bg-green-50 hover:bg-green-100 border-green-200"
-                                onClick={() => handleInvestigate(`readmission-${index}`, 'readmission', true)}
+                                onClick={() => handleInvestigate(readmissionId, 'readmission_30_days', true)}
+                                disabled={updateInvestigationMutation.isPending}
                               >
                                 <CheckCircle className="h-4 w-4" />
                                 Investigado
@@ -316,7 +310,8 @@ const AlertsPanel: React.FC = () => {
                                 size="sm"
                                 variant="outline"
                                 className="bg-red-50 hover:bg-red-100 border-red-200"
-                                onClick={() => handleInvestigate(`readmission-${index}`, 'readmission', false)}
+                                onClick={() => handleInvestigate(readmissionId, 'readmission_30_days', false)}
+                                disabled={updateInvestigationMutation.isPending}
                               >
                                 <XCircle className="h-4 w-4" />
                                 Não Investigado
