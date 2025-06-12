@@ -66,9 +66,12 @@ export const useAddPatient = () => {
 
       return patient;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
+    onSuccess: async () => {
+      // Forçar refetch imediato em vez de apenas invalidar
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['beds'] }),
+        queryClient.refetchQueries({ queryKey: ['patient_discharges'] })
+      ]);
       toast.success('Paciente admitido com sucesso!');
     },
     onError: (error) => {
@@ -112,8 +115,8 @@ export const useUpdatePatient = () => {
 
       return patient;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['beds'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['beds'] });
       toast.success('Paciente editado com sucesso!');
     },
     onError: (error) => {
@@ -132,86 +135,145 @@ export const useDischargePatient = () => {
       patientId: string; 
       dischargeData: { dischargeType: string; dischargeDate: string } 
     }) => {
-      console.log('Discharging patient:', { bedId, patientId, dischargeData });
+      console.log('🏥 INICIANDO ALTA DO PACIENTE:', { bedId, patientId, dischargeData });
       
-      // Buscar dados do paciente
-      const { data: patient, error: patientError } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('id', patientId)
-        .single();
+      // Timeout para evitar operações que ficam travadas
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout na operação de alta')), 30000)
+      );
 
-      if (patientError) {
-        console.error('Error fetching patient:', patientError);
-        throw patientError;
-      }
+      const dischargePromise = async () => {
+        // Buscar dados do paciente
+        console.log('📋 Buscando dados do paciente...');
+        const { data: patient, error: patientError } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('id', patientId)
+          .single();
 
-      // Calcular dias de internação
-      const admissionDate = new Date(patient.admission_date);
-      const dischargeDate = new Date(dischargeData.dischargeDate);
-      const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (patientError) {
+          console.error('❌ Erro ao buscar paciente:', patientError);
+          throw new Error(`Erro ao buscar paciente: ${patientError.message}`);
+        }
 
-      // Inserir na tabela de altas (ARQUIVO e MONITORAMENTO)
-      const { error: dischargeError } = await supabase
-        .from('patient_discharges')
-        .insert({
-          patient_id: patientId,
-          name: patient.name,
-          sex: patient.sex,
-          birth_date: patient.birth_date,
-          age: patient.age,
-          admission_date: patient.admission_date,
-          admission_time: patient.admission_time,
-          discharge_date: dischargeData.dischargeDate,
-          expected_discharge_date: patient.expected_discharge_date,
-          diagnosis: patient.diagnosis,
-          specialty: patient.specialty,
-          origin_city: patient.origin_city,
-          occupation_days: patient.occupation_days,
-          actual_stay_days: actualStayDays,
-          is_tfd: patient.is_tfd,
-          tfd_type: patient.tfd_type,
-          department: patient.department,
-          discharge_type: dischargeData.dischargeType as any,
-          bed_id: bedId
-        });
+        console.log('✅ Dados do paciente encontrados:', patient);
 
-      if (dischargeError) {
-        console.error('Error inserting discharge:', dischargeError);
-        throw dischargeError;
-      }
+        // Calcular dias de internação
+        const admissionDate = new Date(patient.admission_date);
+        const dischargeDate = new Date(dischargeData.dischargeDate);
+        const actualStayDays = Math.ceil((dischargeDate.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Remover paciente da tabela de pacientes
-      const { error: deletePatientError } = await supabase
-        .from('patients')
-        .delete()
-        .eq('id', patientId);
+        console.log('📊 Calculando dias de internação:', { admissionDate, dischargeDate, actualStayDays });
 
-      if (deletePatientError) {
-        console.error('Error deleting patient:', deletePatientError);
-        throw deletePatientError;
-      }
+        // Inserir na tabela de altas (ARQUIVO e MONITORAMENTO)
+        console.log('💾 Inserindo dados na tabela de altas...');
+        const { error: dischargeError } = await supabase
+          .from('patient_discharges')
+          .insert({
+            patient_id: patientId,
+            name: patient.name,
+            sex: patient.sex,
+            birth_date: patient.birth_date,
+            age: patient.age,
+            admission_date: patient.admission_date,
+            admission_time: patient.admission_time,
+            discharge_date: dischargeData.dischargeDate,
+            expected_discharge_date: patient.expected_discharge_date,
+            diagnosis: patient.diagnosis,
+            specialty: patient.specialty,
+            origin_city: patient.origin_city,
+            occupation_days: patient.occupation_days,
+            actual_stay_days: actualStayDays,
+            is_tfd: patient.is_tfd,
+            tfd_type: patient.tfd_type,
+            department: patient.department,
+            discharge_type: dischargeData.dischargeType as any,
+            bed_id: bedId
+          });
 
-      // Liberar o leito
-      const { error: bedError } = await supabase
-        .from('beds')
-        .update({ is_occupied: false })
-        .eq('id', bedId);
+        if (dischargeError) {
+          console.error('❌ Erro ao inserir alta:', dischargeError);
+          throw new Error(`Erro ao registrar alta: ${dischargeError.message}`);
+        }
 
-      if (bedError) {
-        console.error('Error updating bed:', bedError);
-        throw bedError;
-      }
+        console.log('✅ Alta registrada com sucesso');
+
+        // Liberar o leito PRIMEIRO
+        console.log('🛏️ Liberando leito...');
+        const { error: bedError } = await supabase
+          .from('beds')
+          .update({ is_occupied: false })
+          .eq('id', bedId);
+
+        if (bedError) {
+          console.error('❌ Erro ao liberar leito:', bedError);
+          throw new Error(`Erro ao liberar leito: ${bedError.message}`);
+        }
+
+        console.log('✅ Leito liberado com sucesso');
+
+        // Remover paciente da tabela de pacientes POR ÚLTIMO
+        console.log('🗑️ Removendo paciente da tabela ativa...');
+        const { error: deletePatientError } = await supabase
+          .from('patients')
+          .delete()
+          .eq('id', patientId);
+
+        if (deletePatientError) {
+          console.error('❌ Erro ao deletar paciente:', deletePatientError);
+          throw new Error(`Erro ao remover paciente: ${deletePatientError.message}`);
+        }
+
+        console.log('✅ Paciente removido da tabela ativa');
+        console.log('🎉 ALTA CONCLUÍDA COM SUCESSO!');
+
+        return { success: true, patient };
+      };
+
+      // Executar com timeout
+      return Promise.race([dischargePromise(), timeoutPromise]);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
-      toast.success('Alta realizada com sucesso! Dados enviados para Arquivo e Monitoramento.');
+    onSuccess: async (result) => {
+      console.log('🔄 Forçando atualização dos dados...');
+      
+      // Forçar refetch imediato e aguardar conclusão
+      try {
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ['beds'], type: 'active' }),
+          queryClient.refetchQueries({ queryKey: ['patient_discharges'], type: 'active' })
+        ]);
+        console.log('✅ Dados atualizados com sucesso');
+        
+        // Invalidar todas as queries relacionadas como backup
+        queryClient.invalidateQueries({ queryKey: ['beds'] });
+        queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
+        queryClient.invalidateQueries({ queryKey: ['department_stats'] });
+        
+        toast.success('Alta realizada com sucesso! Dados enviados para Arquivo e Monitoramento.');
+      } catch (refreshError) {
+        console.error('⚠️ Erro ao atualizar dados, mas alta foi realizada:', refreshError);
+        toast.success('Alta realizada com sucesso! Atualizando dados...');
+        
+        // Retry depois de um delay
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['beds'] });
+          queryClient.refetchQueries({ queryKey: ['patient_discharges'] });
+        }, 1000);
+      }
     },
     onError: (error) => {
-      console.error('Erro ao dar alta:', error);
-      toast.error('Erro ao dar alta. Tente novamente.');
-    }
+      console.error('❌ ERRO FINAL na alta:', error);
+      toast.error(`Erro ao dar alta: ${error.message || 'Erro desconhecido'}. Tente novamente.`);
+    },
+    retry: (failureCount, error) => {
+      // Retry automático até 2 vezes para certos tipos de erro
+      if (failureCount < 2 && !error.message.includes('Timeout')) {
+        console.log(`🔄 Tentativa ${failureCount + 1} de retry para alta...`);
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000)
   });
 };
 
@@ -303,8 +365,8 @@ export const useTransferPatient = () => {
         throw toBedUpdateError;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['beds'] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['beds'] });
       toast.success('Transferência realizada com sucesso!');
     },
     onError: (error) => {

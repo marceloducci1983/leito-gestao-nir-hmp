@@ -25,13 +25,15 @@ interface OccupiedBedInfoProps {
   onEditPatient: () => void;
   onTransferPatient: () => void;
   onDischargePatient: () => void;
+  isDischarging?: boolean;
 }
 
 export const OccupiedBedInfo: React.FC<OccupiedBedInfoProps> = ({
   patient,
   onEditPatient,
   onTransferPatient,
-  onDischargePatient
+  onDischargePatient,
+  isDischarging = false
 }) => {
   return (
     <div className="space-y-3">
@@ -40,6 +42,7 @@ export const OccupiedBedInfo: React.FC<OccupiedBedInfoProps> = ({
         onEditPatient={onEditPatient}
         onTransferPatient={onTransferPatient}
         onDischargePatient={onDischargePatient}
+        isDischarging={isDischarging}
       />
     </div>
   );

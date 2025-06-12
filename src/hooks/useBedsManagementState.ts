@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { Department } from '@/types';
+import { Department, Patient } from '@/types';
 
 export const useBedsManagementState = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
   const [selectedBedId, setSelectedBedId] = useState<string>('');
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   
   // Form states
   const [showPatientForm, setShowPatientForm] = useState(false);
@@ -13,6 +13,23 @@ export const useBedsManagementState = () => {
   const [showDischargeModal, setShowDischargeModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [isEditingPatient, setIsEditingPatient] = useState(false);
+  
+  // Loading states
+  const [dischargingBeds, setDischargingBeds] = useState<Set<string>>(new Set());
+
+  const setIsDischarging = (bedId: string, isDischarging: boolean) => {
+    setDischargingBeds(prev => {
+      const newSet = new Set(prev);
+      if (isDischarging) {
+        newSet.add(bedId);
+      } else {
+        newSet.delete(bedId);
+      }
+      return newSet;
+    });
+  };
+
+  const isDischarging = (bedId: string) => dischargingBeds.has(bedId);
 
   return {
     selectedDepartment,
@@ -31,5 +48,8 @@ export const useBedsManagementState = () => {
     setShowTransferModal,
     isEditingPatient,
     setIsEditingPatient,
+    dischargingBeds,
+    setIsDischarging,
+    isDischarging
   };
 };

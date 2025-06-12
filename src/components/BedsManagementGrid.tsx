@@ -4,8 +4,12 @@ import { CardContent } from '@/components/ui/card';
 import { Bed } from '@/types';
 import NewBedCard from './NewBedCard';
 
+interface BedWithDischarging extends Bed {
+  isDischarging?: boolean;
+}
+
 interface BedsManagementGridProps {
-  departmentBeds: Bed[];
+  departmentBeds: BedWithDischarging[];
   onReserveBed: (bedId: string) => void;
   onAdmitPatient: (bedId: string) => void;
   onEditPatient: (bedId: string) => void;
@@ -62,6 +66,7 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
               onDeleteReservation={onDeleteReservation}
               onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
               editMode={showEditBedMode}
+              isDischarging={bed.isDischarging || false}
             />
           </div>
         ))}

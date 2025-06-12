@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
@@ -38,6 +39,8 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
     setShowTransferModal,
     isEditingPatient,
     setIsEditingPatient,
+    setIsDischarging,
+    isDischarging
   } = useBedsManagementState();
 
   const { toast } = useToast();
@@ -199,7 +202,12 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   const submitDischarge = async (dischargeType: string) => {
     if (!selectedPatient) return;
 
+    // Marcar como processando
+    setIsDischarging(selectedBedId, true);
+
     try {
+      console.log('🚀 Iniciando processo de alta...', { selectedBedId, selectedPatient });
+      
       await dischargePatient({
         bedId: selectedBedId,
         patientId: selectedPatient.id,
@@ -208,16 +216,17 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
           dischargeDate: new Date().toISOString().split('T')[0]
         }
       });
-      toast({
-        title: "Alta realizada com sucesso",
-        description: `${selectedPatient.name} - ${dischargeType}`,
-      });
+      
+      // Toast já é exibido na mutation onSuccess
+      setShowDischargeModal(false);
+      setSelectedPatient(null);
+      
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao dar alta",
-        variant: "destructive",
-      });
+      console.error('❌ Erro no processo de alta:', error);
+      // Toast de erro já é exibido na mutation onError
+    } finally {
+      // Remover estado de loading
+      setIsDischarging(selectedBedId, false);
     }
   };
 
@@ -288,7 +297,10 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 
       <Card>
         <BedsManagementGrid
-          departmentBeds={departmentBeds}
+          departmentBeds={departmentBeds.map(bed => ({
+            ...bed,
+            isDischarging: isDischarging(bed.id)
+          }))}
           onReserveBed={handleReserveBed}
           onAdmitPatient={handleAdmitPatient}
           onEditPatient={handleEditPatient}
@@ -324,7 +336,10 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
         <>
           <DischargeModal
             isOpen={showDischargeModal}
-            onClose={() => setShowDischargeModal(false)}
+            onClose={() => {
+              setShowDischargeModal(false);
+              setSelectedPatient(null);
+            }}
             onSubmit={submitDischarge}
             patientName={selectedPatient.name}
           />
