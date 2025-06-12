@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -11,6 +10,8 @@ import {
   Archive, 
   Settings 
 } from 'lucide-react';
+import { useResponsive } from '@/hooks/useResponsive';
+import MobileNavigation from './MobileNavigation';
 
 interface NavigationBarProps {
   activeTab: string;
@@ -18,6 +19,57 @@ interface NavigationBarProps {
 }
 
 const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange }) => {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  if (isMobile) {
+    return (
+      <div className="w-full border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">NIR - HMP</h1>
+              <p className="text-xs text-gray-600">Sistema de Gestão de Leitos</p>
+            </div>
+            <MobileNavigation activeTab={activeTab} onTabChange={onTabChange} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isTablet) {
+    return (
+      <div className="w-full border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 h-14">
+              <TabsTrigger value="beds" className="flex items-center gap-2 text-sm">
+                <Bed className="h-4 w-4" />
+                <span>LEITOS</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="indicators" className="flex items-center gap-2 text-sm">
+                <BarChart3 className="h-4 w-4" />
+                <span>STATS</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="expected-discharges" className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4" />
+                <span>ALTAS</span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="alerts" className="flex items-center gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4" />
+                <span>ALERTAS</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop view - keep existing functionality
   return (
     <div className="w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4">

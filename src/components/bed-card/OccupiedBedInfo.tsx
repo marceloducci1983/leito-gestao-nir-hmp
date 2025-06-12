@@ -2,6 +2,7 @@
 import React from 'react';
 import { PatientInfo } from './PatientInfo';
 import { PatientActionButtons } from './PatientActionButtons';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface PatientData {
   id: string;
@@ -35,14 +36,17 @@ export const OccupiedBedInfo: React.FC<OccupiedBedInfoProps> = ({
   onDischargePatient,
   isDischarging = false
 }) => {
+  const { isMobile } = useResponsive();
+
   return (
-    <div className="space-y-3">
+    <div className={`${isMobile ? 'space-y-4' : 'space-y-3'}`}>
       <PatientInfo patient={patient} />
       <PatientActionButtons
         onEditPatient={onEditPatient}
         onTransferPatient={onTransferPatient}
         onDischargePatient={onDischargePatient}
         isDischarging={isDischarging}
+        isMobile={isMobile}
       />
     </div>
   );

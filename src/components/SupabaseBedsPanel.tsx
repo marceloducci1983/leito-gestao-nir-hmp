@@ -2,23 +2,29 @@
 import React, { useState } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useCreateBed, useUpdateBed, useDeleteBed } from '@/hooks/mutations/useBedMutations';
-import NewBedCard from '@/components/NewBedCard';
+import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
+import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
+import { Department, Patient } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
+import { Button } from '@/components/ui/button';
+import { Settings, Plus } from 'lucide-react';
+
+// Importações para componentes responsivos
+import { useResponsive } from '@/hooks/useResponsive';
+import ResponsiveDepartmentSelector from './ResponsiveDepartmentSelector';
+import BedsManagementGrid from './BedsManagementGrid';
+
+// Importações para formulários
 import NewPatientForm from '@/components/forms/NewPatientForm';
 import NewReservationForm from '@/components/forms/NewReservationForm';
 import DischargeModal from '@/components/forms/DischargeModal';
 import TransferModal from '@/components/forms/TransferModal';
 import SectorManagementModal from '@/components/forms/SectorManagementModal';
 import BedManagementModal from '@/components/forms/BedManagementModal';
-import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
-import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
-import { Department, Patient } from '@/types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
-import { Button } from '@/components/ui/button';
-import { Settings, Plus } from 'lucide-react';
 
 interface SupabaseBedsPanelProps {
   onDataChange?: (data: {
@@ -49,6 +55,10 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const [showSectorModal, setShowSectorModal] = useState(false);
   const [showBedModal, setShowBedModal] = useState(false);
   const [selectedBedForEdit, setSelectedBedForEdit] = useState<any>(null);
+  
+  // Estados para responsividade
+  const { isMobile, isTablet } = useResponsive();
+  const [dischargingBeds, setDischargingBeds] = useState<Set<string>>(new Set());
 
   // Update parent component with data
   React.useEffect(() => {
@@ -239,79 +249,75 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     setShowBedModal(true);
   };
 
+  const departmentBeds = centralData.beds.filter(bed => bed.department === selectedDepartment);
+  const sortedBeds = sortBedsByCustomOrder(departmentBeds, selectedDepartment);
+
+  // Para cada leito, determine se está em processo de alta
+  const bedsWithDischargeState = sortedBeds.map(bed => ({
+    ...bed,
+    isDischarging: dischargingBeds.has(bed.id)
+  }));
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Painel de Leitos</h1>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600">
+    <div className={`space-y-4 ${isMobile ? 'pb-16' : ''}`}>
+      {/* Cabeçalho - Adaptado para Mobile */}
+      <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} items-start sm:items-center ${isMobile ? 'px-4' : ''}`}>
+        <h1 className={`text-2xl font-bold text-gray-900 ${isMobile ? 'mb-3' : ''}`}>Painel de Leitos</h1>
+        
+        {/* Stats & Action Buttons */}
+        <div className={`${isMobile ? 'w-full' : 'flex items-center gap-4'}`}>
+          <div className="text-sm text-gray-600 mb-3 sm:mb-0">
             {centralData.beds.filter(bed => bed.isOccupied).length} / {centralData.beds.length} leitos ocupados
           </div>
-          <Button onClick={handleManageSectors} variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            GERENCIAR SETORES
-          </Button>
-          <Button onClick={handleCreateNewBed} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            CRIAR LEITO
-          </Button>
+          
+          {isMobile ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={handleManageSectors} variant="outline" size="sm" className="w-full">
+                <Settings className="h-4 w-4 mr-2" />
+                GERENCIAR SETORES
+              </Button>
+              <Button onClick={handleCreateNewBed} variant="outline" size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                CRIAR LEITO
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button onClick={handleManageSectors} variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                GERENCIAR SETORES
+              </Button>
+              <Button onClick={handleCreateNewBed} variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                CRIAR LEITO
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      <Tabs value={selectedDepartment} onValueChange={(value) => setSelectedDepartment(value as Department)} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          {departments.map(department => {
-            const departmentBeds = centralData.beds.filter(bed => bed.department === department);
-            const occupiedCount = departmentBeds.filter(bed => bed.isOccupied).length;
-            const reservedCount = departmentBeds.filter(bed => bed.isReserved).length;
-            const availableCount = departmentBeds.length - occupiedCount - reservedCount;
-            
-            return (
-              <TabsTrigger key={department} value={department} className="text-xs">
-                <div className="flex flex-col items-center">
-                  <span className="font-medium">{department}</span>
-                  <div className="text-xs text-gray-500">
-                    <span className="text-green-600">{availableCount}</span>/
-                    <span className="text-red-600">{occupiedCount}</span>/
-                    <span className="text-yellow-600">{reservedCount}</span>
-                  </div>
-                </div>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+      {/* Seletor de Departamentos Responsivo */}
+      <ResponsiveDepartmentSelector
+        departments={departments}
+        selectedDepartment={selectedDepartment}
+        onDepartmentSelect={setSelectedDepartment}
+        departmentBeds={centralData.beds}
+      >
+        <Card>
+          <BedsManagementGrid
+            departmentBeds={bedsWithDischargeState}
+            onReserveBed={handleReserveBed}
+            onAdmitPatient={handleAdmitPatient}
+            onEditPatient={handleEditPatient}
+            onTransferPatient={handleTransferPatient}
+            onDischargePatient={handleDischargePatient}
+            onDeleteReservation={handleDeleteReservation}
+            onDeleteBed={handleDeleteBed}
+          />
+        </Card>
+      </ResponsiveDepartmentSelector>
 
-        {departments.map(department => {
-          const departmentBeds = centralData.beds.filter(bed => bed.department === department);
-          const sortedBeds = sortBedsByCustomOrder(departmentBeds, department);
-
-          return (
-            <TabsContent key={department} value={department} className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {sortedBeds.map(bed => (
-                      <NewBedCard
-                        key={bed.id}
-                        bed={bed}
-                        onReserveBed={handleReserveBed}
-                        onAdmitPatient={handleAdmitPatient}
-                        onEditPatient={handleEditPatient}
-                        onTransferPatient={handleTransferPatient}
-                        onDischargePatient={handleDischargePatient}
-                        onDeleteReservation={handleDeleteReservation}
-                        onDeleteBed={bed.isCustom ? handleDeleteBed : undefined}
-                      />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
-
-      {/* Modais */}
+      {/* Modais - Ajustados para melhor visualização em mobile */}
       <NewReservationForm
         isOpen={showReservationForm}
         onClose={() => setShowReservationForm(false)}
@@ -348,7 +354,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         />
       )}
 
-      {/* New Management Modals */}
+      {/* Modais de gerenciamento */}
       <SectorManagementModal
         isOpen={showSectorModal}
         onClose={() => setShowSectorModal(false)}

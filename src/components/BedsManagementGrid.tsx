@@ -3,6 +3,8 @@ import React from 'react';
 import { CardContent } from '@/components/ui/card';
 import { Bed } from '@/types';
 import NewBedCard from './NewBedCard';
+import ResponsiveBedCard from './ResponsiveBedCard';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface BedWithDischarging extends Bed {
   isDischarging?: boolean;
@@ -33,14 +35,24 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
   showEditBedMode = false,
   onEditBedClick
 }) => {
+  const { isMobile, isTablet } = useResponsive();
+  
   const handleBedClick = (bed: Bed) => {
     if (showEditBedMode && onEditBedClick) {
       onEditBedClick(bed);
     }
   };
 
+  let gridColumnsClass = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+  
+  if (isMobile) {
+    gridColumnsClass = "grid-cols-1";
+  } else if (isTablet) {
+    gridColumnsClass = "grid-cols-2";
+  }
+
   return (
-    <CardContent>
+    <CardContent className={`${isMobile ? 'p-0' : 'p-4'}`}>
       {showEditBedMode && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-700 font-medium">
@@ -49,25 +61,40 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
         </div>
       )}
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className={`grid ${gridColumnsClass} gap-4`}>
         {departmentBeds.map((bed) => (
           <div 
             key={bed.id}
             onClick={() => handleBedClick(bed)}
-            className={showEditBedMode ? 'cursor-pointer hover:ring-2 hover:ring-blue-300 rounded-lg transition-all' : ''}
+            className={`${showEditBedMode ? 'cursor-pointer hover:ring-2 hover:ring-blue-300 rounded-lg transition-all' : ''}`}
           >
-            <NewBedCard
-              bed={bed}
-              onReserveBed={onReserveBed}
-              onAdmitPatient={onAdmitPatient}
-              onEditPatient={onEditPatient}
-              onTransferPatient={onTransferPatient}
-              onDischargePatient={onDischargePatient}
-              onDeleteReservation={onDeleteReservation}
-              onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
-              editMode={showEditBedMode}
-              isDischarging={bed.isDischarging || false}
-            />
+            {isMobile || isTablet ? (
+              <ResponsiveBedCard
+                bed={bed}
+                onReserveBed={onReserveBed}
+                onAdmitPatient={onAdmitPatient}
+                onEditPatient={onEditPatient}
+                onTransferPatient={onTransferPatient}
+                onDischargePatient={onDischargePatient}
+                onDeleteReservation={onDeleteReservation}
+                onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
+                editMode={showEditBedMode}
+                isDischarging={bed.isDischarging || false}
+              />
+            ) : (
+              <NewBedCard
+                bed={bed}
+                onReserveBed={onReserveBed}
+                onAdmitPatient={onAdmitPatient}
+                onEditPatient={onEditPatient}
+                onTransferPatient={onTransferPatient}
+                onDischargePatient={onDischargePatient}
+                onDeleteReservation={onDeleteReservation}
+                onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
+                editMode={showEditBedMode}
+                isDischarging={bed.isDischarging || false}
+              />
+            )}
           </div>
         ))}
       </div>
