@@ -3,7 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ExpectedDischarge } from '@/types/discharges';
-import { formatDate, formatDateTime } from '@/utils/dateUtils';
+import { formatDateOnly, formatDateTime } from '@/utils/dateUtils';
 
 interface DischargeTableProps {
   discharges: ExpectedDischarge[];
@@ -50,14 +50,14 @@ const DischargeTable: React.FC<DischargeTableProps> = ({ discharges, title, vari
             {discharges.map((discharge) => (
               <TableRow key={discharge.patient.id} className={variant === '24h' ? 'bg-red-50/50' : 'bg-yellow-50/50'}>
                 <TableCell className="font-medium">{discharge.patient.name}</TableCell>
-                <TableCell>{formatDate(discharge.patient.birthDate)}</TableCell>
+                <TableCell>{formatDateOnly(discharge.patient.birthDate)}</TableCell>
                 <TableCell>{discharge.patient.age} anos</TableCell>
-                <TableCell>{formatDate(discharge.patient.admissionDate)}</TableCell>
+                <TableCell>{formatDateOnly(discharge.patient.admissionDate)}</TableCell>
                 <TableCell className="max-w-xs truncate" title={discharge.patient.diagnosis}>
                   {discharge.patient.diagnosis}
                 </TableCell>
                 <TableCell className="bg-orange-50 font-bold text-orange-800">
-                  {formatDate(discharge.patient.expectedDischargeDate)}
+                  {formatDateOnly(discharge.patient.expectedDischargeDate)}
                   <div className="text-xs text-orange-600">({discharge.hoursUntilDischarge}h)</div>
                 </TableCell>
                 <TableCell className="bg-purple-50 font-bold text-purple-800">

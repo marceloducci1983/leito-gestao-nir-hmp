@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, Calendar, MapPin, Stethoscope } from 'lucide-react';
 import { formatDateSaoPaulo } from '@/utils/timezoneUtils';
-import { calculateAge } from '@/utils/dateUtils';
+import { formatDateOnly, calculateAge } from '@/utils/dateUtils';
 
 interface PatientCardProps {
   bed: any;
@@ -46,7 +46,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           <div className="flex items-center gap-2">
             <Calendar className="h-3 w-3 text-orange-600" />
             <span className="font-medium text-orange-600">
-              DPA: {formatDateSaoPaulo(bed.patient.expectedDischargeDate)}
+              DPA: {formatDateOnly(bed.patient.expectedDischargeDate)}
             </span>
           </div>
           {bed.patient.specialty && (

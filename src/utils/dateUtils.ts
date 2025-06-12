@@ -66,8 +66,48 @@ export const formatDateTime = (dateString: string | Date): string => {
   return formatDateTimeSaoPaulo(dateString);
 };
 
+// Função que aplica conversão de timezone (para datas com hora)
 export const formatDate = (dateString: string | Date): string => {
   return formatDateSaoPaulo(dateString);
+};
+
+// Nova função para formatar apenas datas (sem conversão de timezone)
+export const formatDateOnly = (dateString: string | Date): string => {
+  if (!dateString) return '';
+  
+  try {
+    let date: Date;
+    
+    if (typeof dateString === 'string') {
+      // Se for uma string ISO (YYYY-MM-DD), criar Date local sem timezone
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+      } else if (dateString.includes('T') || dateString.includes('Z')) {
+        date = new Date(dateString);
+      } else {
+        // Se for uma data em formato DD/MM/YYYY, converter para Date
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        } else {
+          date = new Date(dateString);
+        }
+      }
+    } else {
+      date = dateString;
+    }
+    
+    // Formatar diretamente sem conversão de timezone
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('Error formatting date only:', error);
+    return 'Data inválida';
+  }
 };
 
 // Nova função para comparar apenas datas (ignorando horas) usando ISO strings
@@ -94,4 +134,21 @@ export const isWithinDays = (date: Date | string, days: number): boolean => {
   
   // Verificar se a data está no intervalo (inclusivo)
   return checkDate >= today && checkDate <= futureDate;
+};
+
+// Nova função para comparar datas ISO sem conversão de timezone
+export const isSameDayISO = (date1: string | Date, date2: string | Date): boolean => {
+  const getISODateString = (date: string | Date): string => {
+    if (typeof date === 'string') {
+      if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return date; // Já está no formato ISO
+      }
+      // Converter outros formatos para ISO
+      const parsed = new Date(date);
+      return parsed.toISOString().split('T')[0];
+    }
+    return date.toISOString().split('T')[0];
+  };
+  
+  return getISODateString(date1) === getISODateString(date2);
 };

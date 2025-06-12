@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, User, Stethoscope, Bed, AlertTriangle } from 'lucide-react';
 import { ExpectedDischarge } from '@/types/discharges';
-import { formatDate, formatDateTime } from '@/utils/dateUtils';
+import { formatDateOnly, formatDateTime } from '@/utils/dateUtils';
 
 interface DischargeCardProps {
   discharge: ExpectedDischarge;
@@ -35,20 +35,20 @@ const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
           {/* Data de Nascimento e Idade */}
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-blue-600" />
-            <span><strong>Nascimento:</strong> {formatDate(patient.birthDate)} ({patient.age} anos)</span>
+            <span><strong>Nascimento:</strong> {formatDateOnly(patient.birthDate)} ({patient.age} anos)</span>
           </div>
 
           {/* Data de Admissão */}
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-green-600" />
-            <span><strong>Admissão:</strong> {formatDate(patient.admissionDate)}</span>
+            <span><strong>Admissão:</strong> {formatDateOnly(patient.admissionDate)}</span>
           </div>
 
           {/* DPA - Data Provável de Alta (Destaque) */}
           <div className="flex items-center gap-2 p-2 bg-orange-100 rounded-md border border-orange-200 md:col-span-2">
             <Clock className="h-4 w-4 text-orange-600" />
             <span className="font-bold text-orange-800">
-              DPA: {formatDate(patient.expectedDischargeDate)} 
+              DPA: {formatDateOnly(patient.expectedDischargeDate)} 
               <span className="text-orange-600 ml-2">({hoursUntilDischarge}h restantes)</span>
             </span>
           </div>

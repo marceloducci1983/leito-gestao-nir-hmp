@@ -3,6 +3,29 @@ import { useMemo } from 'react';
 import { Bed } from '@/types';
 import { ExpectedDischarge, DischargeGroups, DischargeFilters } from '@/types/discharges';
 
+// Função auxiliar para criar data local sem conversão de timezone
+const createLocalDate = (isoString: string): Date => {
+  if (!isoString) return new Date();
+  
+  // Se for formato ISO (YYYY-MM-DD), criar data local
+  if (isoString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = isoString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  return new Date(isoString);
+};
+
+// Função para comparar apenas datas (sem horário) preservando o dia original
+const isSameDayLocal = (date1: Date | string, date2: Date | string): boolean => {
+  const d1 = typeof date1 === 'string' ? createLocalDate(date1) : date1;
+  const d2 = typeof date2 === 'string' ? createLocalDate(date2) : date2;
+  
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
+};
+
 export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) => {
   const expectedDischarges = useMemo(() => {
     const now = new Date();
@@ -27,17 +50,15 @@ export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) =
     const allExpectedDischarges: ExpectedDischarge[] = occupiedBeds
       .map(bed => {
         const patient = bed.patient!;
-        const expectedDate = new Date(patient.expectedDischargeDate);
         
-        // Definir horas, minutos, segundos e ms para zero para comparar apenas datas
-        expectedDate.setHours(0, 0, 0, 0);
+        // Usar data local sem conversão de timezone
+        const expectedDate = createLocalDate(patient.expectedDischargeDate);
         
-        const expectedDateStr = expectedDate.toISOString().split('T')[0];
-        const nowStr = now.toISOString().split('T')[0];
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-        
-        // Calcular horas aproximadas até a alta
+        // Calcular horas aproximadas até a alta usando data local
         const hoursUntilDischarge = Math.ceil((expectedDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+        
+        // Verificar se é urgente usando comparação local
+        const isUrgent = isSameDayLocal(expectedDate, now) || isSameDayLocal(expectedDate, tomorrow);
         
         return {
           patient: {
@@ -56,21 +77,17 @@ export const useExpectedDischarges = (beds: Bed[], filters?: DischargeFilters) =
             specialty: patient.specialty
           },
           hoursUntilDischarge,
-          isUrgent: expectedDateStr === nowStr || expectedDateStr === tomorrowStr
+          isUrgent
         };
       })
       .filter(discharge => {
-        const expectedDate = new Date(discharge.patient.expectedDischargeDate);
-        expectedDate.setHours(0, 0, 0, 0);
-        
-        const dayAfterTomorrowStr = dayAfterTomorrow.toISOString().split('T')[0];
-        const expectedDateStr = expectedDate.toISOString().split('T')[0];
-        const nowStr = now.toISOString().split('T')[0];
+        // Usar data local para filtrar
+        const expectedDate = createLocalDate(discharge.patient.expectedDischargeDate);
         
         // Incluir apenas datas hoje, amanhã ou depois de amanhã
-        return expectedDateStr === nowStr || 
-               expectedDateStr === tomorrow.toISOString().split('T')[0] || 
-               expectedDateStr === dayAfterTomorrowStr;
+        return isSameDayLocal(expectedDate, now) || 
+               isSameDayLocal(expectedDate, tomorrow) || 
+               isSameDayLocal(expectedDate, dayAfterTomorrow);
       });
 
     // Apply filters
