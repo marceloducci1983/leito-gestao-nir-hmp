@@ -10,6 +10,7 @@ import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUpdateInvestigation } from '@/hooks/mutations/useInvestigationMutations';
+import { toast } from 'sonner';
 
 const AlertsPanel: React.FC = () => {
   const { centralData, isLoading } = useSupabaseBeds();
@@ -53,7 +54,7 @@ const AlertsPanel: React.FC = () => {
     }
   });
 
-  // Usar hook de mutation atualizado
+  // Hook de mutation para atualizar investigação
   const updateInvestigationMutation = useUpdateInvestigation();
 
   const handleInvestigate = async (patientId: string, alertType: 'long_stay' | 'readmission_30_days', investigated: boolean) => {
@@ -68,8 +69,11 @@ const AlertsPanel: React.FC = () => {
           status,
           notes: alertType === 'readmission_30_days' ? 'Reinternação investigada via painel de alertas' : 'Permanência longa investigada via painel de alertas'
         });
+        
+        toast.success(`Alerta ${investigated ? 'marcado como investigado' : 'marcado como não investigado'} com sucesso!`);
       } catch (error) {
         console.error('Erro ao atualizar investigação:', error);
+        toast.error('Erro ao atualizar status da investigação');
       }
     }
   };
@@ -240,7 +244,7 @@ const AlertsPanel: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {readmissions.map((readmission, index) => {
-                // Criar um ID único para reinternações baseado no nome do paciente e data
+                // Criar um ID único para reinternações baseado no nome do paciente e datas
                 const readmissionId = `${readmission.patient_name}_${readmission.discharge_date}_${readmission.readmission_date}`.replace(/\s+/g, '_');
                 const investigation = getInvestigationStatus(readmissionId, 'readmission_30_days');
                 
