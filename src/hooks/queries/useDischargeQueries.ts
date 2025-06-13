@@ -24,7 +24,7 @@ export const useDischargeControl = () => {
       // Mapear os dados para incluir o nome do leito corretamente
       const mappedData = data?.map(item => ({
         ...item,
-        bed_name: item.beds && typeof item.beds === 'object' && 'name' in item.beds 
+        bed_name: item.beds && item.beds !== null && typeof item.beds === 'object' && 'name' in item.beds 
           ? (item.beds as { name: string }).name 
           : item.bed_id
       })) || [];
