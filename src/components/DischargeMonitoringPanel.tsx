@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, Calendar, Building, AlertCircle, FileText, Download, RefreshCw } from 'lucide-react';
-import { useDischargeControl, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
+import { useDischargeControl, useDepartmentStats, useCombinedDischarges } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
 import { toast } from 'sonner';
@@ -21,8 +21,9 @@ const DischargeMonitoringPanel: React.FC = () => {
   const [reportStartDate, setReportStartDate] = useState('');
   const [reportEndDate, setReportEndDate] = useState('');
 
-  // Queries
+  // Queries - usando tanto a query original quanto a combinada
   const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
+  const { data: combinedDischarges = [], refetch: refetchCombinedDischarges } = useCombinedDischarges();
   const { data: departmentStats = [] } = useDepartmentStats();
   const { data: dischargeStatsByDept = [], refetch: refetchStatsByDept } = useDischargeStatsByDepartment();
   const { data: dischargeStatsByCity = [], refetch: refetchStatsByCity } = useDischargeStatsByCity();
@@ -32,6 +33,12 @@ const DischargeMonitoringPanel: React.FC = () => {
   // Mutations
   const cancelDischargeMutation = useCancelDischarge();
   const completeDischargeMutation = useCompleteDischarge();
+
+  console.log('📊 Dados no painel de monitoramento:', {
+    dischargeControls: dischargeControls.length,
+    combinedDischarges: combinedDischarges.length,
+    pendingCount: dischargeControls.filter(d => d.status === 'pending').length
+  });
 
   const pendingDischarges = dischargeControls.filter(d => d.status === 'pending');
   const completedDischarges = dischargeControls.filter(d => d.status === 'completed');
@@ -90,8 +97,10 @@ const DischargeMonitoringPanel: React.FC = () => {
   };
 
   const handleRefreshData = () => {
+    console.log('🔄 Atualizando dados do monitoramento...');
     toast.info('Atualizando dados...');
     refetchDischargeControl();
+    refetchCombinedDischarges();
     refetchStatsByDept();
     refetchStatsByCity();
     refetchDelayedDischarges();
@@ -136,13 +145,19 @@ const DischargeMonitoringPanel: React.FC = () => {
           <Badge variant="secondary" className="text-lg px-3 py-1">
             {pendingDischarges.length} altas pendentes
           </Badge>
+          <Badge variant="outline" className="text-lg px-3 py-1">
+            {combinedDischarges.length} total processadas
+          </Badge>
         </div>
       </div>
 
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending">
             Altas Pendentes ({pendingDischarges.length})
+          </TabsTrigger>
+          <TabsTrigger value="combined">
+            Todas as Altas ({combinedDischarges.length})
           </TabsTrigger>
           <TabsTrigger value="analytics">
             Dashboard Analítico
@@ -175,6 +190,11 @@ const DischargeMonitoringPanel: React.FC = () => {
             <Card>
               <CardContent className="p-8 text-center">
                 <p className="text-gray-500">Nenhuma alta pendente no momento.</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Total de altas processadas hoje: {combinedDischarges.filter(d => 
+                    new Date(d.discharge_requested_at || d.created_at).toDateString() === new Date().toDateString()
+                  ).length}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -274,6 +294,34 @@ const DischargeMonitoringPanel: React.FC = () => {
           )}
         </TabsContent>
 
+        <TabsContent value="combined" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {combinedDischarges.slice(0, 20).map((discharge, index) => (
+              <Card key={index} className={`${discharge.source === 'controlled' ? 'border-blue-200' : 'border-green-200'}`}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold">{discharge.patient_name || discharge.name}</h3>
+                    <Badge variant={discharge.source === 'controlled' ? 'secondary' : 'default'}>
+                      {discharge.source === 'controlled' ? 'Controlada' : 'Direta'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Departamento:</strong> {discharge.department}</p>
+                    <p><strong>Leito:</strong> {discharge.bed_name || discharge.bed_id}</p>
+                    <p><strong>Data:</strong> {formatDateTimeSaoPaulo(discharge.discharge_requested_at || discharge.created_at)}</p>
+                    <p><strong>Status:</strong> 
+                      <Badge variant={discharge.status === 'completed' ? 'default' : 'secondary'} className="ml-2">
+                        {discharge.status === 'completed' ? 'Concluída' : discharge.status}
+                      </Badge>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
         <TabsContent value="analytics" className="space-y-6">
           {/* Debug info para verificar dados */}
           {process.env.NODE_ENV === 'development' && (
@@ -289,6 +337,7 @@ const DischargeMonitoringPanel: React.FC = () => {
                     <p><strong>Completadas:</strong> {completedDischarges.length}</p>
                   </div>
                   <div>
+                    <p><strong>Altas Combinadas:</strong> {combinedDischarges.length}</p>
                     <p><strong>Stats por Dept:</strong> {dischargeStatsByDept.length}</p>
                     <p><strong>Stats por Cidade:</strong> {dischargeStatsByCity.length}</p>
                     <p><strong>Altas Atrasadas:</strong> {delayedDischarges.length}</p>

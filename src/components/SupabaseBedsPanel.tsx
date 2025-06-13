@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useCreateBed, useUpdateBed, useDeleteBed } from '@/hooks/mutations/useBedMutations';
 import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
 import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
+import { useDischargeFlow } from '@/hooks/useDischargeFlow';
 import { Department, Patient } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -35,11 +35,18 @@ interface SupabaseBedsPanelProps {
 }
 
 const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) => {
-  const { centralData, isLoading, error, addPatient, transferPatient, addReservation, requestDischarge } = useSupabaseBeds();
+  const { centralData, isLoading, error, addPatient, transferPatient, addReservation } = useSupabaseBeds();
   const deleteReservationMutation = useDeleteReservation();
   const updatePatientMutation = useUpdatePatient();
   const deleteBedMutation = useDeleteBed();
   const { toast } = useToast();
+
+  // Hook para gerenciar o fluxo de altas
+  const { 
+    handleDischargeRequest, 
+    isDischarging,
+    isRequestingDischarge 
+  } = useDischargeFlow();
 
   // Estados para controlar os modais
   const [selectedBedId, setSelectedBedId] = useState<string>('');
@@ -58,7 +65,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   
   // Estados para responsividade
   const { isMobile, isTablet } = useResponsive();
-  const [dischargingBeds, setDischargingBeds] = useState<Set<string>>(new Set());
 
   // Update parent component with data
   React.useEffect(() => {
@@ -136,16 +142,24 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     }
   };
 
-  const handleDischargePatient = (bedId: string) => {
+  const handleDischargePatient = async (bedId: string) => {
     const bed = centralData.beds.find(b => b.id === bedId);
     if (bed && bed.patient) {
-      // Nova funcionalidade: Solicitar alta em vez de dar alta diretamente
-      requestDischarge({
+      console.log('🏥 Solicitando alta para paciente:', bed.patient.name);
+      
+      const result = await handleDischargeRequest({
         patientId: bed.patient.id,
         patientName: bed.patient.name,
         bedId: bedId,
-        department: bed.department
+        department: bed.department,
+        bedName: bed.name
       });
+
+      if (result.success) {
+        console.log('✅ Alta solicitada com sucesso');
+      } else {
+        console.error('❌ Erro na solicitação de alta:', result.error);
+      }
     }
   };
 
@@ -255,7 +269,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   // Para cada leito, determine se está em processo de alta
   const bedsWithDischargeState = sortedBeds.map(bed => ({
     ...bed,
-    isDischarging: dischargingBeds.has(bed.id)
+    isDischarging: isDischarging(bed.id)
   }));
 
   return (
