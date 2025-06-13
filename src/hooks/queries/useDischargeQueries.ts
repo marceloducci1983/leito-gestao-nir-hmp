@@ -22,12 +22,19 @@ export const useDischargeControl = () => {
       }
 
       // Mapear os dados para incluir o nome do leito corretamente
-      const mappedData = data?.map(item => ({
-        ...item,
-        bed_name: item.beds && item.beds !== null && typeof item.beds === 'object' && 'name' in item.beds 
-          ? (item.beds as { name: string } | null)?.name 
-          : item.bed_id
-      })) || [];
+      const mappedData = data?.map(item => {
+        let bed_name = item.bed_id; // Default fallback
+        
+        if (item.beds && typeof item.beds === 'object' && 'name' in item.beds) {
+          const bedData = item.beds as { name: string };
+          bed_name = bedData.name;
+        }
+        
+        return {
+          ...item,
+          bed_name
+        };
+      }) || [];
 
       return mappedData;
     }
