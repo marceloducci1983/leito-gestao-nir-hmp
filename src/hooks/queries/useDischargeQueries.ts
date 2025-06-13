@@ -25,7 +25,7 @@ export const useDischargeControl = () => {
       const mappedData = data?.map(item => ({
         ...item,
         bed_name: item.beds && item.beds !== null && typeof item.beds === 'object' && 'name' in item.beds 
-          ? (item.beds as { name: string }).name 
+          ? (item.beds as { name: string } | null)?.name 
           : item.bed_id
       })) || [];
 
