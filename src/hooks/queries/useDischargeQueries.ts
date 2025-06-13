@@ -62,7 +62,7 @@ export const useCombinedDischarges = () => {
       console.log('✅ Altas diretas encontradas:', directDischarges?.length || 0);
       console.log('✅ Altas controladas encontradas:', controlledDischarges?.length || 0);
 
-      // Combinar e normalizar os dados
+      // Combinar e normalizar os dados - NORMALIZAR OS NOMES DOS CAMPOS
       const combined = [
         ...(directDischarges || []).map(discharge => ({
           ...discharge,
@@ -70,12 +70,14 @@ export const useCombinedDischarges = () => {
           status: 'completed',
           bed_name: discharge.bed_id,
           discharge_requested_at: discharge.created_at,
-          discharge_effective_at: discharge.created_at
+          discharge_effective_at: discharge.created_at,
+          patient_name: discharge.name // NORMALIZAR: usar patient_name em vez de name
         })),
         ...(controlledDischarges || []).map(discharge => ({
           ...discharge,
           source: 'controlled',
-          bed_name: discharge.bed_id
+          bed_name: discharge.bed_id,
+          name: discharge.patient_name // NORMALIZAR: adicionar name igual ao patient_name
         }))
       ];
 

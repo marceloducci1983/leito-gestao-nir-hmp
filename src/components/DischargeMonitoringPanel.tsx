@@ -300,7 +300,7 @@ const DischargeMonitoringPanel: React.FC = () => {
               <Card key={index} className={`${discharge.source === 'controlled' ? 'border-blue-200' : 'border-green-200'}`}>
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{discharge.patient_name || discharge.name}</h3>
+                    <h3 className="font-semibold">{discharge.patient_name}</h3>
                     <Badge variant={discharge.source === 'controlled' ? 'secondary' : 'default'}>
                       {discharge.source === 'controlled' ? 'Controlada' : 'Direta'}
                     </Badge>
