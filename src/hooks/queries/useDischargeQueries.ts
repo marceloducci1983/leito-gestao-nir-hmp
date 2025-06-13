@@ -27,8 +27,8 @@ export const useDischargeControl = () => {
         
         // Safe null check with proper type handling
         const beds = item.beds;
-        if (beds && typeof beds === 'object' && 'name' in beds) {
-          bed_name = beds.name as string;
+        if (beds !== null && beds !== undefined && typeof beds === 'object' && 'name' in beds) {
+          bed_name = (beds as { name: string }).name;
         }
         
         return {
