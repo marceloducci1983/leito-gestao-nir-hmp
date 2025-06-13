@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDischargePatient } from '@/hooks/mutations/usePatientMutations';
@@ -30,27 +29,33 @@ export const useDischargeFlow = () => {
     patientName: string;
     bedId: string;
     department: string;
-    bedName?: string;
+    bedName: string;
   }) => {
-    console.log('🏥 Iniciando solicitação de alta para:', patientData);
+    console.log('🏥 Iniciando solicitação de alta no flow para:', patientData);
     
     setIsDischarging(patientData.bedId, true);
 
     try {
-      // Primeiro, solicitar a alta (isso coloca no monitoramento)
+      console.log('📤 Enviando dados para mutation:', {
+        patientId: patientData.patientId,
+        patientName: patientData.patientName,
+        bedId: patientData.bedId,
+        department: patientData.department,
+        bedName: patientData.bedName
+      });
+
       await requestDischargeMutation.mutateAsync({
         patientId: patientData.patientId,
         patientName: patientData.patientName,
-        bedId: patientData.bedName || patientData.bedId, // Usar nome do leito
-        department: patientData.department
+        bedId: patientData.bedId,
+        department: patientData.department,
+        bedName: patientData.bedName
       });
 
-      console.log('✅ Solicitação de alta criada com sucesso');
-      toast.success('Alta solicitada! Aguardando confirmação no monitoramento.');
-      
+      console.log('✅ Solicitação de alta criada com sucesso no flow');
       return { success: true, type: 'request' };
     } catch (error) {
-      console.error('❌ Erro na solicitação de alta:', error);
+      console.error('❌ Erro na solicitação de alta no flow:', error);
       return { success: false, error };
     } finally {
       setIsDischarging(patientData.bedId, false);

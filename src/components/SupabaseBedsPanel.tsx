@@ -145,20 +145,35 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const handleDischargePatient = async (bedId: string) => {
     const bed = centralData.beds.find(b => b.id === bedId);
     if (bed && bed.patient) {
-      console.log('🏥 Solicitando alta para paciente:', bed.patient.name);
+      console.log('🏥 Preparando solicitação de alta para:', {
+        patientId: bed.patient.id,
+        patientName: bed.patient.name,
+        bedId: bedId,
+        bedName: bed.name,
+        department: bed.department
+      });
       
       const result = await handleDischargeRequest({
         patientId: bed.patient.id,
         patientName: bed.patient.name,
-        bedId: bedId,
+        bedId: bedId, // UUID do leito
         department: bed.department,
-        bedName: bed.name
+        bedName: bed.name // Nome do leito (ex: "2B")
       });
 
       if (result.success) {
-        console.log('✅ Alta solicitada com sucesso');
+        console.log('✅ Alta solicitada com sucesso no painel');
+        toast({
+          title: "Alta solicitada",
+          description: `Alta de ${bed.patient.name} enviada para o monitoramento`,
+        });
       } else {
-        console.error('❌ Erro na solicitação de alta:', result.error);
+        console.error('❌ Erro na solicitação de alta no painel:', result.error);
+        toast({
+          title: "Erro",
+          description: "Erro ao solicitar alta. Tente novamente.",
+          variant: "destructive",
+        });
       }
     }
   };

@@ -10,13 +10,23 @@ export const useRequestDischarge = () => {
       patientId,
       patientName,
       bedId,
-      department
+      department,
+      bedName
     }: {
       patientId: string;
       patientName: string;
       bedId: string;
       department: string;
+      bedName?: string;
     }) => {
+      console.log('🔍 Iniciando solicitação de alta:', {
+        patientId,
+        patientName,
+        bedId,
+        department,
+        bedName
+      });
+
       // Verificar se já existe uma solicitação pendente para este paciente
       const { data: existingDischarge, error: checkError } = await supabase
         .from('discharge_control')
@@ -26,54 +36,55 @@ export const useRequestDischarge = () => {
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('❌ Erro ao verificar alta existente:', checkError);
         throw checkError;
       }
 
       if (existingDischarge) {
+        console.log('⚠️ Já existe uma solicitação de alta pendente');
         throw new Error('Já existe uma solicitação de alta pendente para este paciente.');
       }
 
-      // Buscar nome do leito
-      const { data: bedData, error: bedError } = await supabase
-        .from('beds')
-        .select('name')
-        .eq('id', bedId)
-        .single();
-
-      if (bedError) {
-        console.error('Erro ao buscar dados do leito:', bedError);
-        throw bedError;
-      }
-
-      const bedName = bedData?.name || bedId;
+      // Usar o nome do leito se fornecido, caso contrário usar o bedId (que deveria ser o nome)
+      const finalBedName = bedName || bedId;
+      
+      console.log('🏥 Chamando função RPC com:', {
+        p_patient_id: patientId,
+        p_patient_name: patientName,
+        p_bed_id: finalBedName,
+        p_department: department
+      });
 
       const { data, error } = await supabase
         .rpc('request_discharge_for_patient', {
           p_patient_id: patientId,
           p_patient_name: patientName,
-          p_bed_id: bedName, // Usar nome do leito ao invés do UUID
+          p_bed_id: finalBedName,
           p_department: department
         });
 
       if (error) {
-        console.error('Erro ao solicitar alta:', error);
+        console.error('❌ Erro na função RPC:', error);
         throw error;
       }
 
+      console.log('✅ Alta solicitada com sucesso, ID:', data);
       return data;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['discharge_control'] });
+      queryClient.invalidateQueries({ queryKey: ['combined_discharges'] });
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       toast.success('Alta solicitada com sucesso! Aguardando confirmação no monitoramento.');
     },
     onError: (error: any) => {
+      console.error('❌ Erro na mutation de alta:', error);
       if (error.message.includes('Já existe uma solicitação')) {
         toast.error('Este paciente já possui uma solicitação de alta pendente!');
       } else {
-        toast.error('Erro ao solicitar alta');
+        toast.error(`Erro ao solicitar alta: ${error.message}`);
       }
-      console.error('Erro:', error);
     }
   });
 };

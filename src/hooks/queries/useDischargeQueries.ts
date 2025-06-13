@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -62,32 +61,40 @@ export const useCombinedDischarges = () => {
       console.log('✅ Altas diretas encontradas:', directDischarges?.length || 0);
       console.log('✅ Altas controladas encontradas:', controlledDischarges?.length || 0);
 
-      // Combinar e normalizar os dados - NORMALIZAR OS NOMES DOS CAMPOS
+      // Combinar e normalizar os dados com campos consistentes
       const combined = [
+        // Altas diretas (já completadas)
         ...(directDischarges || []).map(discharge => ({
           ...discharge,
-          source: 'direct',
-          status: 'completed',
+          source: 'direct' as const,
+          status: 'completed' as const,
           bed_name: discharge.bed_id,
           discharge_requested_at: discharge.created_at,
           discharge_effective_at: discharge.created_at,
-          patient_name: discharge.name // NORMALIZAR: usar patient_name em vez de name
+          patient_name: discharge.name, // Campo principal para nome
+          name: discharge.name // Campo de backup
         })),
+        // Altas controladas (pendentes e completadas)
         ...(controlledDischarges || []).map(discharge => ({
           ...discharge,
-          source: 'controlled',
+          source: 'controlled' as const,
           bed_name: discharge.bed_id,
-          name: discharge.patient_name // NORMALIZAR: adicionar name igual ao patient_name
+          patient_name: discharge.patient_name, // Campo principal para nome
+          name: discharge.patient_name // Campo de backup
         }))
       ];
 
-      // Ordenar por data mais recente
-      return combined.sort((a, b) => {
+      // Ordenar por data mais recente (discharge_requested_at ou created_at)
+      const sortedCombined = combined.sort((a, b) => {
         const dateA = new Date(a.discharge_requested_at || a.created_at);
         const dateB = new Date(b.discharge_requested_at || b.created_at);
         return dateB.getTime() - dateA.getTime();
       });
-    }
+
+      console.log('✅ Total de altas combinadas:', sortedCombined.length);
+      return sortedCombined;
+    },
+    refetchInterval: 5000 // Atualizar a cada 5 segundos para mostrar dados em tempo real
   });
 };
 
