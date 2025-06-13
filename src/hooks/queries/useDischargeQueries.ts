@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,9 +24,9 @@ export const useDischargeControl = () => {
       const mappedData = data?.map(item => {
         let bed_name = item.bed_id; // Default fallback
         
-        // Check if beds exists and has the name property
-        if (item.beds && typeof item.beds === 'object' && 'name' in item.beds) {
-          bed_name = item.beds.name;
+        // Safe null check with explicit type assertion
+        if (item.beds != null && typeof item.beds === 'object' && 'name' in item.beds) {
+          bed_name = (item.beds as { name: string }).name;
         }
         
         return {
