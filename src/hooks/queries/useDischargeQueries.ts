@@ -25,8 +25,9 @@ export const useDischargeControl = () => {
       const mappedData = data?.map(item => {
         let bed_name = item.bed_id; // Default fallback
         
-        if (item.beds !== null && item.beds && typeof item.beds === 'object' && 'name' in item.beds) {
-          bed_name = (item.beds as { name: string }).name;
+        if (item.beds && typeof item.beds === 'object' && 'name' in item.beds) {
+          const beds = item.beds as { name: string };
+          bed_name = beds.name;
         }
         
         return {
