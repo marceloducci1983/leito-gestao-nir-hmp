@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,10 +22,12 @@ export const useDischargeControl = () => {
       }
 
       // Mapear os dados para incluir o nome do leito corretamente
-      const mappedData = data.map(item => ({
+      const mappedData = data?.map(item => ({
         ...item,
-        bed_name: typeof item.beds === 'object' && item.beds ? item.beds.name : item.bed_id
-      }));
+        bed_name: item.beds && typeof item.beds === 'object' && 'name' in item.beds 
+          ? (item.beds as { name: string }).name 
+          : item.bed_id
+      })) || [];
 
       return mappedData;
     }
