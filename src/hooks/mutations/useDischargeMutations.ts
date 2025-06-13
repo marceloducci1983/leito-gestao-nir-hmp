@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -18,11 +17,41 @@ export const useRequestDischarge = () => {
       bedId: string;
       department: string;
     }) => {
+      // Verificar se já existe uma solicitação pendente para este paciente
+      const { data: existingDischarge, error: checkError } = await supabase
+        .from('discharge_control')
+        .select('id, status')
+        .eq('patient_id', patientId)
+        .eq('status', 'pending')
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+        throw checkError;
+      }
+
+      if (existingDischarge) {
+        throw new Error('Já existe uma solicitação de alta pendente para este paciente.');
+      }
+
+      // Buscar nome do leito
+      const { data: bedData, error: bedError } = await supabase
+        .from('beds')
+        .select('name')
+        .eq('id', bedId)
+        .single();
+
+      if (bedError) {
+        console.error('Erro ao buscar dados do leito:', bedError);
+        throw bedError;
+      }
+
+      const bedName = bedData?.name || bedId;
+
       const { data, error } = await supabase
         .rpc('request_discharge_for_patient', {
           p_patient_id: patientId,
           p_patient_name: patientName,
-          p_bed_id: bedId,
+          p_bed_id: bedName, // Usar nome do leito ao invés do UUID
           p_department: department
         });
 
@@ -39,7 +68,11 @@ export const useRequestDischarge = () => {
       toast.success('Alta solicitada com sucesso! Aguardando confirmação no monitoramento.');
     },
     onError: (error: any) => {
-      toast.error('Erro ao solicitar alta');
+      if (error.message.includes('Já existe uma solicitação')) {
+        toast.error('Este paciente já possui uma solicitação de alta pendente!');
+      } else {
+        toast.error('Erro ao solicitar alta');
+      }
       console.error('Erro:', error);
     }
   });

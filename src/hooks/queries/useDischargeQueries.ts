@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,7 +7,12 @@ export const useDischargeControl = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('discharge_control')
-        .select('*')
+        .select(`
+          *,
+          beds:bed_id (
+            name
+          )
+        `)
         .order('discharge_requested_at', { ascending: false });
 
       if (error) {
@@ -16,7 +20,13 @@ export const useDischargeControl = () => {
         throw error;
       }
 
-      return data;
+      // Mapear os dados para incluir o nome do leito corretamente
+      const mappedData = data.map(item => ({
+        ...item,
+        bed_name: typeof item.beds === 'object' && item.beds ? item.beds.name : item.bed_id
+      }));
+
+      return mappedData;
     }
   });
 };

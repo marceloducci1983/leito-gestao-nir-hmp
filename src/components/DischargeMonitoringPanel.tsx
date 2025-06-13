@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -225,7 +224,9 @@ const DischargeMonitoringPanel: React.FC = () => {
                             
                             <div>
                               <p className="text-gray-600">Leito</p>
-                              <p>{discharge.bed_id}</p>
+                              <p className="font-medium text-blue-600">
+                                {discharge.bed_name || discharge.bed_id}
+                              </p>
                             </div>
                           </div>
 
