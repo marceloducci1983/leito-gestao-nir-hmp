@@ -54,6 +54,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ambulance_requests: {
+        Row: {
+          appropriate_crib: boolean | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          is_puerpera: boolean
+          mobility: string
+          origin_city: string
+          patient_name: string
+          request_date: string
+          request_time: string
+          status: string
+          updated_at: string
+          vehicle_subtype: string | null
+          vehicle_type: string
+        }
+        Insert: {
+          appropriate_crib?: boolean | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          is_puerpera?: boolean
+          mobility: string
+          origin_city: string
+          patient_name: string
+          request_date?: string
+          request_time?: string
+          status?: string
+          updated_at?: string
+          vehicle_subtype?: string | null
+          vehicle_type: string
+        }
+        Update: {
+          appropriate_crib?: boolean | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          is_puerpera?: boolean
+          mobility?: string
+          origin_city?: string
+          patient_name?: string
+          request_date?: string
+          request_time?: string
+          status?: string
+          updated_at?: string
+          vehicle_subtype?: string | null
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       bed_occupations: {
         Row: {
           bed_id: string | null
@@ -252,6 +306,24 @@ export type Database = {
           patient_name?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      mg_cities: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -515,6 +587,10 @@ export type Database = {
         Args: { admission_date: string }
         Returns: number
       }
+      cancel_ambulance_transport: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       cancel_discharge_and_restore_patient: {
         Args: { p_discharge_id: string }
         Returns: boolean
@@ -523,9 +599,22 @@ export type Database = {
         Args: { p_discharge_id: string; p_justification?: string }
         Returns: boolean
       }
+      confirm_ambulance_transport: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       create_bed: {
         Args: { p_name: string; p_department: string }
         Returns: string
+      }
+      get_ambulance_stats_by_city: {
+        Args: { p_start_date?: string; p_end_date?: string }
+        Returns: {
+          origin_city: string
+          total_requests: number
+          avg_response_time_minutes: number
+          confirmed_requests: number
+        }[]
       }
       get_average_discharge_time_by_department: {
         Args: Record<PropertyKey, never>

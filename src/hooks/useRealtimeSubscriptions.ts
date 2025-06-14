@@ -42,6 +42,11 @@ export const useRealtimeSubscriptions = () => {
         queryClient.invalidateQueries({ queryKey: ['discharge_stats_city'] });
         queryClient.invalidateQueries({ queryKey: ['delayed_discharges'] });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ambulance_requests' }, (payload) => {
+        console.log('Mudança em ambulance_requests:', payload);
+        queryClient.invalidateQueries({ queryKey: ['ambulance_requests'] });
+        queryClient.invalidateQueries({ queryKey: ['ambulance_stats_by_city'] });
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alert_investigations' }, (payload) => {
         console.log('Mudança em alert_investigations:', payload);
         queryClient.invalidateQueries({ queryKey: ['alert_investigations'] });
