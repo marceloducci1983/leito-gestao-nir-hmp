@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Building, AlertCircle, FileText, Download, RefreshCw } from 'lucide-react';
+import { Clock, Calendar, Building, AlertCircle, FileText, Download, RefreshCw, MapPin } from 'lucide-react';
 import { useDischargeControl, useDepartmentStats, useCombinedDischarges } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
@@ -46,7 +46,8 @@ const DischargeMonitoringPanel: React.FC = () => {
   const filteredPendingDischarges = pendingDischarges
     .filter(discharge =>
       discharge.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      discharge.department.toLowerCase().includes(searchTerm.toLowerCase())
+      discharge.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (discharge.origin_city && discharge.origin_city.toLowerCase().includes(searchTerm.toLowerCase()))
     )
     .sort((a, b) => {
       const dateA = new Date(a.discharge_requested_at).getTime();
@@ -170,7 +171,7 @@ const DischargeMonitoringPanel: React.FC = () => {
         <TabsContent value="pending" className="space-y-4">
           <div className="flex gap-4 items-center">
             <Input
-              placeholder="Buscar por nome ou setor..."
+              placeholder="Buscar por nome, setor ou município..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
@@ -217,7 +218,7 @@ const DischargeMonitoringPanel: React.FC = () => {
                             )}
                           </div>
                           
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                             <div>
                               <p className="text-gray-600">Tempo de Espera</p>
                               <p className={`flex items-center gap-1 font-medium ${waitTime.isOverdue ? 'text-red-600' : ''}`}>
@@ -246,6 +247,14 @@ const DischargeMonitoringPanel: React.FC = () => {
                               <p className="text-gray-600">Leito</p>
                               <p className="font-medium text-blue-600">
                                 {discharge.bed_name || discharge.bed_id}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-gray-600">Município</p>
+                              <p className="flex items-center gap-1 text-green-600 font-medium">
+                                <MapPin className="h-4 w-4" />
+                                {discharge.origin_city || 'Não informado'}
                               </p>
                             </div>
                           </div>
@@ -309,6 +318,11 @@ const DischargeMonitoringPanel: React.FC = () => {
                   <div className="space-y-1 text-sm">
                     <p><strong>Departamento:</strong> {discharge.department}</p>
                     <p><strong>Leito:</strong> {discharge.bed_name || discharge.bed_id}</p>
+                    <p className="flex items-center gap-1">
+                      <strong>Município:</strong> 
+                      <MapPin className="h-3 w-3 text-green-600" />
+                      <span className="text-green-600">{discharge.origin_city || 'Não informado'}</span>
+                    </p>
                     <p><strong>Data:</strong> {formatDateTimeSaoPaulo(discharge.discharge_requested_at || discharge.created_at)}</p>
                     <p><strong>Status:</strong> 
                       <Badge variant={discharge.status === 'completed' ? 'default' : 'secondary'} className="ml-2">
