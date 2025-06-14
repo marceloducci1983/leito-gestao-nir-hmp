@@ -24,15 +24,14 @@ export const useBedsPanelLogic = (centralData: any) => {
   // Função para filtrar leitos baseado na pesquisa
   const filteredBeds = useMemo(() => {
     if (!searchTerm.trim()) {
+      // Se não há busca, mostrar apenas o departamento selecionado
       return centralData.beds.filter((bed: any) => bed.department === selectedDepartment);
     }
 
     const term = searchTerm.toLowerCase().trim();
     
+    // Quando há busca, procurar em TODOS os departamentos
     return centralData.beds.filter((bed: any) => {
-      // Filtrar por departamento selecionado
-      if (bed.department !== selectedDepartment) return false;
-      
       // Buscar por número/nome do leito
       const bedNameMatch = bed.name.toLowerCase().includes(term);
       
@@ -40,7 +39,7 @@ export const useBedsPanelLogic = (centralData: any) => {
       const patientNameMatch = bed.patient ? 
         bed.patient.name.toLowerCase().includes(term) : false;
       
-      // Buscar por nome na reserva (se houver) - FIX: usando patientName
+      // Buscar por nome na reserva (se houver)
       const reservationNameMatch = bed.reservation ? 
         bed.reservation.patientName.toLowerCase().includes(term) : false;
       

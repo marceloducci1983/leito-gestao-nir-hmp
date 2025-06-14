@@ -37,14 +37,10 @@ const BedsPanelContent: React.FC<BedsPanelContentProps> = ({
   onDeleteBed
 }) => {
   return (
-    <ResponsiveDepartmentSelector
-      departments={departments}
-      selectedDepartment={selectedDepartment}
-      onDepartmentSelect={onDepartmentSelect}
-      departmentBeds={departmentBeds}
-    >
+    // Quando há busca, não mostrar o seletor de departamento
+    searchTerm.trim() ? (
       <Card>
-        {sortedBeds.length === 0 && searchTerm.trim() ? (
+        {sortedBeds.length === 0 ? (
           <CardContent className="p-8 text-center">
             <p className="text-gray-500 text-lg">Nenhum paciente encontrado.</p>
             <p className="text-sm text-gray-400 mt-2">
@@ -64,7 +60,27 @@ const BedsPanelContent: React.FC<BedsPanelContentProps> = ({
           />
         )}
       </Card>
-    </ResponsiveDepartmentSelector>
+    ) : (
+      <ResponsiveDepartmentSelector
+        departments={departments}
+        selectedDepartment={selectedDepartment}
+        onDepartmentSelect={onDepartmentSelect}
+        departmentBeds={departmentBeds}
+      >
+        <Card>
+          <BedsManagementGrid
+            departmentBeds={sortedBeds}
+            onReserveBed={onReserveBed}
+            onAdmitPatient={onAdmitPatient}
+            onEditPatient={onEditPatient}
+            onTransferPatient={onTransferPatient}
+            onDischargePatient={onDischargePatient}
+            onDeleteReservation={onDeleteReservation}
+            onDeleteBed={onDeleteBed}
+          />
+        </Card>
+      </ResponsiveDepartmentSelector>
+    )
   );
 };
 

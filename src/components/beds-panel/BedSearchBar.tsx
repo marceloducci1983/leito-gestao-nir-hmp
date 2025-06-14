@@ -35,7 +35,7 @@ const BedSearchBar: React.FC<BedSearchBarProps> = ({
       {searchTerm.trim() && (
         <div className="mt-2 text-sm text-gray-600">
           {resultsCount > 0 ? (
-            `${resultsCount} resultado(s) encontrado(s) em ${selectedDepartment}`
+            `${resultsCount} resultado(s) encontrado(s) em todos os departamentos`
           ) : (
             <span className="text-orange-600">Nenhum paciente ou leito encontrado.</span>
           )}
