@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Filter, SortDesc, SortAsc } from 'lucide-react';
 import { DischargedPatient } from '@/types';
-import { formatDateSaoPaulo } from '@/utils/timezoneUtils';
+import { formatDateSaoPaulo, formatDateOnly } from '@/utils/timezoneUtils';
 
 interface ArchivePanelProps {
   archivedPatients: DischargedPatient[];
@@ -35,12 +35,13 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
   // Filtrar e ordenar pacientes
   const filteredAndSortedPatients = useMemo(() => {
     let filtered = archivedPatients.filter(patient => {
-      // Filtro de busca
+      // Filtro de busca expandido para incluir data de nascimento
       const matchesSearch = !searchTerm || 
         patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.diagnosis.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.originCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.bedId.toLowerCase().includes(searchTerm.toLowerCase());
+        patient.bedId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        formatDateOnly(patient.birthDate).includes(searchTerm);
 
       // Filtro de departamento
       const matchesDepartment = departmentFilter === 'all' || patient.department === departmentFilter;
@@ -51,7 +52,7 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
       return matchesSearch && matchesDepartment && matchesDischargeType;
     });
 
-    // Ordenação
+    // Ordenação expandida
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'discharge_date_desc':
@@ -70,6 +71,14 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
           return b.actualStayDays - a.actualStayDays;
         case 'stay_days_asc':
           return a.actualStayDays - b.actualStayDays;
+        case 'birth_date_desc':
+          return new Date(b.birthDate).getTime() - new Date(a.birthDate).getTime();
+        case 'birth_date_asc':
+          return new Date(a.birthDate).getTime() - new Date(b.birthDate).getTime();
+        case 'age_desc':
+          return b.age - a.age;
+        case 'age_asc':
+          return a.age - b.age;
         default:
           return new Date(b.dischargeDate).getTime() - new Date(a.dischargeDate).getTime();
       }
@@ -113,7 +122,7 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por nome, diagnóstico, cidade ou leito..."
+                  placeholder="Buscar por nome, diagnóstico, cidade, leito ou data de nascimento..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -183,6 +192,10 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
                       </SelectItem>
                       <SelectItem value="name_asc">Nome (A-Z)</SelectItem>
                       <SelectItem value="name_desc">Nome (Z-A)</SelectItem>
+                      <SelectItem value="age_desc">Idade (Maior)</SelectItem>
+                      <SelectItem value="age_asc">Idade (Menor)</SelectItem>
+                      <SelectItem value="birth_date_desc">Nascimento (Mais Recente)</SelectItem>
+                      <SelectItem value="birth_date_asc">Nascimento (Mais Antigo)</SelectItem>
                       <SelectItem value="department_asc">Departamento (A-Z)</SelectItem>
                       <SelectItem value="department_desc">Departamento (Z-A)</SelectItem>
                       <SelectItem value="stay_days_desc">Mais Dias Internado</SelectItem>
@@ -230,9 +243,12 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
                   <div>
                     <strong>Idade:</strong> {patient.age} anos
+                  </div>
+                  <div>
+                    <strong>Nascimento:</strong> {formatDateOnly(patient.birthDate)}
                   </div>
                   <div>
                     <strong>Departamento:</strong> {patient.department}
@@ -255,7 +271,7 @@ const ArchivePanel: React.FC<ArchivePanelProps> = ({ archivedPatients }) => {
                   <div>
                     <strong>TFD:</strong> {patient.isTFD ? 'Sim' : 'Não'}
                   </div>
-                  <div className="col-span-2 md:col-span-3 lg:col-span-4">
+                  <div className="col-span-2 md:col-span-3 lg:col-span-5">
                     <strong>Diagnóstico:</strong> {patient.diagnosis}
                   </div>
                   {patient.specialty && (

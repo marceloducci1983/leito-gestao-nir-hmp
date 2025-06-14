@@ -20,7 +20,7 @@ export const useRealtimeSubscriptions = () => {
         console.log('Mudança em patients:', payload);
         queryClient.invalidateQueries({ queryKey: ['beds'] });
         queryClient.invalidateQueries({ queryKey: ['department_stats'] });
-        queryClient.invalidateQueries({ queryKey: ['long_stay_patients'] }); // Adicionar invalidação para alertas
+        queryClient.invalidateQueries({ queryKey: ['long_stay_patients'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bed_reservations' }, (payload) => {
         console.log('Mudança em bed_reservations:', payload);
@@ -31,7 +31,9 @@ export const useRealtimeSubscriptions = () => {
         console.log('Mudança em patient_discharges:', payload);
         queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
         queryClient.invalidateQueries({ queryKey: ['readmissions'] });
-        queryClient.invalidateQueries({ queryKey: ['long_stay_patients'] }); // Invalidar para atualizar alertas
+        queryClient.invalidateQueries({ queryKey: ['long_stay_patients'] });
+        // Invalidar dados de pacientes arquivados para sincronizar com o arquivo
+        queryClient.invalidateQueries({ queryKey: ['discharged_patients'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'discharge_control' }, (payload) => {
         console.log('Mudança em discharge_control:', payload);
@@ -43,6 +45,14 @@ export const useRealtimeSubscriptions = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alert_investigations' }, (payload) => {
         console.log('Mudança em alert_investigations:', payload);
         queryClient.invalidateQueries({ queryKey: ['alert_investigations'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tfd_archives' }, (payload) => {
+        console.log('Mudança em tfd_archives:', payload);
+        queryClient.invalidateQueries({ queryKey: ['tfd_archives'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tfd_interventions' }, (payload) => {
+        console.log('Mudança em tfd_interventions:', payload);
+        queryClient.invalidateQueries({ queryKey: ['tfd_archives'] });
       })
       .subscribe((status) => {
         console.log('Status da subscrição realtime:', status);
