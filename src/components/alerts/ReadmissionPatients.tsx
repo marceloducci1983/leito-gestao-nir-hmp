@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
@@ -48,7 +47,8 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
           alertKey,
           alertType: 'readmission_30_days',
           status,
-          notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name?.toString()?.trim()}`
+          notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name?.toString()?.trim()}`,
+          patientName: readmission.patient_name // Passar o nome para busca do UUID
         });
         
         toast.success(`Alerta ${investigated ? 'marcado como investigado' : 'marcado como não investigado'} com sucesso!`);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,8 @@ const ReadmissionCard: React.FC<ReadmissionCardProps> = ({ readmission, investig
         alertKey,
         alertType: 'readmission_30_days',
         status: modalAction,
-        notes: `Reinternação em ${readmission.days_between} dias`
+        notes: `Reinternação em ${readmission.days_between} dias`,
+        patientName: readmission.patient_name // Passar o nome para busca do UUID
       });
       setShowModal(false);
     } catch (error) {

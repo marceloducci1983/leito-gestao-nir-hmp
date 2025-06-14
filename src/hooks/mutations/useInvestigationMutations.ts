@@ -12,15 +12,17 @@ export const useUpdateInvestigation = () => {
       patientId,
       alertType,
       status,
-      notes
+      notes,
+      patientName
     }: {
       alertKey: string;
       patientId?: string;
       alertType: string;
       status: 'investigated' | 'not_investigated';
       notes?: string;
+      patientName?: string;
     }) => {
-      console.log('Iniciando mutação de investigação:', { alertKey, patientId, alertType, status, notes });
+      console.log('Iniciando mutação de investigação:', { alertKey, patientId, alertType, status, notes, patientName });
       
       // Validar parâmetros de entrada
       if (!alertKey?.toString()?.trim()) {
@@ -37,6 +39,31 @@ export const useUpdateInvestigation = () => {
 
       const normalizedAlertKey = alertKey.toString().trim();
       const normalizedAlertType = alertType.toString().trim();
+      
+      // Buscar UUID do paciente se nome foi fornecido mas ID não
+      let actualPatientId = patientId;
+      if (!actualPatientId && patientName) {
+        console.log('Buscando UUID do paciente pelo nome:', patientName);
+        try {
+          const { data: patient, error: patientError } = await supabase
+            .from('patients')
+            .select('id')
+            .ilike('name', patientName.trim())
+            .limit(1)
+            .maybeSingle();
+
+          if (patientError) {
+            console.warn('Erro ao buscar paciente:', patientError);
+          } else if (patient) {
+            actualPatientId = patient.id;
+            console.log('UUID do paciente encontrado:', actualPatientId);
+          } else {
+            console.log('Paciente não encontrado na tabela ativa, usando NULL para patient_id');
+          }
+        } catch (error) {
+          console.warn('Erro ao buscar UUID do paciente:', error);
+        }
+      }
       
       try {
         console.log('Buscando investigação existente:', { normalizedAlertKey, normalizedAlertType });
@@ -84,11 +111,11 @@ export const useUpdateInvestigation = () => {
           return data;
         } else {
           // Criar novo registro
-          console.log('Criando nova investigação');
+          console.log('Criando nova investigação com patient_id:', actualPatientId);
           
           const newInvestigationData = {
             alert_key: normalizedAlertKey,
-            patient_id: patientId || normalizedAlertKey, // usar patientId se fornecido, senão usar alert_key como fallback
+            patient_id: actualPatientId || null, // Usar NULL se não houver UUID válido
             alert_type: normalizedAlertType,
             ...investigationData
           };
@@ -112,6 +139,7 @@ export const useUpdateInvestigation = () => {
           alertKey: normalizedAlertKey,
           alertType: normalizedAlertType,
           status,
+          patientId: actualPatientId,
           errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
         });
         
