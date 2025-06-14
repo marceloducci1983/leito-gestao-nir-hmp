@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useCreateBed, useUpdateBed, useDeleteBed } from '@/hooks/mutations/useBedMutations';
 import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
@@ -7,10 +8,11 @@ import { useDischargeFlow } from '@/hooks/useDischargeFlow';
 import { Department, Patient } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Settings, Plus } from 'lucide-react';
 
 // Importações para componentes responsivos
@@ -53,6 +55,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
   
+  // Estado para pesquisa
+  const [searchTerm, setSearchTerm] = useState('');
+  
   // Estados dos modais
   const [showPatientForm, setShowPatientForm] = useState(false);
   const [showReservationForm, setShowReservationForm] = useState(false);
@@ -82,6 +87,35 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     'PEDIATRIA',
     'MATERNIDADE'
   ];
+
+  // Função para filtrar leitos baseado na pesquisa
+  const filteredBeds = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return centralData.beds.filter(bed => bed.department === selectedDepartment);
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    
+    return centralData.beds.filter(bed => {
+      // Filtrar por departamento selecionado
+      if (bed.department !== selectedDepartment) return false;
+      
+      // Buscar por número/nome do leito
+      const bedNameMatch = bed.name.toLowerCase().includes(term);
+      
+      // Buscar por nome do paciente (se houver)
+      const patientNameMatch = bed.patient ? 
+        bed.patient.name.toLowerCase().includes(term) : false;
+      
+      // Buscar por nome na reserva (se houver)
+      const reservationNameMatch = bed.reservation ? 
+        bed.reservation.patient_name.toLowerCase().includes(term) : false;
+      
+      return bedNameMatch || patientNameMatch || reservationNameMatch;
+    });
+  }, [centralData.beds, selectedDepartment, searchTerm]);
+
+  const sortedBeds = sortBedsByCustomOrder(filteredBeds, selectedDepartment);
 
   if (isLoading) {
     return (
@@ -156,9 +190,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
       const result = await handleDischargeRequest({
         patientId: bed.patient.id,
         patientName: bed.patient.name,
-        bedId: bedId, // UUID do leito
+        bedId: bedId,
         department: bed.department,
-        bedName: bed.name // Nome do leito (ex: "2B")
+        bedName: bed.name
       });
 
       if (result.success) {
@@ -199,7 +233,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     }
   };
 
-  // Handlers para submissão dos formulários
   const submitReservation = async (reservationData: any) => {
     try {
       await addReservation({ 
@@ -219,13 +252,11 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   const submitPatient = async (patientData: any) => {
     try {
       if (isEditingPatient && selectedPatient) {
-        // Editar paciente existente
         await updatePatientMutation.mutateAsync({
           patientId: selectedPatient.id,
           patientData: patientData
         });
       } else {
-        // Adicionar novo paciente
         await addPatient({ bedId: selectedBedId, patientData });
       }
       setShowPatientForm(false);
@@ -278,9 +309,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     setShowBedModal(true);
   };
 
-  const departmentBeds = centralData.beds.filter(bed => bed.department === selectedDepartment);
-  const sortedBeds = sortBedsByCustomOrder(departmentBeds, selectedDepartment);
-
   // Para cada leito, determine se está em processo de alta
   const bedsWithDischargeState = sortedBeds.map(bed => ({
     ...bed,
@@ -325,6 +353,31 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         </div>
       </div>
 
+      {/* Campo de Pesquisa */}
+      <div className={`${isMobile ? 'px-4' : ''}`}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Buscar por Nome do Paciente ou Número do Leito..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        {/* Indicador de resultados */}
+        {searchTerm.trim() && (
+          <div className="mt-2 text-sm text-gray-600">
+            {sortedBeds.length > 0 ? (
+              `${sortedBeds.length} resultado(s) encontrado(s) em ${selectedDepartment}`
+            ) : (
+              <span className="text-orange-600">Nenhum paciente ou leito encontrado.</span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Seletor de Departamentos Responsivo */}
       <ResponsiveDepartmentSelector
         departments={departments}
@@ -333,16 +386,25 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         departmentBeds={centralData.beds}
       >
         <Card>
-          <BedsManagementGrid
-            departmentBeds={bedsWithDischargeState}
-            onReserveBed={handleReserveBed}
-            onAdmitPatient={handleAdmitPatient}
-            onEditPatient={handleEditPatient}
-            onTransferPatient={handleTransferPatient}
-            onDischargePatient={handleDischargePatient}
-            onDeleteReservation={handleDeleteReservation}
-            onDeleteBed={handleDeleteBed}
-          />
+          {sortedBeds.length === 0 && searchTerm.trim() ? (
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-500 text-lg">Nenhum paciente encontrado.</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Tente buscar por outro nome ou número de leito.
+              </p>
+            </CardContent>
+          ) : (
+            <BedsManagementGrid
+              departmentBeds={bedsWithDischargeState}
+              onReserveBed={handleReserveBed}
+              onAdmitPatient={handleAdmitPatient}
+              onEditPatient={handleEditPatient}
+              onTransferPatient={handleTransferPatient}
+              onDischargePatient={handleDischargePatient}
+              onDeleteReservation={handleDeleteReservation}
+              onDeleteBed={handleDeleteBed}
+            />
+          )}
         </Card>
       </ResponsiveDepartmentSelector>
 
