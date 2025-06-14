@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,15 +5,12 @@ export const useDischargeControl = () => {
   return useQuery({
     queryKey: ['discharge_control'],
     queryFn: async () => {
-      console.log('🔍 Buscando dados de controle de alta com município...');
+      console.log('🔍 Buscando dados de controle de alta...');
       
-      // Buscar dados com JOIN para incluir município de origem
+      // Buscar dados de controle de alta
       const { data, error } = await supabase
         .from('discharge_control')
-        .select(`
-          *,
-          patients!inner(origin_city)
-        `)
+        .select('*')
         .order('discharge_requested_at', { ascending: false });
 
       if (error) {
@@ -24,12 +20,23 @@ export const useDischargeControl = () => {
 
       console.log('✅ Dados de discharge_control encontrados:', data?.length || 0);
       
-      // Retornar os dados com município de origem
-      return data?.map(item => ({
-        ...item,
-        bed_name: item.bed_id, // bed_id já é o nome do leito, não um UUID
-        origin_city: item.patients?.origin_city || 'Não informado'
-      })) || [];
+      // Para cada discharge control, buscar o município de origem do paciente
+      const enrichedData = await Promise.all((data || []).map(async (item) => {
+        // Buscar dados do paciente para obter o município de origem
+        const { data: patientData } = await supabase
+          .from('patients')
+          .select('origin_city')
+          .eq('id', item.patient_id)
+          .single();
+        
+        return {
+          ...item,
+          bed_name: item.bed_id, // bed_id já é o nome do leito, não um UUID
+          origin_city: patientData?.origin_city || 'Não informado'
+        };
+      }));
+      
+      return enrichedData;
     }
   });
 };
@@ -52,13 +59,10 @@ export const useCombinedDischarges = () => {
         throw directError;
       }
 
-      // Buscar solicitações de alta com município de origem
+      // Buscar solicitações de alta
       const { data: controlledDischarges, error: controlError } = await supabase
         .from('discharge_control')
-        .select(`
-          *,
-          patients!inner(origin_city)
-        `)
+        .select('*')
         .order('discharge_requested_at', { ascending: false });
 
       if (controlError) {
@@ -66,8 +70,22 @@ export const useCombinedDischarges = () => {
         throw controlError;
       }
 
+      // Para cada discharge control, buscar o município de origem do paciente
+      const enrichedControlledDischarges = await Promise.all((controlledDischarges || []).map(async (item) => {
+        const { data: patientData } = await supabase
+          .from('patients')
+          .select('origin_city')
+          .eq('id', item.patient_id)
+          .single();
+        
+        return {
+          ...item,
+          origin_city: patientData?.origin_city || 'Não informado'
+        };
+      }));
+
       console.log('✅ Altas diretas encontradas:', directDischarges?.length || 0);
-      console.log('✅ Altas controladas encontradas:', controlledDischarges?.length || 0);
+      console.log('✅ Altas controladas encontradas:', enrichedControlledDischarges?.length || 0);
 
       // Combinar e normalizar os dados com campos consistentes
       const combined = [
@@ -84,13 +102,13 @@ export const useCombinedDischarges = () => {
           origin_city: discharge.origin_city // Já disponível nas altas diretas
         })),
         // Altas controladas (pendentes e completadas)
-        ...(controlledDischarges || []).map(discharge => ({
+        ...(enrichedControlledDischarges || []).map(discharge => ({
           ...discharge,
           source: 'controlled' as const,
           bed_name: discharge.bed_id,
           patient_name: discharge.patient_name, // Campo principal para nome
           name: discharge.patient_name, // Campo de backup
-          origin_city: discharge.patients?.origin_city || 'Não informado' // Incluir município
+          origin_city: discharge.origin_city // Incluir município
         }))
       ];
 
