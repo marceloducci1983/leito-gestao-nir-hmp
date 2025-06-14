@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       alert_investigations: {
         Row: {
+          alert_key: string
           alert_type: string
           created_at: string
           id: string
@@ -24,6 +25,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alert_key: string
           alert_type: string
           created_at?: string
           id?: string
@@ -37,6 +39,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alert_key?: string
           alert_type?: string
           created_at?: string
           id?: string

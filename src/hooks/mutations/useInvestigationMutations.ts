@@ -8,21 +8,23 @@ export const useUpdateInvestigation = () => {
 
   return useMutation({
     mutationFn: async ({
+      alertKey,
       patientId,
       alertType,
       status,
       notes
     }: {
-      patientId: string;
+      alertKey: string;
+      patientId?: string;
       alertType: string;
       status: 'investigated' | 'not_investigated';
       notes?: string;
     }) => {
-      console.log('Iniciando mutação de investigação:', { patientId, alertType, status, notes });
+      console.log('Iniciando mutação de investigação:', { alertKey, patientId, alertType, status, notes });
       
       // Validar parâmetros de entrada
-      if (!patientId?.toString()?.trim()) {
-        throw new Error('ID do paciente é obrigatório');
+      if (!alertKey?.toString()?.trim()) {
+        throw new Error('Chave do alerta é obrigatória');
       }
       
       if (!alertType?.toString()?.trim()) {
@@ -33,17 +35,17 @@ export const useUpdateInvestigation = () => {
         throw new Error('Status de investigação inválido');
       }
 
-      const normalizedPatientId = patientId.toString().trim();
+      const normalizedAlertKey = alertKey.toString().trim();
       const normalizedAlertType = alertType.toString().trim();
       
       try {
-        console.log('Buscando investigação existente:', { normalizedPatientId, normalizedAlertType });
+        console.log('Buscando investigação existente:', { normalizedAlertKey, normalizedAlertType });
         
-        // Verificar se já existe um registro
+        // Verificar se já existe um registro usando alert_key
         const { data: existing, error: selectError } = await supabase
           .from('alert_investigations')
           .select('id, investigation_status, investigated_at, investigation_notes')
-          .eq('patient_id', normalizedPatientId)
+          .eq('alert_key', normalizedAlertKey)
           .eq('alert_type', normalizedAlertType)
           .maybeSingle();
 
@@ -85,7 +87,8 @@ export const useUpdateInvestigation = () => {
           console.log('Criando nova investigação');
           
           const newInvestigationData = {
-            patient_id: normalizedPatientId,
+            alert_key: normalizedAlertKey,
+            patient_id: patientId || normalizedAlertKey, // usar patientId se fornecido, senão usar alert_key como fallback
             alert_type: normalizedAlertType,
             ...investigationData
           };
@@ -106,7 +109,7 @@ export const useUpdateInvestigation = () => {
       } catch (error) {
         console.error('Erro geral na mutação:', {
           error,
-          patientId: normalizedPatientId,
+          alertKey: normalizedAlertKey,
           alertType: normalizedAlertType,
           status,
           errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'

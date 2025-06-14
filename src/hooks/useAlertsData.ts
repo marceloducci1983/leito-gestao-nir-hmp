@@ -59,17 +59,17 @@ export const useAlertsData = () => {
     }
   });
 
-  // Função para buscar status de investigação
+  // Função para buscar status de investigação usando alert_key
   const getInvestigationStatus = useMemo(() => {
-    return (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => {
-      console.log('Buscando investigação para:', { patientId, alertType });
+    return (alertKey: string, alertType: 'long_stay' | 'readmission_30_days') => {
+      console.log('Buscando investigação para:', { alertKey, alertType });
       
       const investigation = investigations.find(inv => {
-        const match = inv.patient_id === patientId && inv.alert_type === alertType;
+        const match = inv.alert_key === alertKey && inv.alert_type === alertType;
         console.log('Comparando investigação:', {
-          investigationPatientId: inv.patient_id,
+          investigationAlertKey: inv.alert_key,
           investigationAlertType: inv.alert_type,
-          searchPatientId: patientId,
+          searchAlertKey: alertKey,
           searchAlertType: alertType,
           match
         });

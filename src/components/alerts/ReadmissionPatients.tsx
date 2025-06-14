@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 interface ReadmissionPatientsProps {
   readmissions: any[];
-  getInvestigationStatus: (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => any;
+  getInvestigationStatus: (alertKey: string, alertType: 'long_stay' | 'readmission_30_days') => any;
 }
 
 const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
@@ -34,18 +34,18 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
     
     if (confirm(`Deseja ${message} este alerta?`)) {
       try {
-        // Gerar ID único usando a função utilitária
-        const uniqueId = generateInvestigationId(
+        // Gerar chave única usando a função utilitária
+        const alertKey = generateInvestigationId(
           readmission.patient_name,
           readmission.discharge_date,
           readmission.readmission_date,
           'readmission_30_days'
         );
         
-        console.log('Atualizando investigação com ID:', uniqueId);
+        console.log('Atualizando investigação com alert_key:', alertKey);
         
         await updateInvestigationMutation.mutateAsync({
-          patientId: uniqueId,
+          alertKey,
           alertType: 'readmission_30_days',
           status,
           notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name?.toString()?.trim()}`
@@ -91,15 +91,15 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
               );
             }
             
-            // Gerar ID único usando a função utilitária
-            const uniqueId = generateInvestigationId(
+            // Gerar chave única usando a função utilitária
+            const alertKey = generateInvestigationId(
               readmission.patient_name,
               readmission.discharge_date,
               readmission.readmission_date,
               'readmission_30_days'
             );
             
-            const investigation = getInvestigationStatus(uniqueId, 'readmission_30_days');
+            const investigation = getInvestigationStatus(alertKey, 'readmission_30_days');
             
             return (
               <PatientCard

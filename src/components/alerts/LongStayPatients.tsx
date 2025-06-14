@@ -11,7 +11,7 @@ interface LongStayPatientsProps {
   patients: any[];
   sortOrder: 'asc' | 'desc';
   setSortOrder: (order: 'asc' | 'desc') => void;
-  getInvestigationStatus: (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => any;
+  getInvestigationStatus: (alertKey: string, alertType: 'long_stay' | 'readmission_30_days') => any;
 }
 
 const LongStayPatients: React.FC<LongStayPatientsProps> = ({
@@ -22,14 +22,18 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
 }) => {
   const updateInvestigationMutation = useUpdateInvestigation();
 
-  const handleInvestigate = async (patientId: string, investigated: boolean) => {
+  const handleInvestigate = async (patient: any, investigated: boolean) => {
     const status = investigated ? 'investigated' : 'not_investigated';
     const message = investigated ? 'marcar como investigado' : 'marcar como não investigado';
     
     if (confirm(`Deseja ${message} este alerta?`)) {
       try {
+        // Usar ID do paciente como alert_key para internações longas
+        const alertKey = `long_stay_${patient.id}`;
+        
         await updateInvestigationMutation.mutateAsync({
-          patientId,
+          alertKey,
+          patientId: patient.id,
           alertType: 'long_stay',
           status,
           notes: 'Permanência longa investigada via painel de alertas'
@@ -68,7 +72,8 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
         <div className="space-y-3">
           {patients.map((patient) => {
             const daysInHospital = Math.floor((new Date().getTime() - new Date(patient.admissionDate).getTime()) / (1000 * 60 * 60 * 24));
-            const investigation = getInvestigationStatus(patient.id, 'long_stay');
+            const alertKey = `long_stay_${patient.id}`;
+            const investigation = getInvestigationStatus(alertKey, 'long_stay');
             
             return (
               <PatientCard
@@ -76,7 +81,7 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
                 patient={patient}
                 investigation={investigation}
                 badgeText={`${daysInHospital} dias`}
-                onInvestigate={(investigated) => handleInvestigate(patient.id, investigated)}
+                onInvestigate={(investigated) => handleInvestigate(patient, investigated)}
                 isPending={updateInvestigationMutation.isPending}
               >
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
