@@ -23,6 +23,7 @@ export const generateDepartmentTimeReport = (
 ) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
   const margin = 20;
   let yPosition = 30;
 
@@ -80,7 +81,7 @@ export const generateDepartmentTimeReport = (
   // Dados da tabela
   doc.setFont('helvetica', 'normal');
   data.forEach((item) => {
-    if (yPosition > 250) { // Nova página se necessário
+    if (yPosition > pageHeight - 40) { // Nova página se necessário
       doc.addPage();
       yPosition = 30;
     }
@@ -97,6 +98,11 @@ export const generateDepartmentTimeReport = (
     yPosition += 20;
     const slowestDept = data.reduce((prev, current) => (prev.avg_hours > current.avg_hours) ? prev : current);
     const fastestDept = data.reduce((prev, current) => (prev.avg_hours < current.avg_hours) ? prev : current);
+    
+    if (yPosition > pageHeight - 60) {
+      doc.addPage();
+      yPosition = 30;
+    }
     
     doc.setFont('helvetica', 'bold');
     doc.text('ANÁLISE:', margin, yPosition);
@@ -126,6 +132,7 @@ export const generateCityTimeReport = (
 ) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
   const margin = 20;
   let yPosition = 30;
 
@@ -167,11 +174,17 @@ export const generateCityTimeReport = (
     yPosition += 20;
   }
 
+  // Verificar espaço disponível antes de começar a tabela
+  if (yPosition > pageHeight - 80) {
+    doc.addPage();
+    yPosition = 30;
+  }
+
   // Cabeçalho da tabela
   doc.setFont('helvetica', 'bold');
   doc.text('MUNICÍPIO', margin, yPosition);
-  doc.text('TEMPO MÉDIO', margin + 80, yPosition);
-  doc.text('TOTAL ALTAS', margin + 130, yPosition);
+  doc.text('TEMPO MÉDIO', margin + 100, yPosition);
+  doc.text('TOTAL ALTAS', margin + 150, yPosition);
   
   // Linha horizontal
   yPosition += 5;
@@ -181,20 +194,45 @@ export const generateCityTimeReport = (
   // Dados da tabela
   doc.setFont('helvetica', 'normal');
   data.forEach((item) => {
-    if (yPosition > 250) { // Nova página se necessário
+    // Verificar se há espaço suficiente na página
+    if (yPosition > pageHeight - 30) {
       doc.addPage();
       yPosition = 30;
+      
+      // Repetir cabeçalho na nova página
+      doc.setFont('helvetica', 'bold');
+      doc.text('MUNICÍPIO', margin, yPosition);
+      doc.text('TEMPO MÉDIO', margin + 100, yPosition);
+      doc.text('TOTAL ALTAS', margin + 150, yPosition);
+      yPosition += 5;
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      doc.setFont('helvetica', 'normal');
     }
     
-    doc.text(item.origin_city || 'Não informado', margin, yPosition);
-    doc.text(`${item.avg_hours.toFixed(2)}h`, margin + 80, yPosition);
-    doc.text(item.total_discharges.toString(), margin + 130, yPosition);
+    // Tratar nomes de municípios muito longos
+    const cityName = item.origin_city || 'Não informado';
+    const maxCityLength = 30; // Máximo de caracteres para o nome da cidade
+    const displayCityName = cityName.length > maxCityLength 
+      ? cityName.substring(0, maxCityLength) + '...' 
+      : cityName;
+    
+    doc.text(displayCityName, margin, yPosition);
+    doc.text(`${item.avg_hours.toFixed(2)}h`, margin + 100, yPosition);
+    doc.text(item.total_discharges.toString(), margin + 150, yPosition);
     yPosition += 12;
   });
 
   // Análise e recomendações
   if (data.length > 0) {
     yPosition += 20;
+    
+    // Verificar espaço para a seção de análise
+    if (yPosition > pageHeight - 80) {
+      doc.addPage();
+      yPosition = 30;
+    }
+    
     const slowestCity = data.reduce((prev, current) => (prev.avg_hours > current.avg_hours) ? prev : current);
     const fastestCity = data.reduce((prev, current) => (prev.avg_hours < current.avg_hours) ? prev : current);
     
@@ -203,9 +241,14 @@ export const generateCityTimeReport = (
     yPosition += 15;
     
     doc.setFont('helvetica', 'normal');
-    doc.text(`• Município mais rápido: ${fastestCity.origin_city} (${fastestCity.avg_hours.toFixed(2)}h)`, margin, yPosition);
+    
+    // Tratar nomes longos na análise também
+    const fastestCityName = fastestCity.origin_city || 'Não informado';
+    const slowestCityName = slowestCity.origin_city || 'Não informado';
+    
+    doc.text(`• Município mais rápido: ${fastestCityName} (${fastestCity.avg_hours.toFixed(2)}h)`, margin, yPosition);
     yPosition += 10;
-    doc.text(`• Município mais lento: ${slowestCity.origin_city} (${slowestCity.avg_hours.toFixed(2)}h)`, margin, yPosition);
+    doc.text(`• Município mais lento: ${slowestCityName} (${slowestCity.avg_hours.toFixed(2)}h)`, margin, yPosition);
     yPosition += 10;
     
     const slowCities = data.filter(city => city.avg_hours > 5);
