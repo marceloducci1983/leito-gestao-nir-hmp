@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, User, Activity, FileText, Archive, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, MapPin, User, Activity, FileText, Archive, ChevronDown, ChevronUp, Building, Bed } from 'lucide-react';
 import TfdInterventionModal from '@/components/forms/TfdInterventionModal';
 import { useArchiveTfdPatient } from '@/hooks/mutations/useTfdMutations';
 import { useTfdInterventions } from '@/hooks/queries/useTfdQueries';
@@ -11,9 +11,14 @@ import { toast } from 'sonner';
 
 interface TfdPatientCardProps {
   patient: any;
+  bedInfo?: {
+    id: string;
+    name: string;
+    department: string;
+  };
 }
 
-const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
+const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient, bedInfo }) => {
   const [showInterventionModal, setShowInterventionModal] = useState(false);
   const [showAllInterventions, setShowAllInterventions] = useState(false);
   const archiveTfdMutation = useArchiveTfdPatient();
@@ -102,6 +107,23 @@ const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
                 {patient.originCity}
               </p>
             </div>
+
+            {/* NOVA SEÇÃO: Localização Atual */}
+            {bedInfo && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-200">
+                <p className="font-bold text-blue-800 text-sm mb-2">📍 Localização Atual:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-700 text-sm">{bedInfo.department}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Bed className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-700 text-sm">{bedInfo.name}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mostrar intervenções existentes */}
@@ -176,7 +198,9 @@ const TfdPatientCard: React.FC<TfdPatientCardProps> = ({ patient }) => {
 
           <div className="mt-3 pt-3 border-t">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Departamento: {patient.department}</span>
+              <span className="text-sm text-gray-600">
+                Departamento: {bedInfo?.department || patient.department}
+              </span>
               <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                 TFD: {patient.tfdType || 'Não especificado'}
               </Badge>
