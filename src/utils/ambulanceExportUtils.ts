@@ -1,6 +1,6 @@
 
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface StatsByCityAndSector {
   origin_city: string;
@@ -52,7 +52,7 @@ export const exportToPDF = (
     item.confirmed_requests.toString()
   ]);
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 75,
     head: [['Município', 'Setor', 'Total', 'Tempo Médio', 'Confirmados']],
     body: tableData1,
@@ -74,7 +74,7 @@ export const exportToPDF = (
     item.confirmed_requests.toString()
   ]);
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: finalY + 10,
     head: [['Município', 'Total', 'Tempo Médio Global', 'Confirmados']],
     body: tableData2,
