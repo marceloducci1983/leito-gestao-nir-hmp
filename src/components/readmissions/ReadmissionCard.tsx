@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, X, AlertTriangle } from 'lucide-react';
 import InvestigationModal from '@/components/forms/InvestigationModal';
 import { useUpdateInvestigation } from '@/hooks/mutations/useInvestigationMutations';
+import { generateInvestigationId, validateReadmissionData } from '@/utils/investigationUtils';
 
 interface ReadmissionCardProps {
   readmission: any;
@@ -24,8 +25,23 @@ const ReadmissionCard: React.FC<ReadmissionCardProps> = ({ readmission, investig
 
   const handleConfirmInvestigation = async () => {
     try {
+      // Validar dados da reinternação
+      const validation = validateReadmissionData(readmission);
+      if (!validation.isValid) {
+        console.error('Dados inválidos:', validation.errors);
+        return;
+      }
+
+      // Gerar chave única usando a função utilitária
+      const alertKey = generateInvestigationId(
+        readmission.patient_name,
+        readmission.discharge_date,
+        readmission.readmission_date,
+        'readmission_30_days'
+      );
+
       await updateInvestigationMutation.mutateAsync({
-        patientId: readmission.patient_id || readmission.patient_name, // Usar nome como fallback
+        alertKey,
         alertType: 'readmission_30_days',
         status: modalAction,
         notes: `Reinternação em ${readmission.days_between} dias`
