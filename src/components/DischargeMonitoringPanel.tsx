@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Ambulance } from 'lucide-react';
 import { useDischargeControl, useDepartmentStats, useCombinedDischarges } from '@/hooks/queries/useDischargeQueries';
 import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
@@ -106,7 +106,7 @@ const DischargeMonitoringPanel: React.FC = () => {
       />
 
       <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="pending">
             Altas Pendentes ({pendingDischarges.length})
           </TabsTrigger>
@@ -118,6 +118,9 @@ const DischargeMonitoringPanel: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="reports">
             Relatórios
+          </TabsTrigger>
+          <TabsTrigger value="ambulance">
+            Solicitação de Ambulância (em desenvolvimento)
           </TabsTrigger>
         </TabsList>
 
@@ -199,6 +202,31 @@ const DischargeMonitoringPanel: React.FC = () => {
 
         <TabsContent value="reports" className="space-y-4">
           <SimplifiedReportsSection />
+        </TabsContent>
+
+        <TabsContent value="ambulance" className="space-y-4">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <Ambulance className="h-16 w-16 text-blue-500" />
+                <h3 className="text-xl font-semibold text-gray-700">
+                  Solicitação de Ambulância
+                </h3>
+                <p className="text-gray-500 max-w-md">
+                  Esta funcionalidade está em desenvolvimento e em breve permitirá 
+                  gerenciar solicitações de ambulância para transporte de pacientes.
+                </p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                  <p className="text-yellow-800 text-sm font-medium">
+                    🚧 Em Desenvolvimento
+                  </p>
+                  <p className="text-yellow-700 text-sm mt-1">
+                    Funcionalidade será disponibilizada em uma próxima atualização.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
