@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, User, MapPin, Car, Bed, Building } from 'lucide-react';
 import { useConfirmAmbulanceTransport, useCancelAmbulanceTransport } from '@/hooks/mutations/useAmbulanceMutations';
 import { formatDateSaoPaulo, formatTimeSaoPaulo } from '@/utils/timezoneUtils';
+import { fromZonedTime } from 'date-fns-tz';
 import AmbulanceTimer from './AmbulanceTimer';
 
 interface AmbulanceRequest {
@@ -70,7 +72,10 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
       const dateTimeString = `${request.request_date}T${request.request_time}`;
       const requestDateTime = new Date(dateTimeString);
       
-      return `${formatDateSaoPaulo(requestDateTime)} às ${formatTimeSaoPaulo(requestDateTime)}`;
+      // Tratar a data/hora como horário de Brasília (não UTC)
+      const saoPauloDate = fromZonedTime(requestDateTime, 'America/Sao_Paulo');
+      
+      return `${formatDateSaoPaulo(saoPauloDate)} às ${formatTimeSaoPaulo(saoPauloDate)}`;
     } catch (error) {
       console.error('Error formatting request date/time:', error);
       return `${request.request_date} às ${request.request_time}`;
