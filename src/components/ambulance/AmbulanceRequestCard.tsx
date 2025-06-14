@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,10 +115,13 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
               </div>
             )}
 
-            <div className="flex items-center space-x-2 text-sm">
-              <MapPin className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Origem:</span>
-              <span>{request.origin_city}</span>
+            {/* ORIGEM COM DESTAQUE */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-green-600" />
+                <span className="font-bold text-green-800 text-base">Origem:</span>
+                <span className="font-semibold text-green-700 text-lg">{request.origin_city}</span>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 text-sm">
@@ -151,15 +153,20 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">Tempo:</span>
-            <AmbulanceTimer 
-              createdAt={request.created_at}
-              status={request.status}
-              confirmedAt={request.confirmed_at}
-              cancelledAt={request.cancelled_at}
-            />
+          {/* TEMPO COM DESTAQUE */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg rounded-lg p-4 transform hover:scale-105 transition-all duration-200">
+            <div className="flex items-center space-x-3">
+              <Clock className="h-6 w-6 text-blue-600" />
+              <div className="flex flex-col">
+                <span className="font-bold text-blue-800 text-base">Tempo:</span>
+                <AmbulanceTimer 
+                  createdAt={request.created_at}
+                  status={request.status}
+                  confirmedAt={request.confirmed_at}
+                  cancelledAt={request.cancelled_at}
+                />
+              </div>
+            </div>
           </div>
 
           {request.status === 'PENDING' && (
