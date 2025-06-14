@@ -22,19 +22,32 @@ export const useUpdateInvestigation = () => {
       notes?: string;
       patientName?: string;
     }) => {
-      console.log('Iniciando mutação de investigação:', { alertKey, patientId, alertType, status, notes, patientName });
+      console.log('🚀 Iniciando mutação de investigação:', { 
+        alertKey, 
+        patientId, 
+        alertType, 
+        status, 
+        notes, 
+        patientName 
+      });
       
-      // Validar parâmetros de entrada
+      // Validação rigorosa dos parâmetros
       if (!alertKey?.toString()?.trim()) {
-        throw new Error('Chave do alerta é obrigatória');
+        const error = 'Chave do alerta é obrigatória';
+        console.error('❌ Erro de validação:', error);
+        throw new Error(error);
       }
       
       if (!alertType?.toString()?.trim()) {
-        throw new Error('Tipo de alerta é obrigatório');
+        const error = 'Tipo de alerta é obrigatório';
+        console.error('❌ Erro de validação:', error);
+        throw new Error(error);
       }
       
       if (!status || !['investigated', 'not_investigated'].includes(status)) {
-        throw new Error('Status de investigação inválido');
+        const error = 'Status de investigação inválido';
+        console.error('❌ Erro de validação:', error, { status });
+        throw new Error(error);
       }
 
       const normalizedAlertKey = alertKey.toString().trim();
@@ -43,7 +56,7 @@ export const useUpdateInvestigation = () => {
       // Buscar UUID do paciente se nome foi fornecido mas ID não
       let actualPatientId = patientId;
       if (!actualPatientId && patientName) {
-        console.log('Buscando UUID do paciente pelo nome:', patientName);
+        console.log('🔍 Buscando UUID do paciente pelo nome:', patientName);
         try {
           const { data: patient, error: patientError } = await supabase
             .from('patients')
@@ -53,20 +66,23 @@ export const useUpdateInvestigation = () => {
             .maybeSingle();
 
           if (patientError) {
-            console.warn('Erro ao buscar paciente:', patientError);
+            console.warn('⚠️ Erro ao buscar paciente:', patientError);
           } else if (patient) {
             actualPatientId = patient.id;
-            console.log('UUID do paciente encontrado:', actualPatientId);
+            console.log('✅ UUID do paciente encontrado:', actualPatientId);
           } else {
-            console.log('Paciente não encontrado na tabela ativa, usando NULL para patient_id');
+            console.log('ℹ️ Paciente não encontrado na tabela ativa, usando NULL para patient_id');
           }
         } catch (error) {
-          console.warn('Erro ao buscar UUID do paciente:', error);
+          console.warn('⚠️ Erro ao buscar UUID do paciente:', error);
         }
       }
       
       try {
-        console.log('Buscando investigação existente:', { normalizedAlertKey, normalizedAlertType });
+        console.log('🔍 Verificando investigação existente:', { 
+          normalizedAlertKey, 
+          normalizedAlertType 
+        });
         
         // Verificar se já existe um registro usando alert_key
         const { data: existing, error: selectError } = await supabase
@@ -77,11 +93,11 @@ export const useUpdateInvestigation = () => {
           .maybeSingle();
 
         if (selectError) {
-          console.error('Erro ao buscar investigação existente:', selectError);
+          console.error('❌ Erro ao buscar investigação existente:', selectError);
           throw new Error(`Erro ao buscar investigação: ${selectError.message}`);
         }
 
-        console.log('Investigação existente encontrada:', existing);
+        console.log('📋 Investigação existente:', existing);
 
         const investigationData = {
           investigation_status: status,
@@ -92,9 +108,11 @@ export const useUpdateInvestigation = () => {
           updated_at: new Date().toISOString()
         };
 
+        let result;
+
         if (existing) {
           // Atualizar registro existente
-          console.log('Atualizando investigação existente com ID:', existing.id);
+          console.log('🔄 Atualizando investigação existente com ID:', existing.id);
           
           const { data, error } = await supabase
             .from('alert_investigations')
@@ -103,22 +121,24 @@ export const useUpdateInvestigation = () => {
             .select();
 
           if (error) {
-            console.error('Erro ao atualizar investigação:', error);
+            console.error('❌ Erro ao atualizar investigação:', error);
             throw new Error(`Erro ao atualizar: ${error.message}`);
           }
           
-          console.log('Investigação atualizada com sucesso:', data);
-          return data;
+          result = data;
+          console.log('✅ Investigação atualizada com sucesso:', data);
         } else {
           // Criar novo registro
-          console.log('Criando nova investigação com patient_id:', actualPatientId);
+          console.log('➕ Criando nova investigação com patient_id:', actualPatientId);
           
           const newInvestigationData = {
             alert_key: normalizedAlertKey,
-            patient_id: actualPatientId || null, // Usar NULL se não houver UUID válido
+            patient_id: actualPatientId || null,
             alert_type: normalizedAlertType,
             ...investigationData
           };
+          
+          console.log('📝 Dados da nova investigação:', newInvestigationData);
           
           const { data, error } = await supabase
             .from('alert_investigations')
@@ -126,15 +146,17 @@ export const useUpdateInvestigation = () => {
             .select();
 
           if (error) {
-            console.error('Erro ao criar investigação:', error);
+            console.error('❌ Erro ao criar investigação:', error);
             throw new Error(`Erro ao criar investigação: ${error.message}`);
           }
           
-          console.log('Nova investigação criada com sucesso:', data);
-          return data;
+          result = data;
+          console.log('✅ Nova investigação criada com sucesso:', data);
         }
+
+        return result;
       } catch (error) {
-        console.error('Erro geral na mutação:', {
+        console.error('💥 Erro geral na mutação:', {
           error,
           alertKey: normalizedAlertKey,
           alertType: normalizedAlertType,
@@ -148,23 +170,23 @@ export const useUpdateInvestigation = () => {
       }
     },
     onSuccess: (data, variables) => {
-      console.log('Mutação bem-sucedida:', { data, variables });
+      console.log('🎉 Mutação bem-sucedida:', { data, variables });
       
       // Invalidar queries relacionadas para atualizar a UI
       queryClient.invalidateQueries({ queryKey: ['readmissions'] });
       queryClient.invalidateQueries({ queryKey: ['alert_investigations'] });
       queryClient.invalidateQueries({ queryKey: ['long_stay_patients'] });
       
-      console.log('Queries invalidadas com sucesso');
+      console.log('🔄 Queries invalidadas com sucesso');
     },
     onError: (error: any, variables) => {
-      console.error('Erro na mutação (onError):', {
+      console.error('💥 Erro na mutação (onError):', {
         error,
         variables,
         errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
       });
       
-      // Não mostrar toast aqui, pois já é tratado no componente
+      // Toast será mostrado no componente que chama a mutação
     }
   });
 };
