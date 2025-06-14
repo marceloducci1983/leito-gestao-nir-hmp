@@ -44,10 +44,10 @@ const AlertsPanel: React.FC = () => {
       <Tabs defaultValue="long-stay" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="long-stay">
-            Internações + 15 dias ({longStayPatients.length})
+            Internações > de 15 dias ({longStayPatients.length})
           </TabsTrigger>
           <TabsTrigger value="readmissions">
-            Reinternações - 30 dias ({readmissions.length})
+            Reinternações < 30 dias ({readmissions.length})
           </TabsTrigger>
         </TabsList>
 
