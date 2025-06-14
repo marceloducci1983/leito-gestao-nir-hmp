@@ -36,7 +36,8 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
           patientId: patient.id,
           alertType: 'long_stay',
           status,
-          notes: 'Permanência longa investigada via painel de alertas'
+          notes: 'Permanência longa investigada via painel de alertas',
+          patientName: patient.name
         });
         
         toast.success(`Alerta ${investigated ? 'marcado como investigado' : 'marcado como não investigado'} com sucesso!`);
@@ -71,9 +72,22 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
       ) : (
         <div className="space-y-3">
           {patients.map((patient) => {
-            const daysInHospital = Math.floor((new Date().getTime() - new Date(patient.admissionDate).getTime()) / (1000 * 60 * 60 * 24));
+            // Usar dias calculados em tempo real, com fallback para occupation_days e cálculo manual
+            const daysInHospital = patient.calculatedDays || 
+                                 patient.occupation_days || 
+                                 Math.floor((new Date().getTime() - new Date(patient.admissionDate || patient.admission_date).getTime()) / (1000 * 60 * 60 * 24));
+            
             const alertKey = `long_stay_${patient.id}`;
             const investigation = getInvestigationStatus(alertKey, 'long_stay');
+            
+            console.log('Renderizando paciente:', {
+              name: patient.name,
+              admissionDate: patient.admissionDate || patient.admission_date,
+              calculatedDays: patient.calculatedDays,
+              occupationDays: patient.occupation_days,
+              daysInHospital,
+              investigation
+            });
             
             return (
               <PatientCard
@@ -89,7 +103,7 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
                     <p className="text-gray-600">Data de Admissão</p>
                     <p className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {patient.admissionDate}
+                      {patient.admissionDate || patient.admission_date}
                     </p>
                   </div>
                   
@@ -97,24 +111,24 @@ const LongStayPatients: React.FC<LongStayPatientsProps> = ({
                     <p className="text-gray-600">Hora de Admissão</p>
                     <p className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {patient.admissionTime || 'Não informado'}
+                      {patient.admissionTime || patient.admission_time || 'Não informado'}
                     </p>
                   </div>
                   
                   <div>
                     <p className="text-gray-600">Cidade de Origem</p>
-                    <p>{patient.originCity}</p>
+                    <p>{patient.originCity || patient.origin_city}</p>
                   </div>
                   
                   <div>
                     <p className="text-gray-600">TFD</p>
-                    <p>{patient.isTFD ? patient.tfdType || 'Sim' : 'Não'}</p>
+                    <p>{(patient.isTFD || patient.is_tfd) ? (patient.tfdType || patient.tfd_type || 'Sim') : 'Não'}</p>
                   </div>
                 </div>
                 
                 <div>
                   <p className="text-gray-600">Data Provável de Alta</p>
-                  <p>{patient.expectedDischargeDate || 'Não definida'}</p>
+                  <p>{patient.expectedDischargeDate || patient.expected_discharge_date || 'Não definida'}</p>
                 </div>
               </PatientCard>
             );

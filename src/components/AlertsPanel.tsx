@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle } from 'lucide-react';
 import { useAlertsData } from '@/hooks/useAlertsData';
+import { useOccupationDaysUpdater } from '@/hooks/useOccupationDaysUpdater';
 import LongStayPatients from './alerts/LongStayPatients';
 import ReadmissionPatients from './alerts/ReadmissionPatients';
 
@@ -16,6 +17,9 @@ const AlertsPanel: React.FC = () => {
     setSortOrder,
     isLoading
   } = useAlertsData();
+
+  // Hook para atualização automática dos dias de ocupação
+  useOccupationDaysUpdater();
 
   if (isLoading) {
     return (

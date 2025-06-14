@@ -7,22 +7,44 @@ import { generateInvestigationId } from '@/utils/investigationUtils';
 export const useAlertsData = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Query para buscar pacientes com internação longa
+  // Query para buscar pacientes com internação longa usando cálculo em tempo real
   const { data: longStayPatients = [], isLoading: longStayLoading } = useQuery({
     queryKey: ['long_stay_patients'],
     queryFn: async () => {
+      console.log('Buscando pacientes com internação longa...');
+      
       const { data, error } = await supabase
         .from('patients')
-        .select('*')
-        .gte('occupation_days', 15);
+        .select(`
+          *,
+          beds!inner(name, department)
+        `)
+        .gte('occupation_days', 15)
+        .order('occupation_days', { ascending: false });
       
       if (error) {
         console.error('Erro ao buscar pacientes com internação longa:', error);
         throw error;
       }
       
-      return data || [];
-    }
+      // Transformar dados para o formato esperado pelo componente
+      const transformedData = data?.map(patient => ({
+        ...patient,
+        admissionDate: patient.admission_date,
+        admissionTime: patient.admission_time,
+        originCity: patient.origin_city,
+        expectedDischargeDate: patient.expected_discharge_date,
+        isTFD: patient.is_tfd,
+        tfdType: patient.tfd_type,
+        // Calcular dias reais de internação em tempo real
+        calculatedDays: Math.floor((new Date().getTime() - new Date(patient.admission_date).getTime()) / (1000 * 60 * 60 * 24))
+      })) || [];
+      
+      console.log('Pacientes com internação longa encontrados:', transformedData);
+      return transformedData;
+    },
+    refetchInterval: 5 * 60 * 1000, // Refetch a cada 5 minutos para manter atualizado
+    staleTime: 2 * 60 * 1000 // Considerar dados obsoletos após 2 minutos
   });
 
   // Query para buscar reinternações em 30 dias
@@ -38,7 +60,8 @@ export const useAlertsData = () => {
       
       console.log('Reinternações carregadas:', data);
       return data || [];
-    }
+    },
+    refetchInterval: 10 * 60 * 1000 // Refetch a cada 10 minutos
   });
 
   // Query para buscar investigações
@@ -84,10 +107,14 @@ export const useAlertsData = () => {
   // Pacientes com internação longa ordenados
   const sortedLongStayPatients = useMemo(() => {
     const sorted = [...longStayPatients].sort((a, b) => {
+      // Usar os dias calculados em tempo real para ordenação
+      const daysA = a.calculatedDays || a.occupation_days || 0;
+      const daysB = b.calculatedDays || b.occupation_days || 0;
+      
       if (sortOrder === 'asc') {
-        return a.occupation_days - b.occupation_days;
+        return daysA - daysB;
       }
-      return b.occupation_days - a.occupation_days;
+      return daysB - daysA;
     });
     
     console.log('Pacientes com internação longa ordenados:', sorted);
