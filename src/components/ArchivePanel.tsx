@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Filter, SortDesc, SortAsc } from 'lucide-react';
 import { DischargedPatient } from '@/types';
-import { formatDateSaoPaulo, formatDateOnly } from '@/utils/timezoneUtils';
+import { formatDateSaoPaulo } from '@/utils/timezoneUtils';
+import { formatDateOnly } from '@/utils/dateUtils';
 
 interface ArchivePanelProps {
   archivedPatients: DischargedPatient[];
