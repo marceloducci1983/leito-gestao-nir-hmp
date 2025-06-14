@@ -17,17 +17,20 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
 }) => {
   const updateInvestigationMutation = useUpdateInvestigation();
 
-  const handleInvestigate = async (readmissionId: string, investigated: boolean) => {
+  const handleInvestigate = async (readmission: any, investigated: boolean) => {
     const status = investigated ? 'investigated' : 'not_investigated';
     const message = investigated ? 'marcar como investigado' : 'marcar como não investigado';
     
     if (confirm(`Deseja ${message} este alerta?`)) {
       try {
+        // Usar uma combinação mais limpa para o ID único
+        const uniqueId = `readmission_${readmission.patient_name.replace(/\s+/g, '_')}_${readmission.discharge_date}_${readmission.readmission_date}`;
+        
         await updateInvestigationMutation.mutateAsync({
-          patientId: readmissionId,
+          patientId: uniqueId,
           alertType: 'readmission_30_days',
           status,
-          notes: 'Reinternação investigada via painel de alertas'
+          notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name}`
         });
         
         toast.success(`Alerta ${investigated ? 'marcado como investigado' : 'marcado como não investigado'} com sucesso!`);
@@ -51,8 +54,9 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
       ) : (
         <div className="space-y-3">
           {readmissions.map((readmission, index) => {
-            const readmissionId = `${readmission.patient_name}_${readmission.discharge_date}_${readmission.readmission_date}`.replace(/\s+/g, '_');
-            const investigation = getInvestigationStatus(readmissionId, 'readmission_30_days');
+            // Usar a mesma lógica para gerar o ID único
+            const uniqueId = `readmission_${readmission.patient_name.replace(/\s+/g, '_')}_${readmission.discharge_date}_${readmission.readmission_date}`;
+            const investigation = getInvestigationStatus(uniqueId, 'readmission_30_days');
             
             return (
               <PatientCard
@@ -60,7 +64,7 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
                 patient={readmission}
                 investigation={investigation}
                 badgeText={`${readmission.days_between} dias`}
-                onInvestigate={(investigated) => handleInvestigate(readmissionId, investigated)}
+                onInvestigate={(investigated) => handleInvestigate(readmission, investigated)}
                 isPending={updateInvestigationMutation.isPending}
               >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
