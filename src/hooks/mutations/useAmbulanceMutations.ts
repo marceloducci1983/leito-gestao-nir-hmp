@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 
 interface AmbulanceRequestData {
   patient_name: string;
+  sector: string;
+  bed: string;
   is_puerpera: boolean;
   appropriate_crib?: boolean;
   mobility: 'DEITADO' | 'SENTADO';

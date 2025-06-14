@@ -1,14 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, User, Car, Ambulance } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, MapPin, Car, Bed, Building } from 'lucide-react';
 import { useConfirmAmbulanceTransport, useCancelAmbulanceTransport } from '@/hooks/mutations/useAmbulanceMutations';
+import AmbulanceTimer from './AmbulanceTimer';
 
 interface AmbulanceRequest {
   id: string;
   patient_name: string;
+  sector?: string;
+  bed?: string;
   is_puerpera: boolean;
   appropriate_crib?: boolean;
   mobility: string;
@@ -18,6 +21,8 @@ interface AmbulanceRequest {
   request_date: string;
   request_time: string;
   status: string;
+  confirmed_at?: string;
+  cancelled_at?: string;
   created_at: string;
 }
 
@@ -26,138 +31,143 @@ interface AmbulanceRequestCardProps {
 }
 
 const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) => {
-  const [elapsedTime, setElapsedTime] = useState('00:00:00');
-  
   const confirmMutation = useConfirmAmbulanceTransport();
   const cancelMutation = useCancelAmbulanceTransport();
-
-  useEffect(() => {
-    if (request.status !== 'PENDING') return;
-
-    const updateTimer = () => {
-      const requestDateTime = new Date(`${request.request_date}T${request.request_time}`);
-      const now = new Date();
-      const diffMs = now.getTime() - requestDateTime.getTime();
-      
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-      
-      setElapsedTime(
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      );
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [request.request_date, request.request_time, request.status]);
 
   const getStatusBadge = () => {
     switch (request.status) {
       case 'PENDING':
-        return <Badge variant="default" className="bg-yellow-500">Pendente</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendente</Badge>;
       case 'CONFIRMED':
-        return <Badge variant="default" className="bg-green-500">Confirmado</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Confirmado</Badge>;
       case 'CANCELLED':
-        return <Badge variant="destructive">Cancelado</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelado</Badge>;
       default:
-        return <Badge variant="outline">{request.status}</Badge>;
+        return <Badge variant="outline">Desconhecido</Badge>;
     }
   };
 
-  const getVehicleIcon = () => {
-    return request.vehicle_type === 'AMBULANCIA' ? <Ambulance className="h-4 w-4" /> : <Car className="h-4 w-4" />;
-  };
-
-  const getVehicleText = () => {
+  const getVehicleInfo = () => {
     if (request.vehicle_type === 'AMBULANCIA') {
-      return `Ambulância ${request.vehicle_subtype || ''}`;
+      return `Ambulância ${request.vehicle_subtype || 'Básica'}`;
     }
-    return 'Carro comum';
+    return 'Carro Comum';
+  };
+
+  const handleConfirm = () => {
+    confirmMutation.mutate(request.id);
+  };
+
+  const handleCancel = () => {
+    if (window.confirm('Tem certeza que deseja cancelar esta solicitação?')) {
+      cancelMutation.mutate(request.id);
+    }
   };
 
   return (
     <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <User className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold">{request.patient_name}</h3>
-          </div>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center space-x-2">
+            <User className="h-5 w-5" />
+            <span>{request.patient_name}</span>
+            {request.is_puerpera && (
+              <Badge variant="secondary" className="ml-2">Puérpera</Badge>
+            )}
+          </CardTitle>
           {getStatusBadge()}
         </div>
+      </CardHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-sm">
-              <span className="font-medium">Puérpera:</span>
-              <span>{request.is_puerpera ? 'SIM' : 'NÃO'}</span>
-            </div>
-            
-            {request.is_puerpera && request.appropriate_crib !== null && (
+            {request.sector && (
               <div className="flex items-center space-x-2 text-sm">
-                <span className="font-medium">Berço apropriado:</span>
-                <span>{request.appropriate_crib ? 'SIM' : 'NÃO'}</span>
+                <Building className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Setor:</span>
+                <span>{request.sector}</span>
               </div>
             )}
             
+            {request.bed && (
+              <div className="flex items-center space-x-2 text-sm">
+                <Bed className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Leito:</span>
+                <span>{request.bed}</span>
+              </div>
+            )}
+
             <div className="flex items-center space-x-2 text-sm">
-              <span className="font-medium">Mobilidade:</span>
-              <span>{request.mobility}</span>
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">Origem:</span>
+              <span>{request.origin_city}</span>
+            </div>
+
+            <div className="flex items-center space-x-2 text-sm">
+              <Car className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">Veículo:</span>
+              <span>{getVehicleInfo()}</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-sm">
-              {getVehicleIcon()}
-              <span className="font-medium">Veículo:</span>
-              <span>{getVehicleText()}</span>
+            <div className="text-sm">
+              <span className="font-medium">Mobilidade:</span>
+              <span className="ml-2">{request.mobility}</span>
             </div>
-            
-            <div className="flex items-center space-x-2 text-sm">
-              <MapPin className="h-4 w-4" />
-              <span className="font-medium">Cidade:</span>
-              <span>{request.origin_city}</span>
-            </div>
-            
-            <div className="flex items-center space-x-2 text-sm">
-              <Clock className="h-4 w-4" />
-              <span className="font-medium">Solicitado em:</span>
-              <span>{new Date(request.request_date).toLocaleDateString('pt-BR')} às {request.request_time}</span>
+
+            {request.is_puerpera && request.appropriate_crib && (
+              <div className="text-sm">
+                <span className="font-medium text-green-600">✓ Berço apropriado</span>
+              </div>
+            )}
+
+            <div className="text-sm">
+              <span className="font-medium">Data/Hora:</span>
+              <span className="ml-2">
+                {new Date(request.request_date).toLocaleDateString('pt-BR')} às {request.request_time}
+              </span>
             </div>
           </div>
         </div>
 
-        {request.status === 'PENDING' && (
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <span className="text-lg font-mono font-bold text-orange-600">
-                {elapsedTime}
-              </span>
-            </div>
-            
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center space-x-2">
+            <Clock className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium">Tempo:</span>
+            <AmbulanceTimer 
+              createdAt={request.created_at}
+              status={request.status}
+              confirmedAt={request.confirmed_at}
+              cancelledAt={request.cancelled_at}
+            />
+          </div>
+
+          {request.status === 'PENDING' && (
             <div className="flex space-x-2">
               <Button
+                size="sm"
                 variant="outline"
-                onClick={() => cancelMutation.mutate(request.id)}
+                onClick={handleCancel}
                 disabled={cancelMutation.isPending}
-                className="border-red-300 text-red-600 hover:bg-red-50"
+                className="text-red-600 border-red-200 hover:bg-red-50"
               >
-                CANCELAR TRANSPORTE
+                <XCircle className="h-4 w-4 mr-1" />
+                Cancelar
               </Button>
               <Button
-                onClick={() => confirmMutation.mutate(request.id)}
+                size="sm"
+                onClick={handleConfirm}
                 disabled={confirmMutation.isPending}
                 className="bg-green-600 hover:bg-green-700"
               >
-                CONFIRMAR TRANSPORTE
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Confirmar
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

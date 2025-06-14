@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCreateAmbulanceRequest } from '@/hooks/mutations/useAmbulanceMutations';
 import CityAutocomplete from './CityAutocomplete';
 
@@ -17,11 +17,13 @@ interface AmbulanceRequestFormProps {
 const AmbulanceRequestForm: React.FC<AmbulanceRequestFormProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
     patient_name: '',
+    sector: '',
+    bed: '',
     is_puerpera: false,
-    appropriate_crib: undefined as boolean | undefined,
-    mobility: '' as 'DEITADO' | 'SENTADO' | '',
-    vehicle_type: '' as 'AMBULANCIA' | 'CARRO_COMUM' | '',
-    vehicle_subtype: undefined as 'BASICA' | 'AVANCADA' | undefined,
+    appropriate_crib: false,
+    mobility: 'DEITADO' as const,
+    vehicle_type: 'AMBULANCIA' as const,
+    vehicle_subtype: 'BASICA' as const,
     origin_city: ''
   });
 
@@ -30,192 +32,194 @@ const AmbulanceRequestForm: React.FC<AmbulanceRequestFormProps> = ({ open, onClo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.patient_name || !formData.mobility || !formData.vehicle_type || !formData.origin_city) {
+    if (!formData.patient_name.trim()) {
+      alert('Nome do paciente é obrigatório');
+      return;
+    }
+    
+    if (!formData.sector.trim()) {
+      alert('Setor é obrigatório');
+      return;
+    }
+    
+    if (!formData.bed.trim()) {
+      alert('Leito é obrigatório');
+      return;
+    }
+    
+    if (!formData.origin_city.trim()) {
+      alert('Cidade de origem é obrigatória');
       return;
     }
 
     const submitData = {
       ...formData,
-      mobility: formData.mobility as 'DEITADO' | 'SENTADO',
-      vehicle_type: formData.vehicle_type as 'AMBULANCIA' | 'CARRO_COMUM'
+      appropriate_crib: formData.is_puerpera ? formData.appropriate_crib : undefined,
+      vehicle_subtype: formData.vehicle_type === 'AMBULANCIA' ? formData.vehicle_subtype : undefined
     };
 
     createMutation.mutate(submitData, {
       onSuccess: () => {
-        onClose();
         setFormData({
           patient_name: '',
+          sector: '',
+          bed: '',
           is_puerpera: false,
-          appropriate_crib: undefined,
-          mobility: '',
-          vehicle_type: '',
-          vehicle_subtype: undefined,
+          appropriate_crib: false,
+          mobility: 'DEITADO',
+          vehicle_type: 'AMBULANCIA',
+          vehicle_subtype: 'BASICA',
           origin_city: ''
         });
+        onClose();
       }
     });
   };
 
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const date = now.toLocaleDateString('pt-BR');
-    const time = now.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-    return { date, time };
-  };
-
-  const { date, time } = getCurrentDateTime();
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova Solicitação de Ambulância</DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
             <Label htmlFor="patient_name">Nome do Paciente *</Label>
             <Input
               id="patient_name"
               value={formData.patient_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, patient_name: e.target.value }))}
+              onChange={(e) => setFormData({ ...formData, patient_name: e.target.value })}
+              placeholder="Digite o nome completo do paciente"
               required
             />
           </div>
 
-          <div className="space-y-3">
-            <Label>Puérpera *</Label>
+          <div>
+            <Label htmlFor="sector">Setor *</Label>
+            <Input
+              id="sector"
+              value={formData.sector}
+              onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+              placeholder="Digite o setor (ex: Clínica Médica, UTI, etc.)"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="bed">Leito *</Label>
+            <Input
+              id="bed"
+              value={formData.bed}
+              onChange={(e) => setFormData({ ...formData, bed: e.target.value })}
+              placeholder="Digite o número do leito (ex: 12A, Box-3, etc.)"
+              required
+            />
+          </div>
+
+          <div>
+            <Label>Cidade de Origem *</Label>
+            <CityAutocomplete
+              value={formData.origin_city}
+              onChange={(value) => setFormData({ ...formData, origin_city: value })}
+              placeholder="Digite o nome da cidade..."
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_puerpera"
+              checked={formData.is_puerpera}
+              onCheckedChange={(checked) => 
+                setFormData({ 
+                  ...formData, 
+                  is_puerpera: checked as boolean,
+                  appropriate_crib: false 
+                })
+              }
+            />
+            <Label htmlFor="is_puerpera">Puérpera</Label>
+          </div>
+
+          {formData.is_puerpera && (
+            <div className="flex items-center space-x-2 ml-6">
+              <Checkbox
+                id="appropriate_crib"
+                checked={formData.appropriate_crib}
+                onCheckedChange={(checked) => 
+                  setFormData({ ...formData, appropriate_crib: checked as boolean })
+                }
+              />
+              <Label htmlFor="appropriate_crib">Berço apropriado</Label>
+            </div>
+          )}
+
+          <div>
+            <Label>Mobilidade</Label>
             <RadioGroup
-              value={formData.is_puerpera ? 'sim' : 'nao'}
-              onValueChange={(value) => {
-                const isPuerpera = value === 'sim';
-                setFormData(prev => ({
-                  ...prev,
-                  is_puerpera: isPuerpera,
-                  appropriate_crib: isPuerpera ? undefined : undefined
-                }));
-              }}
+              value={formData.mobility}
+              onValueChange={(value) => setFormData({ ...formData, mobility: value as 'DEITADO' | 'SENTADO' })}
+              className="flex space-x-4"
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="sim" id="puerpera_sim" />
-                <Label htmlFor="puerpera_sim">SIM</Label>
+                <RadioGroupItem value="DEITADO" id="deitado" />
+                <Label htmlFor="deitado">Deitado</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="nao" id="puerpera_nao" />
-                <Label htmlFor="puerpera_nao">NÃO</Label>
+                <RadioGroupItem value="SENTADO" id="sentado" />
+                <Label htmlFor="sentado">Sentado</Label>
               </div>
             </RadioGroup>
           </div>
 
-          {formData.is_puerpera && (
-            <div className="space-y-3">
-              <Label>Berço apropriado para idade? *</Label>
+          <div>
+            <Label>Tipo de Veículo</Label>
+            <RadioGroup
+              value={formData.vehicle_type}
+              onValueChange={(value) => setFormData({ 
+                ...formData, 
+                vehicle_type: value as 'AMBULANCIA' | 'CARRO_COMUM',
+                vehicle_subtype: value === 'AMBULANCIA' ? 'BASICA' : undefined
+              })}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="AMBULANCIA" id="ambulancia" />
+                <Label htmlFor="ambulancia">Ambulância</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="CARRO_COMUM" id="carro_comum" />
+                <Label htmlFor="carro_comum">Carro Comum</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {formData.vehicle_type === 'AMBULANCIA' && (
+            <div>
+              <Label>Tipo de Ambulância</Label>
               <RadioGroup
-                value={formData.appropriate_crib === true ? 'sim' : formData.appropriate_crib === false ? 'nao' : ''}
-                onValueChange={(value) => 
-                  setFormData(prev => ({ ...prev, appropriate_crib: value === 'sim' }))
-                }
+                value={formData.vehicle_subtype}
+                onValueChange={(value) => setFormData({ ...formData, vehicle_subtype: value as 'BASICA' | 'AVANCADA' })}
+                className="flex space-x-4"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="sim" id="berco_sim" />
-                  <Label htmlFor="berco_sim">SIM</Label>
+                  <RadioGroupItem value="BASICA" id="basica" />
+                  <Label htmlFor="basica">Básica</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="nao" id="berco_nao" />
-                  <Label htmlFor="berco_nao">NÃO</Label>
+                  <RadioGroupItem value="AVANCADA" id="avancada" />
+                  <Label htmlFor="avancada">Avançada</Label>
                 </div>
               </RadioGroup>
             </div>
           )}
 
-          <div className="space-y-3">
-            <Label>Mobilidade *</Label>
-            <RadioGroup
-              value={formData.mobility}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, mobility: value as 'DEITADO' | 'SENTADO' }))}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="DEITADO" id="deitado" />
-                <Label htmlFor="deitado">DEITADO</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="SENTADO" id="sentado" />
-                <Label htmlFor="sentado">SENTADO</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="vehicle_type">Veículo *</Label>
-            <Select
-              value={formData.vehicle_type}
-              onValueChange={(value) => setFormData(prev => ({
-                ...prev,
-                vehicle_type: value as 'AMBULANCIA' | 'CARRO_COMUM',
-                vehicle_subtype: value === 'CARRO_COMUM' ? undefined : prev.vehicle_subtype
-              }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de veículo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AMBULANCIA">Ambulância</SelectItem>
-                <SelectItem value="CARRO_COMUM">Carro comum</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {formData.vehicle_type === 'AMBULANCIA' && (
-            <div className="space-y-3">
-              <Label htmlFor="vehicle_subtype">Tipo de Ambulância *</Label>
-              <Select
-                value={formData.vehicle_subtype || ''}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, vehicle_subtype: value as 'BASICA' | 'AVANCADA' }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo de ambulância" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BASICA">BÁSICA</SelectItem>
-                  <SelectItem value="AVANCADA">AVANÇADA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="origin_city">Cidade de Origem *</Label>
-            <CityAutocomplete
-              value={formData.origin_city}
-              onChange={(value) => setFormData(prev => ({ ...prev, origin_city: value }))}
-              placeholder="Digite o nome da cidade de MG..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Data</Label>
-              <Input value={date} disabled className="bg-gray-50" />
-            </div>
-            <div className="space-y-2">
-              <Label>Hora</Label>
-              <Input value={time} disabled className="bg-gray-50" />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
-              CANCELAR SOLICITAÇÃO
+              Cancelar
             </Button>
-            <Button 
-              type="submit" 
-              disabled={createMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {createMutation.isPending ? 'Criando...' : 'CONFIRMAR SOLICITAÇÃO'}
+            <Button type="submit" disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Criando...' : 'Criar Solicitação'}
             </Button>
           </div>
         </form>

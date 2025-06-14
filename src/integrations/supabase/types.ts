@@ -57,6 +57,7 @@ export type Database = {
       ambulance_requests: {
         Row: {
           appropriate_crib: boolean | null
+          bed: string | null
           cancelled_at: string | null
           confirmed_at: string | null
           created_at: string
@@ -67,6 +68,7 @@ export type Database = {
           patient_name: string
           request_date: string
           request_time: string
+          sector: string | null
           status: string
           updated_at: string
           vehicle_subtype: string | null
@@ -74,6 +76,7 @@ export type Database = {
         }
         Insert: {
           appropriate_crib?: boolean | null
+          bed?: string | null
           cancelled_at?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -84,6 +87,7 @@ export type Database = {
           patient_name: string
           request_date?: string
           request_time?: string
+          sector?: string | null
           status?: string
           updated_at?: string
           vehicle_subtype?: string | null
@@ -91,6 +95,7 @@ export type Database = {
         }
         Update: {
           appropriate_crib?: boolean | null
+          bed?: string | null
           cancelled_at?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -101,6 +106,7 @@ export type Database = {
           patient_name?: string
           request_date?: string
           request_time?: string
+          sector?: string | null
           status?: string
           updated_at?: string
           vehicle_subtype?: string | null
