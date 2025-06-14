@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
@@ -69,7 +70,7 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
   if (readmissions.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Reinternações < 30 dias</h2>
+        <h2 className="text-lg font-semibold">Reinternações &lt; 30 dias</h2>
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-gray-500">Nenhuma reinternação em menos de 30 dias encontrada.</p>
@@ -81,7 +82,7 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Reinternações < 30 dias</h2>
+      <h2 className="text-lg font-semibold">Reinternações &lt; 30 dias</h2>
       
       <div className="space-y-3">
         {readmissions.map((readmission, index) => {
