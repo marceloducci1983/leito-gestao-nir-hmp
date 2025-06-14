@@ -74,27 +74,51 @@ const AmbulanceTimer: React.FC<AmbulanceTimerProps> = ({
     };
   }, [createdAt, status, confirmedAt, cancelledAt]);
 
-  const getTimerColor = () => {
-    if (status === 'CONFIRMED') return 'text-emerald-600 bg-emerald-50 border-emerald-200';
-    if (status === 'CANCELLED') return 'text-gray-500 bg-gray-50 border-gray-200';
-    
-    // Para status PENDING, usar cores baseadas no tempo
-    if (timeData.days >= 1) return 'text-amber-600 bg-amber-50 border-amber-200';
-    if (timeData.hours >= 12) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-    
-    return 'text-blue-600 bg-blue-50 border-blue-200';
-  };
+  // Formatação para exibir os números com zero à esquerda
+  const formatNumber = (num: number) => num.toString().padStart(2, '0');
 
-  const formatTime = () => {
-    if (timeData.days > 0) {
-      return `${timeData.days}d ${timeData.hours.toString().padStart(2, '0')}:${timeData.minutes.toString().padStart(2, '0')}`;
-    }
-    return `${timeData.hours.toString().padStart(2, '0')}:${timeData.minutes.toString().padStart(2, '0')}:${timeData.seconds.toString().padStart(2, '0')}`;
-  };
+  // Se há dias, mostrar no formato DD:HH:MM:SS, senão HH:MM:SS
+  const displayHours = timeData.days > 0 ? timeData.days * 24 + timeData.hours : timeData.hours;
 
   return (
-    <div className={`inline-flex items-center px-3 py-1.5 rounded-md border text-sm font-mono font-medium ${getTimerColor()}`}>
-      {formatTime()}
+    <div className="inline-flex items-center justify-center bg-white border border-gray-200 rounded-md px-3 py-2">
+      <div className="flex items-center space-x-4">
+        {/* HORAS */}
+        <div className="flex flex-col items-center">
+          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
+            {formatNumber(displayHours)}
+          </span>
+          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
+            HORAS
+          </span>
+        </div>
+
+        {/* Separador */}
+        <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>:</span>
+
+        {/* MINUTOS */}
+        <div className="flex flex-col items-center">
+          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
+            {formatNumber(timeData.minutes)}
+          </span>
+          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
+            MIN
+          </span>
+        </div>
+
+        {/* Separador */}
+        <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>:</span>
+
+        {/* SEGUNDOS */}
+        <div className="flex flex-col items-center">
+          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
+            {formatNumber(timeData.seconds)}
+          </span>
+          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
+            SEG
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
