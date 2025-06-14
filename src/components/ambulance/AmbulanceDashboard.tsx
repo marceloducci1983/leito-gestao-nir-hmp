@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Download, Calendar, FileText } from 'lucide-react';
-import { useAmbulanceStatsByCity } from '@/hooks/queries/useAmbulanceQueries';
+import { useAmbulanceStatsByCity, useAmbulanceStatsByCityAndSector } from '@/hooks/queries/useAmbulanceQueries';
 import { toast } from 'sonner';
+import AmbulanceStatsTable from './AmbulanceStatsTable';
+import AmbulanceStatsCharts from './AmbulanceStatsCharts';
+import { exportToPDF, exportToExcel } from '@/utils/ambulanceExportUtils';
 
 const AmbulanceDashboard: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<'today' | 'week' | 'month' | 'custom'>('month');
@@ -36,14 +38,37 @@ const AmbulanceDashboard: React.FC = () => {
   };
 
   const { startDate, endDate } = getDateRange();
-  const { data: statsData = [], isLoading } = useAmbulanceStatsByCity(startDate, endDate);
+  const { data: statsByCity = [], isLoading: isLoadingByCity } = useAmbulanceStatsByCity(startDate, endDate);
+  const { data: statsByCityAndSector = [], isLoading: isLoadingByCityAndSector } = useAmbulanceStatsByCityAndSector(startDate, endDate);
 
-  const exportToPDF = () => {
-    toast.info('Funcionalidade de exportação PDF em desenvolvimento');
+  const isLoading = isLoadingByCity || isLoadingByCityAndSector;
+
+  const handleExportToPDF = () => {
+    if (statsByCity.length === 0 && statsByCityAndSector.length === 0) {
+      toast.error('Nenhum dado disponível para exportar');
+      return;
+    }
+    
+    try {
+      exportToPDF(statsByCityAndSector, statsByCity, getPeriodLabel());
+      toast.success('PDF exportado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao exportar PDF');
+    }
   };
 
-  const exportToExcel = () => {
-    toast.info('Funcionalidade de exportação Excel em desenvolvimento');
+  const handleExportToExcel = () => {
+    if (statsByCity.length === 0 && statsByCityAndSector.length === 0) {
+      toast.error('Nenhum dado disponível para exportar');
+      return;
+    }
+    
+    try {
+      exportToExcel(statsByCityAndSector, statsByCity, getPeriodLabel());
+      toast.success('Excel exportado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao exportar Excel');
+    }
   };
 
   const getPeriodLabel = () => {
@@ -51,7 +76,10 @@ const AmbulanceDashboard: React.FC = () => {
       case 'today': return 'Hoje';
       case 'week': return 'Últimos 7 dias';
       case 'month': return 'Últimos 30 dias';
-      case 'custom': return 'Período personalizado';
+      case 'custom': 
+        return customStartDate && customEndDate 
+          ? `${customStartDate} até ${customEndDate}` 
+          : 'Período personalizado';
       default: return '';
     }
   };
@@ -67,13 +95,13 @@ const AmbulanceDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Dashboard - Tempo Médio por Município</h2>
+        <h2 className="text-2xl font-bold">Dashboard - Ambulância</h2>
         <div className="flex space-x-2">
-          <Button onClick={exportToPDF} variant="outline" size="sm">
+          <Button onClick={handleExportToPDF} variant="outline" size="sm">
             <FileText className="h-4 w-4 mr-1" />
             PDF
           </Button>
-          <Button onClick={exportToExcel} variant="outline" size="sm">
+          <Button onClick={handleExportToExcel} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-1" />
             Excel
           </Button>
@@ -130,82 +158,53 @@ const AmbulanceDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Tempo Médio de Resposta por Município - {getPeriodLabel()}
-            <span className="text-sm font-normal text-gray-500 ml-2">
-              (Apenas solicitações de ambulância)
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {statsData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>Nenhum dado encontrado para o período selecionado.</p>
-              <p className="text-sm mt-2">
-                Dados aparecem após solicitações de ambulância serem confirmadas.
-              </p>
+      {/* Tabelas de Estatísticas */}
+      <AmbulanceStatsTable
+        statsByCityAndSector={statsByCityAndSector}
+        statsByCity={statsByCity}
+        isLoading={isLoading}
+      />
+
+      {/* Gráficos */}
+      <AmbulanceStatsCharts
+        statsByCity={statsByCity}
+        isLoading={isLoading}
+      />
+
+      {/* Resumo Estatístico */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {statsByCity.reduce((sum, item) => sum + (item.total_requests || 0), 0)}
             </div>
-          ) : (
-            <div className="space-y-6">
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={statsData} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="origin_city" 
-                    angle={-45}
-                    textAnchor="end"
-                    height={120}
-                    fontSize={12}
-                    interval={0}
-                  />
-                  <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip 
-                    formatter={(value: number) => [`${value} min`, 'Tempo Médio']}
-                    labelFormatter={(label) => `Cidade: ${label}`}
-                  />
-                  <Bar dataKey="avg_response_time_minutes" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="text-sm text-gray-600">Total de Solicitações</div>
+          </CardContent>
+        </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {statsData.reduce((sum, item) => sum + (item.total_requests || 0), 0)}
-                    </div>
-                    <div className="text-sm text-gray-600">Total de Solicitações</div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {statsData.reduce((sum, item) => sum + (item.confirmed_requests || 0), 0)}
-                    </div>
-                    <div className="text-sm text-gray-600">Transportes Confirmados</div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {statsData.length > 0 
-                        ? Math.round(
-                            statsData.reduce((sum, item) => sum + (item.avg_response_time_minutes || 0), 0) / 
-                            statsData.filter(item => item.avg_response_time_minutes).length
-                          ) 
-                        : 0} min
-                    </div>
-                    <div className="text-sm text-gray-600">Tempo Médio Geral</div>
-                  </CardContent>
-                </Card>
-              </div>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {statsByCity.reduce((sum, item) => sum + (item.confirmed_requests || 0), 0)}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="text-sm text-gray-600">Transportes Confirmados</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-orange-600">
+              {statsByCity.length > 0 
+                ? Math.round(
+                    statsByCity.reduce((sum, item) => sum + (item.avg_response_time_minutes || 0), 0) / 
+                    statsByCity.filter(item => item.avg_response_time_minutes).length
+                  ) 
+                : 0} min
+            </div>
+            <div className="text-sm text-gray-600">Tempo Médio Geral</div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

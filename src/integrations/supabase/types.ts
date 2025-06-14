@@ -622,6 +622,16 @@ export type Database = {
           confirmed_requests: number
         }[]
       }
+      get_ambulance_stats_by_city_and_sector: {
+        Args: { p_start_date?: string; p_end_date?: string }
+        Returns: {
+          origin_city: string
+          sector: string
+          total_requests: number
+          avg_response_time_minutes: number
+          confirmed_requests: number
+        }[]
+      }
       get_average_discharge_time_by_department: {
         Args: Record<PropertyKey, never>
         Returns: {
