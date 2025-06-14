@@ -21,32 +21,32 @@ const CircularTimer: React.FC<{ value: number; max: number; label: string; color
   label, 
   color 
 }) => {
-  const radius = 35;
+  const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
   const strokeDashoffset = circumference - (value / max) * circumference;
 
   return (
     <div className="flex flex-col items-center space-y-1">
-      <div className="relative w-20 h-20">
+      <div className="relative w-12 h-12">
         {/* Background circle */}
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
           <circle
-            cx="40"
-            cy="40"
+            cx="24"
+            cy="24"
             r={radius}
             stroke="currentColor"
-            strokeWidth="3"
+            strokeWidth="2"
             fill="none"
             className="text-gray-200"
           />
           {/* Progress circle */}
           <circle
-            cx="40"
-            cy="40"
+            cx="24"
+            cy="24"
             r={radius}
             stroke={color}
-            strokeWidth="3"
+            strokeWidth="2"
             fill="none"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
@@ -54,18 +54,18 @@ const CircularTimer: React.FC<{ value: number; max: number; label: string; color
             strokeLinecap="round"
           />
           {/* Glowing dots */}
-          {Array.from({ length: 12 }, (_, i) => {
-            const angle = (i * 30) * (Math.PI / 180);
-            const x = 40 + (radius - 8) * Math.cos(angle);
-            const y = 40 + (radius - 8) * Math.sin(angle);
-            const isActive = i <= (value / max) * 12;
+          {Array.from({ length: 8 }, (_, i) => {
+            const angle = (i * 45) * (Math.PI / 180);
+            const x = 24 + (radius - 5) * Math.cos(angle);
+            const y = 24 + (radius - 5) * Math.sin(angle);
+            const isActive = i <= (value / max) * 8;
             
             return (
               <circle
                 key={i}
                 cx={x}
                 cy={y}
-                r="1.5"
+                r="1"
                 fill={isActive ? color : '#e5e7eb'}
                 className={`transition-all duration-300 ${isActive ? 'animate-pulse' : ''}`}
               />
@@ -75,14 +75,14 @@ const CircularTimer: React.FC<{ value: number; max: number; label: string; color
         
         {/* Center value */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-gray-700">
+          <span className="text-sm font-bold text-gray-700">
             {value.toString().padStart(2, '0')}
           </span>
         </div>
       </div>
       
       {/* Label */}
-      <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
         {label}
       </span>
     </div>
@@ -199,7 +199,7 @@ const AmbulanceTimer: React.FC<AmbulanceTimerProps> = ({
 
   // Container com gradiente suave baseado no status
   const getContainerClasses = () => {
-    const baseClasses = "bg-gradient-to-br rounded-xl p-4 shadow-lg border-2 transition-all duration-300";
+    const baseClasses = "bg-gradient-to-br rounded-lg p-3 shadow-sm border transition-all duration-300";
     
     if (status === 'CONFIRMED') {
       return `${baseClasses} from-emerald-50 to-green-50 border-emerald-200`;
@@ -222,7 +222,7 @@ const AmbulanceTimer: React.FC<AmbulanceTimerProps> = ({
 
   return (
     <div className={getContainerClasses()}>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-center">
+      <div className="flex gap-2 items-center justify-center">
         {/* Mostrar dias apenas se >= 1 dia */}
         {timeData.days >= 1 && (
           <CircularTimer
@@ -256,8 +256,8 @@ const AmbulanceTimer: React.FC<AmbulanceTimerProps> = ({
       </div>
       
       {/* Texto de tempo total para referência */}
-      <div className="mt-3 text-center">
-        <span className="text-xs text-gray-600 font-medium">
+      <div className="mt-2 text-center">
+        <span className="text-xs text-gray-500 font-medium">
           {timeData.days > 0 && `${timeData.days}d `}
           {timeData.hours.toString().padStart(2, '0')}:
           {timeData.minutes.toString().padStart(2, '0')}:
