@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const AmbulanceModule: React.FC = () => {
       </div>
 
       <Tabs defaultValue="monitoring" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="monitoring" className="flex items-center space-x-2">
             <List className="h-4 w-4" />
             <span>Monitoramento</span>
