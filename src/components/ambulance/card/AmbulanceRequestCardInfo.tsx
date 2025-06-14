@@ -71,12 +71,12 @@ const AmbulanceRequestCardInfo: React.FC<AmbulanceRequestCardInfoProps> = ({
           </div>
         )}
 
-        {/* ORIGEM COM DESTAQUE */}
+        {/* ORIGEM COM DESTAQUE - TAMANHO REDUZIDO */}
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-200">
           <div className="flex items-center space-x-2">
             <MapPin className="h-5 w-5 text-green-600" />
-            <span className="font-bold text-green-800 text-base">Origem:</span>
-            <span className="font-semibold text-green-700 text-lg">{originCity}</span>
+            <span className="font-bold text-green-800 text-sm">Origem:</span>
+            <span className="font-semibold text-green-700 text-base">{originCity}</span>
           </div>
         </div>
 
