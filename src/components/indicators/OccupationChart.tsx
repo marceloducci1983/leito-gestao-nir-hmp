@@ -20,13 +20,13 @@ const OccupationChart: React.FC<OccupationChartProps> = ({ data, type }) => {
     }));
 
     return (
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
             data={pieData}
             cx="50%"
             cy="50%"
-            outerRadius={80}
+            outerRadius={90}
             dataKey="value"
             label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
           >
@@ -41,15 +41,16 @@ const OccupationChart: React.FC<OccupationChartProps> = ({ data, type }) => {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
           dataKey="department" 
-          angle={-45}
+          angle={-30}
           textAnchor="end"
-          height={100}
-          fontSize={10}
+          height={120}
+          fontSize={12}
+          interval={0}
         />
         <YAxis label={{ value: 'Taxa (%)', angle: -90, position: 'insideLeft' }} />
         <Tooltip 

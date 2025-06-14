@@ -44,10 +44,17 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                 <p className="text-sm">Dados aparecem após altas serem processadas.</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dischargeStatsByDeptInMinutes}>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={dischargeStatsByDeptInMinutes} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="department" angle={-45} textAnchor="end" height={80} />
+                  <XAxis 
+                    dataKey="department" 
+                    angle={-30}
+                    textAnchor="end"
+                    height={120}
+                    fontSize={12}
+                    interval={0}
+                  />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
                   <Tooltip />
                   <Bar dataKey="avg_minutes" fill="#3b82f6" />
@@ -68,10 +75,17 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                 <p className="text-sm">Dados aparecem após altas serem processadas.</p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dischargeStatsByCityInMinutes.slice(0, 10)}>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={dischargeStatsByCityInMinutes.slice(0, 10)} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="origin_city" angle={-45} textAnchor="end" height={80} />
+                  <XAxis 
+                    dataKey="origin_city" 
+                    angle={-30}
+                    textAnchor="end"
+                    height={120}
+                    fontSize={12}
+                    interval={0}
+                  />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
                   <Tooltip />
                   <Bar dataKey="avg_minutes" fill="#10b981" />

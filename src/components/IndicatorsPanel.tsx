@@ -240,15 +240,16 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
             <CardTitle>Taxa de Ocupação por Departamento</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={indicators.departmentOccupancy}>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={indicators.departmentOccupancy} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
-                  angle={-45}
+                  angle={-30}
                   textAnchor="end"
-                  height={80}
-                  fontSize={10}
+                  height={120}
+                  fontSize={12}
+                  interval={0}
                 />
                 <YAxis />
                 <Tooltip />
@@ -264,7 +265,7 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
             <CardTitle>Pacientes por Departamento (Atual)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={indicators.patientsPerDay}
@@ -272,7 +273,7 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
                   cy="50%"
                   labelLine={false}
                   label={({ department, patients }) => `${department}: ${patients}`}
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="patients"
                 >
