@@ -35,20 +35,15 @@ const AmbulanceRequestCardActions: React.FC<AmbulanceRequestCardActionsProps> = 
 
   return (
     <div className="flex items-center justify-between pt-4 border-t">
-      {/* TEMPO COM DESTAQUE */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg rounded-lg p-4 transform hover:scale-105 transition-all duration-200">
-        <div className="flex items-center space-x-3">
-          <Clock className="h-6 w-6 text-blue-600" />
-          <div className="flex flex-col">
-            <span className="font-bold text-blue-800 text-base">Tempo:</span>
-            <AmbulanceTimer 
-              createdAt={createdAt}
-              status={status}
-              confirmedAt={confirmedAt}
-              cancelledAt={cancelledAt}
-            />
-          </div>
-        </div>
+      {/* TEMPO SIMPLIFICADO */}
+      <div className="flex items-center space-x-2">
+        <Clock className="h-4 w-4 text-gray-600" />
+        <AmbulanceTimer 
+          createdAt={createdAt}
+          status={status}
+          confirmedAt={confirmedAt}
+          cancelledAt={cancelledAt}
+        />
       </div>
 
       {status === 'PENDING' && (

@@ -77,49 +77,18 @@ const AmbulanceTimer: React.FC<AmbulanceTimerProps> = ({
   // Formatação para exibir os números com zero à esquerda
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
 
-  // Se há dias, mostrar no formato DD:HH:MM:SS, senão HH:MM:SS
-  const displayHours = timeData.days > 0 ? timeData.days * 24 + timeData.hours : timeData.hours;
+  // Formatar o tempo conforme especificado
+  const formatTime = () => {
+    if (timeData.days > 0) {
+      return `${formatNumber(timeData.days)}/${formatNumber(timeData.hours)}:${formatNumber(timeData.minutes)}:${formatNumber(timeData.seconds)}`;
+    }
+    return `${formatNumber(timeData.hours)}:${formatNumber(timeData.minutes)}:${formatNumber(timeData.seconds)}`;
+  };
 
   return (
-    <div className="inline-flex items-center justify-center bg-white border border-gray-200 rounded-md px-3 py-2">
-      <div className="flex items-center space-x-4">
-        {/* HORAS */}
-        <div className="flex flex-col items-center">
-          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
-            {formatNumber(displayHours)}
-          </span>
-          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
-            HORAS
-          </span>
-        </div>
-
-        {/* Separador */}
-        <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>:</span>
-
-        {/* MINUTOS */}
-        <div className="flex flex-col items-center">
-          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
-            {formatNumber(timeData.minutes)}
-          </span>
-          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
-            MIN
-          </span>
-        </div>
-
-        {/* Separador */}
-        <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>:</span>
-
-        {/* SEGUNDOS */}
-        <div className="flex flex-col items-center">
-          <span className="text-lg font-mono font-bold" style={{ color: '#FF0000' }}>
-            {formatNumber(timeData.seconds)}
-          </span>
-          <span className="text-xs font-medium" style={{ color: '#FF0000' }}>
-            SEG
-          </span>
-        </div>
-      </div>
-    </div>
+    <span className="font-mono" style={{ color: '#FF0000' }}>
+      TEMPO: {formatTime()}
+    </span>
   );
 };
 
