@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -56,7 +55,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     interval={0}
                   />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio']} />
                   <Bar dataKey="avg_minutes" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
@@ -87,7 +86,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     interval={0}
                   />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio']} />
                   <Bar dataKey="avg_minutes" fill="#10b981" />
                 </BarChart>
               </ResponsiveContainer>
