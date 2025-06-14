@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,6 +149,9 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
     onSubmit(patientData);
   };
 
+  // Get today's date in YYYY-MM-DD format for the min attribute
+  const today = new Date().toISOString().split('T')[0];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -272,6 +274,7 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
                 type="date"
                 value={formData.expectedDischargeDate}
                 onChange={(e) => setFormData({ ...formData, expectedDischargeDate: e.target.value })}
+                min={today}
               />
             </div>
           </div>
