@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import PatientCard from './PatientCard';
 import { useUpdateInvestigation } from '@/hooks/mutations/useInvestigationMutations';
+import { generateInvestigationId, validateReadmissionData } from '@/utils/investigationUtils';
 import { toast } from 'sonner';
 
 interface ReadmissionPatientsProps {
@@ -18,25 +19,47 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
   const updateInvestigationMutation = useUpdateInvestigation();
 
   const handleInvestigate = async (readmission: any, investigated: boolean) => {
+    console.log('Iniciando investigação:', { readmission, investigated });
+    
+    // Validar dados da reinternação
+    const validation = validateReadmissionData(readmission);
+    if (!validation.isValid) {
+      console.error('Dados inválidos:', validation.errors);
+      toast.error(`Erro nos dados: ${validation.errors.join(', ')}`);
+      return;
+    }
+    
     const status = investigated ? 'investigated' : 'not_investigated';
     const message = investigated ? 'marcar como investigado' : 'marcar como não investigado';
     
     if (confirm(`Deseja ${message} este alerta?`)) {
       try {
-        // Usar uma combinação mais limpa para o ID único
-        const uniqueId = `readmission_${readmission.patient_name.replace(/\s+/g, '_')}_${readmission.discharge_date}_${readmission.readmission_date}`;
+        // Gerar ID único usando a função utilitária
+        const uniqueId = generateInvestigationId(
+          readmission.patient_name,
+          readmission.discharge_date,
+          readmission.readmission_date,
+          'readmission_30_days'
+        );
+        
+        console.log('Atualizando investigação com ID:', uniqueId);
         
         await updateInvestigationMutation.mutateAsync({
           patientId: uniqueId,
           alertType: 'readmission_30_days',
           status,
-          notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name}`
+          notes: `Reinternação em ${readmission.days_between} dias - Paciente: ${readmission.patient_name?.toString()?.trim()}`
         });
         
         toast.success(`Alerta ${investigated ? 'marcado como investigado' : 'marcado como não investigado'} com sucesso!`);
       } catch (error) {
-        console.error('Erro ao atualizar investigação:', error);
-        toast.error('Erro ao atualizar status da investigação');
+        console.error('Erro detalhado ao atualizar investigação:', {
+          error,
+          readmission,
+          investigated,
+          errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
+        toast.error(`Erro ao atualizar status: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       }
     }
   };
@@ -54,8 +77,28 @@ const ReadmissionPatients: React.FC<ReadmissionPatientsProps> = ({
       ) : (
         <div className="space-y-3">
           {readmissions.map((readmission, index) => {
-            // Usar a mesma lógica para gerar o ID único
-            const uniqueId = `readmission_${readmission.patient_name.replace(/\s+/g, '_')}_${readmission.discharge_date}_${readmission.readmission_date}`;
+            // Validar dados antes de renderizar
+            const validation = validateReadmissionData(readmission);
+            if (!validation.isValid) {
+              console.warn('Dados inválidos para reinternação:', { readmission, errors: validation.errors });
+              return (
+                <Card key={index} className="border-red-200">
+                  <CardContent className="p-4">
+                    <p className="text-red-600">Erro nos dados: {validation.errors.join(', ')}</p>
+                    <pre className="text-xs mt-2 text-gray-500">{JSON.stringify(readmission, null, 2)}</pre>
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            // Gerar ID único usando a função utilitária
+            const uniqueId = generateInvestigationId(
+              readmission.patient_name,
+              readmission.discharge_date,
+              readmission.readmission_date,
+              'readmission_30_days'
+            );
+            
             const investigation = getInvestigationStatus(uniqueId, 'readmission_30_days');
             
             return (

@@ -2,63 +2,106 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
+import { generateInvestigationId } from '@/utils/investigationUtils';
 
 export const useAlertsData = () => {
-  const { centralData, isLoading: bedsLoading } = useSupabaseBeds();
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Buscar reinternações em menos de 30 dias
+  // Query para buscar pacientes com internação longa
+  const { data: longStayPatients = [], isLoading: longStayLoading } = useQuery({
+    queryKey: ['long_stay_patients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .gte('occupation_days', 15);
+      
+      if (error) {
+        console.error('Erro ao buscar pacientes com internação longa:', error);
+        throw error;
+      }
+      
+      return data || [];
+    }
+  });
+
+  // Query para buscar reinternações em 30 dias
   const { data: readmissions = [], isLoading: readmissionsLoading } = useQuery({
     queryKey: ['readmissions'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_readmissions_within_30_days');
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error('Erro ao buscar reinternações:', error);
+        throw error;
+      }
+      
+      console.log('Reinternações carregadas:', data);
+      return data || [];
     }
   });
 
-  // Buscar investigações
-  const { data: investigations = [], isLoading: investigationsLoading } = useQuery({
+  // Query para buscar investigações
+  const { data: investigations = [] } = useQuery({
     queryKey: ['alert_investigations'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('alert_investigations')
         .select('*');
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error('Erro ao buscar investigações:', error);
+        throw error;
+      }
+      
+      console.log('Investigações carregadas:', data);
+      return data || [];
     }
   });
 
-  // Calcular pacientes com mais de 15 dias
-  const longStayPatients = useMemo(() => {
-    return centralData.beds
-      .filter(bed => bed.isOccupied && bed.patient)
-      .map(bed => bed.patient)
-      .filter(patient => {
-        const admissionDate = new Date(patient.admissionDate);
-        const today = new Date();
-        const diffDays = Math.floor((today.getTime() - admissionDate.getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays > 15;
-      })
-      .sort((a, b) => {
-        const daysA = Math.floor((new Date().getTime() - new Date(a.admissionDate).getTime()) / (1000 * 60 * 60 * 24));
-        const daysB = Math.floor((new Date().getTime() - new Date(b.admissionDate).getTime()) / (1000 * 60 * 60 * 24));
-        return sortOrder === 'desc' ? daysB - daysA : daysA - daysB;
+  // Função para buscar status de investigação
+  const getInvestigationStatus = useMemo(() => {
+    return (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => {
+      console.log('Buscando investigação para:', { patientId, alertType });
+      
+      const investigation = investigations.find(inv => {
+        const match = inv.patient_id === patientId && inv.alert_type === alertType;
+        console.log('Comparando investigação:', {
+          investigationPatientId: inv.patient_id,
+          investigationAlertType: inv.alert_type,
+          searchPatientId: patientId,
+          searchAlertType: alertType,
+          match
+        });
+        return match;
       });
-  }, [centralData.beds, sortOrder]);
+      
+      console.log('Investigação encontrada:', investigation);
+      return investigation;
+    };
+  }, [investigations]);
 
-  const getInvestigationStatus = (patientId: string, alertType: 'long_stay' | 'readmission_30_days') => {
-    return investigations.find(inv => inv.patient_id === patientId && inv.alert_type === alertType);
-  };
+  // Pacientes com internação longa ordenados
+  const sortedLongStayPatients = useMemo(() => {
+    const sorted = [...longStayPatients].sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.occupation_days - b.occupation_days;
+      }
+      return b.occupation_days - a.occupation_days;
+    });
+    
+    console.log('Pacientes com internação longa ordenados:', sorted);
+    return sorted;
+  }, [longStayPatients, sortOrder]);
+
+  const isLoading = longStayLoading || readmissionsLoading;
 
   return {
-    longStayPatients,
+    longStayPatients: sortedLongStayPatients,
     readmissions,
-    investigations,
     getInvestigationStatus,
     sortOrder,
     setSortOrder,
-    isLoading: bedsLoading || readmissionsLoading || investigationsLoading
+    isLoading
   };
 };
