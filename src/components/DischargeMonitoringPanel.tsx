@@ -11,14 +11,12 @@ import PendingDischargesFilters from './discharge-monitoring/PendingDischargesFi
 import PendingDischargeCard from './discharge-monitoring/PendingDischargeCard';
 import CombinedDischargesGrid from './discharge-monitoring/CombinedDischargesGrid';
 import AnalyticsCharts from './discharge-monitoring/AnalyticsCharts';
-import ReportsSection from './discharge-monitoring/ReportsSection';
+import SimplifiedReportsSection from './discharge-monitoring/SimplifiedReportsSection';
 
 const DischargeMonitoringPanel: React.FC = () => {
   const [justification, setJustification] = useState<{ [key: string]: string }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'oldest' | 'newest'>('oldest');
-  const [reportStartDate, setReportStartDate] = useState('');
-  const [reportEndDate, setReportEndDate] = useState('');
 
   // Queries - usando tanto a query original quanto a combinada
   const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
@@ -89,20 +87,6 @@ const DischargeMonitoringPanel: React.FC = () => {
     refetchStatsByCity();
     refetchDelayedDischarges();
     refetchGeneralStats();
-  };
-
-  const generatePDFReport = (period: string) => {
-    toast.success(`Gerando relatório ${period}...`);
-    // Implementação da geração de PDF seria aqui
-  };
-
-  const generateCustomReport = () => {
-    if (!reportStartDate || !reportEndDate) {
-      toast.error('Selecione as datas de início e fim para o relatório personalizado.');
-      return;
-    }
-    toast.success(`Gerando relatório de ${reportStartDate} até ${reportEndDate}...`);
-    // Implementação da geração de PDF personalizado seria aqui
   };
 
   if (isLoading) {
@@ -214,14 +198,7 @@ const DischargeMonitoringPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <ReportsSection
-            reportStartDate={reportStartDate}
-            reportEndDate={reportEndDate}
-            onStartDateChange={setReportStartDate}
-            onEndDateChange={setReportEndDate}
-            onGenerateReport={generatePDFReport}
-            onGenerateCustomReport={generateCustomReport}
-          />
+          <SimplifiedReportsSection />
         </TabsContent>
       </Tabs>
     </div>
