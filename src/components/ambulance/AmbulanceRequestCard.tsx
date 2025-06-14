@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, User, MapPin, Car, Bed, Building } from 'lucide-react';
 import { useConfirmAmbulanceTransport, useCancelAmbulanceTransport } from '@/hooks/mutations/useAmbulanceMutations';
+import { formatDateSaoPaulo, formatTimeSaoPaulo } from '@/utils/timezoneUtils';
 import AmbulanceTimer from './AmbulanceTimer';
 
 interface AmbulanceRequest {
@@ -61,6 +61,19 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
   const handleCancel = () => {
     if (window.confirm('Tem certeza que deseja cancelar esta solicitação?')) {
       cancelMutation.mutate(request.id);
+    }
+  };
+
+  const formatRequestDateTime = () => {
+    try {
+      // Combinar data e hora da solicitação
+      const dateTimeString = `${request.request_date}T${request.request_time}`;
+      const requestDateTime = new Date(dateTimeString);
+      
+      return `${formatDateSaoPaulo(requestDateTime)} às ${formatTimeSaoPaulo(requestDateTime)}`;
+    } catch (error) {
+      console.error('Error formatting request date/time:', error);
+      return `${request.request_date} às ${request.request_time}`;
     }
   };
 
@@ -126,7 +139,7 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
             <div className="text-sm">
               <span className="font-medium">Data/Hora:</span>
               <span className="ml-2">
-                {new Date(request.request_date).toLocaleDateString('pt-BR')} às {request.request_time}
+                {formatRequestDateTime()}
               </span>
             </div>
           </div>
