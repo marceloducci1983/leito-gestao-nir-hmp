@@ -511,6 +511,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_occupation_days: {
+        Args: { admission_date: string }
+        Returns: number
+      }
       cancel_discharge_and_restore_patient: {
         Args: { p_discharge_id: string }
         Returns: boolean
@@ -589,6 +593,10 @@ export type Database = {
           p_department: string
         }
         Returns: string
+      }
+      update_all_occupation_days: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_bed: {
         Args: { p_bed_id: string; p_name: string; p_department: string }
