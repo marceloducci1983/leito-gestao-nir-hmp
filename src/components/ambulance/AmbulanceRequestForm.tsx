@@ -21,9 +21,9 @@ const AmbulanceRequestForm: React.FC<AmbulanceRequestFormProps> = ({ open, onClo
     bed: '',
     is_puerpera: false,
     appropriate_crib: false,
-    mobility: 'DEITADO' as const,
-    vehicle_type: 'AMBULANCIA' as const,
-    vehicle_subtype: 'BASICA' as const,
+    mobility: 'DEITADO' as 'DEITADO' | 'SENTADO',
+    vehicle_type: 'AMBULANCIA' as 'AMBULANCIA' | 'CARRO_COMUM',
+    vehicle_subtype: 'BASICA' as 'BASICA' | 'AVANCADA' | undefined,
     origin_city: ''
   });
 
