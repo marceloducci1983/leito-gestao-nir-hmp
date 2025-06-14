@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface StatsByCity {
   origin_city: string;
@@ -14,6 +14,13 @@ interface AmbulanceStatsChartsProps {
   statsByCity: StatsByCity[];
   isLoading: boolean;
 }
+
+const getBarColor = (minutes: number): string => {
+  if (!minutes) return '#6b7280'; // gray
+  if (minutes < 15) return '#22c55e'; // green
+  if (minutes < 30) return '#eab308'; // yellow
+  return '#ef4444'; // red
+};
 
 const AmbulanceStatsCharts: React.FC<AmbulanceStatsChartsProps> = ({
   statsByCity,
@@ -64,16 +71,14 @@ const AmbulanceStatsCharts: React.FC<AmbulanceStatsChartsProps> = ({
               formatter={(value: number) => [`${value} min`, 'Tempo Médio']}
               labelFormatter={(label) => `Cidade: ${label}`}
             />
-            <Bar 
-              dataKey="avg_response_time_minutes" 
-              fill={(entry: any) => {
-                const minutes = entry?.avg_response_time_minutes || 0;
-                if (minutes < 15) return '#22c55e'; // green
-                if (minutes < 30) return '#eab308'; // yellow
-                return '#ef4444'; // red
-              }}
-              name="Tempo Médio (min)"
-            />
+            <Bar dataKey="avg_response_time_minutes" name="Tempo Médio (min)">
+              {statsByCity.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={getBarColor(entry.avg_response_time_minutes)} 
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
