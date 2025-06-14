@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import CityAutocomplete from './CityAutocomplete';
 import { AmbulanceFormData } from './AmbulanceFormTypes';
+import { getCurrentDateSaoPaulo, getCurrentTimeSaoPaulo } from '@/utils/timezoneUtils';
 
 interface AmbulanceFormFieldsProps {
   formData: AmbulanceFormData;
@@ -13,6 +14,20 @@ interface AmbulanceFormFieldsProps {
 }
 
 const AmbulanceFormFields: React.FC<AmbulanceFormFieldsProps> = ({ formData, setFormData }) => {
+  // Preencher automaticamente data e hora quando o componente for montado
+  useEffect(() => {
+    if (!formData.request_date || !formData.request_time) {
+      const currentDate = getCurrentDateSaoPaulo();
+      const currentTime = getCurrentTimeSaoPaulo();
+      
+      setFormData({
+        ...formData,
+        request_date: currentDate,
+        request_time: currentTime
+      });
+    }
+  }, []);
+
   return (
     <div className="space-y-4">
       <div>
@@ -55,6 +70,30 @@ const AmbulanceFormFields: React.FC<AmbulanceFormFieldsProps> = ({ formData, set
           onChange={(value) => setFormData({ ...formData, origin_city: value })}
           placeholder="Digite o nome da cidade..."
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="request_date">Data da Solicitação *</Label>
+          <Input
+            id="request_date"
+            type="date"
+            value={formData.request_date}
+            onChange={(e) => setFormData({ ...formData, request_date: e.target.value })}
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="request_time">Hora da Solicitação *</Label>
+          <Input
+            id="request_time"
+            type="time"
+            value={formData.request_time}
+            onChange={(e) => setFormData({ ...formData, request_time: e.target.value })}
+            required
+          />
+        </div>
       </div>
 
       <div className="flex items-center space-x-2">

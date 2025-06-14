@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AmbulanceFormData, initialFormData } from './AmbulanceFormTypes';
 import { useCreateAmbulanceRequest } from '@/hooks/mutations/useAmbulanceMutations';
+import { getCurrentDateSaoPaulo, getCurrentTimeSaoPaulo } from '@/utils/timezoneUtils';
 
 interface AmbulanceFormActionsProps {
   formData: AmbulanceFormData;
@@ -29,6 +30,16 @@ export const useAmbulanceFormValidation = () => {
     
     if (!formData.origin_city.trim()) {
       alert('Cidade de origem é obrigatória');
+      return false;
+    }
+
+    if (!formData.request_date) {
+      alert('Data da solicitação é obrigatória');
+      return false;
+    }
+
+    if (!formData.request_time) {
+      alert('Hora da solicitação é obrigatória');
       return false;
     }
 
@@ -61,7 +72,13 @@ const AmbulanceFormActions: React.FC<AmbulanceFormActionsProps> = ({
 
     createMutation.mutate(submitData, {
       onSuccess: () => {
-        setFormData(initialFormData);
+        // Resetar para dados iniciais com data/hora atuais
+        const resetData = {
+          ...initialFormData,
+          request_date: getCurrentDateSaoPaulo(),
+          request_time: getCurrentTimeSaoPaulo()
+        };
+        setFormData(resetData);
         onClose();
       }
     });

@@ -9,6 +9,8 @@ export interface AmbulanceFormData {
   vehicle_type: 'AMBULANCIA' | 'CARRO_COMUM';
   vehicle_subtype: 'BASICA' | 'AVANCADA' | undefined;
   origin_city: string;
+  request_date: string;
+  request_time: string;
 }
 
 export const initialFormData: AmbulanceFormData = {
@@ -20,5 +22,7 @@ export const initialFormData: AmbulanceFormData = {
   mobility: 'DEITADO',
   vehicle_type: 'AMBULANCIA',
   vehicle_subtype: 'BASICA',
-  origin_city: ''
+  origin_city: '',
+  request_date: '',
+  request_time: ''
 };
