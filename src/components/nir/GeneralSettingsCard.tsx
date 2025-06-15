@@ -16,7 +16,7 @@ interface GeneralSettingsCardProps {
     notifications: boolean;
     autoBackup: boolean;
   };
-  onSettingsChange: (newSettings: Partial<typeof settings>) => void;
+  onSettingsChange: (newSettings: Partial<GeneralSettingsCardProps['settings']>) => void;
 }
 
 export const GeneralSettingsCard: React.FC<GeneralSettingsCardProps> = ({ settings, onSettingsChange }) => {

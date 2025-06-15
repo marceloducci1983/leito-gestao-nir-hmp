@@ -13,7 +13,7 @@ interface AlertsTabProps {
     dischargeTimeLimit: number;
     securityAlerts: boolean;
   };
-  onSettingsChange: (newSettings: Partial<typeof settings>) => void;
+  onSettingsChange: (newSettings: Partial<AlertsTabProps['settings']>) => void;
 }
 
 export const AlertsTab: React.FC<AlertsTabProps> = ({ settings, onSettingsChange }) => {
