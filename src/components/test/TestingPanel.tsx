@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, TestTube, RotateCcw, CheckCircle, XCircle, Users, Bed, ArrowRightLeft } from 'lucide-react';
+import { Loader2, TestTube, RotateCcw, CheckCircle, XCircle, Users, Bed, ArrowRightLeft, Calendar } from 'lucide-react';
 import { runPatientAdmissionTest, clearTestData, TestingResults } from '@/utils/testDataHelper';
 import { useToast } from '@/hooks/use-toast';
 import Phase2TestingPanel from './Phase2TestingPanel';
+import Phase4TestingPanel from './Phase4TestingPanel';
 import { Tabs as TabsComponent, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TestingPanel: React.FC = () => {
@@ -78,7 +80,7 @@ const TestingPanel: React.FC = () => {
   return (
     <div className="space-y-6">
       <TabsComponent defaultValue="fase1" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="fase1" className="flex items-center gap-2">
             <TestTube className="h-4 w-4" />
             FASE 1 - ADMISSÕES
@@ -86,6 +88,10 @@ const TestingPanel: React.FC = () => {
           <TabsTrigger value="fase2" className="flex items-center gap-2">
             <ArrowRightLeft className="h-4 w-4" />
             FASE 2 - TRANSFERÊNCIAS E ALTAS
+          </TabsTrigger>
+          <TabsTrigger value="fase4" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            FASE 4 - ALTAS PREVISTAS
           </TabsTrigger>
         </TabsList>
 
@@ -291,6 +297,10 @@ const TestingPanel: React.FC = () => {
 
         <TabsContent value="fase2">
           <Phase2TestingPanel />
+        </TabsContent>
+
+        <TabsContent value="fase4">
+          <Phase4TestingPanel />
         </TabsContent>
       </TabsComponent>
     </div>
