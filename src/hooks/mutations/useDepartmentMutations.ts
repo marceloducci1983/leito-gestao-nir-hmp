@@ -37,11 +37,17 @@ export const useCreateDepartment = () => {
     },
     onSuccess: (data) => {
       console.log('🎉 Sucesso na criação do departamento:', data);
+      
+      // Invalidar todas as queries relacionadas para sincronização completa
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
-        description: "Setor criado com sucesso",
+        description: "Setor criado com sucesso e totalmente integrado",
       });
     },
     onError: (error: any) => {
@@ -81,8 +87,14 @@ export const useUpdateDepartment = () => {
     },
     onSuccess: (data) => {
       console.log('🎉 Sucesso na atualização do departamento:', data);
+      
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
         description: "Setor atualizado com sucesso",
@@ -123,8 +135,14 @@ export const useDeleteDepartment = () => {
     },
     onSuccess: (data) => {
       console.log('🎉 Sucesso na remoção do departamento:', data);
+      
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
         description: "Setor removido com sucesso",

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateBed, useUpdateBed } from '@/hooks/mutations/useBedMutations';
 import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
+import { RefreshCw } from 'lucide-react';
 
 interface BedManagementModalProps {
   isOpen: boolean;
@@ -30,12 +31,18 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   const [bedName, setBedName] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
 
-  const { departmentNames, isLoading: loadingDepartments } = useDepartmentNames();
+  const { departmentNames, isLoading: loadingDepartments, refetch: refetchDepartments } = useDepartmentNames();
   const createBedMutation = useCreateBed();
   const updateBedMutation = useUpdateBed();
 
-  // Usar departamentos dinâmicos do banco de dados ou fallback
+  // Usar departamentos dinâmicos do banco de dados sempre que disponível
   const departments = departmentNames.length > 0 ? departmentNames : fallbackDepartments;
+
+  // Função para atualizar lista de departamentos
+  const handleRefreshDepartments = async () => {
+    console.log('🔄 Atualizando lista de departamentos...');
+    await refetchDepartments();
+  };
 
   useEffect(() => {
     if (bedData && isOpen) {
@@ -43,17 +50,35 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
       setSelectedDepartment(bedData.department);
     } else if (isOpen) {
       setBedName('');
-      setSelectedDepartment(departments[0] || 'CLINICA MEDICA');
+      // Usar o primeiro departamento disponível ou fallback
+      const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
+      setSelectedDepartment(defaultDept);
     }
   }, [bedData, isOpen, departments]);
 
+  // Atualizar departamentos quando o modal abrir
+  useEffect(() => {
+    if (isOpen && !loadingDepartments) {
+      handleRefreshDepartments();
+    }
+  }, [isOpen]);
+
   const handleSubmit = async () => {
     if (!bedName.trim()) {
-      console.log('Bed name is required');
+      console.log('Nome do leito é obrigatório');
       return;
     }
 
-    console.log('Submitting bed:', { bedName: bedName.trim(), selectedDepartment, isEditing });
+    if (!selectedDepartment) {
+      console.log('Setor é obrigatório');
+      return;
+    }
+
+    console.log('📝 Submetendo leito:', { 
+      bedName: bedName.trim(), 
+      selectedDepartment, 
+      isEditing 
+    });
 
     try {
       if (isEditing && bedData?.id) {
@@ -71,10 +96,11 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
       // Reset form and close modal
       setBedName('');
-      setSelectedDepartment(departments[0] || 'CLINICA MEDICA');
+      const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
+      setSelectedDepartment(defaultDept);
       onClose();
     } catch (error) {
-      console.error('Erro ao processar leito:', error);
+      console.error('❌ Erro ao processar leito:', error);
     }
   };
 
@@ -101,22 +127,38 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
           <div>
             <Label htmlFor="bed-department">Setor/Departamento</Label>
-            <Select 
-              value={selectedDepartment} 
-              onValueChange={(value) => setSelectedDepartment(value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o setor" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map((dept) => (
-                  <SelectItem key={dept} value={dept}>
-                    {dept}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select 
+                value={selectedDepartment} 
+                onValueChange={(value) => setSelectedDepartment(value)}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Selecione o setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleRefreshDepartments}
+                disabled={isLoading}
+                title="Atualizar lista de setores"
+              >
+                <RefreshCw className={`h-4 w-4 ${loadingDepartments ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {departments.length} setores disponíveis
+              {departmentNames.length > 0 && ' (atualizados do banco)'}
+            </p>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -131,7 +173,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
             <Button 
               onClick={handleSubmit} 
               className="flex-1"
-              disabled={isLoading || !bedName.trim()}
+              disabled={isLoading || !bedName.trim() || !selectedDepartment}
             >
               {isLoading ? 'Processando...' : (isEditing ? 'Salvar Alterações' : 'Criar Leito')}
             </Button>

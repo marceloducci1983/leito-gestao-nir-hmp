@@ -36,11 +36,16 @@ export const useCreateBed = () => {
       return result;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas para garantir sincronização
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
-        description: "Leito criado com sucesso",
+        description: "Leito criado com sucesso e totalmente integrado",
       });
     },
     onError: (error: any) => {
@@ -77,8 +82,13 @@ export const useUpdateBed = () => {
       return result;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
         description: "Leito atualizado com sucesso",
@@ -117,8 +127,13 @@ export const useDeleteBed = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+      
       toast({
         title: "Sucesso",
         description: "Leito removido com sucesso",

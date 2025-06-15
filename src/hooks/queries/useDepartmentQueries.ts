@@ -15,28 +15,36 @@ export const useDepartments = () => {
   return useQuery({
     queryKey: ['departments'],
     queryFn: async (): Promise<Department[]> => {
-      console.log('Fetching departments...');
+      console.log('🔄 Buscando departamentos do banco...');
       
       const { data, error } = await supabase.rpc('get_all_departments');
 
       if (error) {
-        console.error('Error fetching departments:', error);
+        console.error('❌ Erro ao buscar departamentos:', error);
         throw error;
       }
 
-      console.log('Departments fetched:', data);
+      console.log('✅ Departamentos carregados:', data?.length, 'registros');
+      console.log('📋 Lista de departamentos:', data?.map(d => d.name));
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutos - menor tempo para atualizações mais frequentes
+    refetchOnWindowFocus: true, // Recarregar quando a janela receber foco
+    refetchOnMount: true, // Sempre recarregar ao montar
   });
 };
 
 export const useDepartmentNames = () => {
-  const { data: departments, isLoading, error } = useDepartments();
+  const { data: departments, isLoading, error, refetch } = useDepartments();
+  
+  const departmentNames = departments?.map(dept => dept.name) || [];
+  
+  console.log('🏷️ Nomes de departamentos extraídos:', departmentNames);
   
   return {
-    departmentNames: departments?.map(dept => dept.name) || [],
+    departmentNames,
     isLoading,
-    error
+    error,
+    refetch
   };
 };
