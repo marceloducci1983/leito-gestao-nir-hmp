@@ -9,6 +9,7 @@ import DischargeForm from './forms/DischargeForm';
 import TransferForm from './forms/TransferForm';
 import { Bed, Patient, BedReservation, Department, DischargedPatient } from '@/types';
 import { getInitialBeds } from '@/data/initialBeds';
+import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 
 interface BedsPanelProps {
   onDataChange: (data: {
@@ -35,16 +36,15 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
   const [isEditingPatient, setIsEditingPatient] = useState(false);
   
   const { toast } = useToast();
+  const { departmentNames, isLoading: isLoadingDepartments } = useDepartmentNames();
 
-  const departments: Department[] = [
-    'CLINICA MEDICA',
-    'PRONTO SOCORRO', 
-    'CLINICA CIRURGICA',
-    'UTI ADULTO',
-    'UTI NEONATAL',
-    'PEDIATRIA',
-    'MATERNIDADE'
-  ];
+  useEffect(() => {
+    if (!isLoadingDepartments && departmentNames.length > 0) {
+      if (!selectedDepartment || !departmentNames.includes(selectedDepartment)) {
+        setSelectedDepartment(departmentNames[0] as Department);
+      }
+    }
+  }, [departmentNames, isLoadingDepartments, selectedDepartment]);
 
   // Notify parent of data changes
   useEffect(() => {
@@ -267,10 +267,10 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
     <div className="space-y-6">
       {/* Department Selection */}
       <div className="flex flex-wrap gap-2">
-        {departments.map((dept) => (
+        {departmentNames.map((dept) => (
           <Button
             key={dept}
-            onClick={() => setSelectedDepartment(dept)}
+            onClick={() => setSelectedDepartment(dept as Department)}
             variant={selectedDepartment === dept ? "default" : "outline"}
             className="text-xs md:text-sm"
           >

@@ -15,6 +15,7 @@ import DischargeModal from './forms/DischargeModal';
 import TransferModal from './forms/TransferModal';
 import SectorManagementModal from './forms/SectorManagementModal';
 import BedManagementModal from './forms/BedManagementModal';
+import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 
 interface BedsManagementProps {
   onDataChange?: (data: any) => void;
@@ -44,16 +45,7 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   } = useBedsManagementState();
 
   const { toast } = useToast();
-
-  const departments: Department[] = [
-    'CLINICA MEDICA',
-    'PRONTO SOCORRO', 
-    'CLINICA CIRURGICA',
-    'UTI ADULTO',
-    'UTI NEONATAL',
-    'PEDIATRIA',
-    'MATERNIDADE'
-  ];
+  const { departmentNames, isLoading: isLoadingDepartments } = useDepartmentNames();
 
   // Novos estados para os modais
   const [showSectorModal, setShowSectorModal] = useState(false);
@@ -68,11 +60,19 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
     }
   }, [centralData, onDataChange]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoadingDepartments && departmentNames.length > 0) {
+      if (!selectedDepartment || !departmentNames.includes(selectedDepartment)) {
+        setSelectedDepartment(departmentNames[0] as Department);
+      }
+    }
+  }, [departmentNames, isLoadingDepartments, selectedDepartment, setSelectedDepartment]);
+
+  if (isLoading || isLoadingDepartments) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Carregando leitos...</span>
+        <span className="ml-2">Carregando...</span>
       </div>
     );
   }
@@ -286,7 +286,7 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
   return (
     <div className="space-y-6">
       <BedsManagementHeader
-        departments={departments}
+        departments={departmentNames as Department[]}
         selectedDepartment={selectedDepartment}
         onDepartmentSelect={setSelectedDepartment}
         departmentBeds={departmentBeds}
@@ -359,7 +359,7 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
       <SectorManagementModal
         isOpen={showSectorModal}
         onClose={() => setShowSectorModal(false)}
-        departments={departments}
+        departments={departmentNames}
       />
 
       <BedManagementModal
@@ -369,7 +369,7 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
           setSelectedBedForEdit(null);
           setShowEditBedMode(false);
         }}
-        departments={departments}
+        departments={departmentNames as Department[]}
         bedData={selectedBedForEdit}
         isEditing={!!selectedBedForEdit}
       />
@@ -378,3 +378,4 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 };
 
 export default BedsManagement;
+
