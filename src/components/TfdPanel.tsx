@@ -2,11 +2,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Archive } from 'lucide-react';
+import { Archive, Printer } from 'lucide-react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import TfdPatientCard from '@/components/tfd/TfdPatientCard';
 import TfdArchiveSection from '@/components/tfd/TfdArchiveSection';
+import { generateTfdPatientsPdf } from '@/utils/pdfReportGenerator';
+import { toast } from 'sonner';
 
 const TfdPanel: React.FC = () => {
   const { centralData, isLoading } = useSupabaseBeds();
@@ -24,6 +27,21 @@ const TfdPanel: React.FC = () => {
       }
     }))
     .filter(item => item.patient);
+
+  const handlePrintActivePatients = () => {
+    if (tfdPatientsWithBeds.length === 0) {
+      toast.error('Nenhum paciente TFD ativo para imprimir');
+      return;
+    }
+
+    try {
+      generateTfdPatientsPdf(tfdPatientsWithBeds);
+      toast.success('Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar relatório PDF');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -54,6 +72,18 @@ const TfdPanel: React.FC = () => {
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">
+          {/* Botão IMPRIMIR */}
+          <div className="flex justify-end">
+            <Button
+              onClick={handlePrintActivePatients}
+              variant="outline"
+              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700 font-medium"
+            >
+              <Printer className="h-4 w-4" />
+              IMPRIMIR
+            </Button>
+          </div>
+
           {tfdPatientsWithBeds.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
