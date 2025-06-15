@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Patient, Department } from '@/types';
+import { Patient } from '@/types';
 import NewReservationForm from '@/components/forms/NewReservationForm';
 import NewPatientForm from '@/components/forms/NewPatientForm';
 import TransferModal from '@/components/forms/TransferModal';
@@ -14,7 +14,7 @@ interface BedsPanelModalsProps {
   onCloseReservationForm: () => void;
   onSubmitReservation: (reservationData: any) => void;
   selectedBedId: string;
-  selectedDepartment: Department;
+  selectedDepartment: string;
 
   // Patient modal
   showPatientForm: boolean;
@@ -32,7 +32,7 @@ interface BedsPanelModalsProps {
   // Sector management modal
   showSectorModal: boolean;
   onCloseSectorModal: () => void;
-  departments: Department[];
+  departments: string[];
 
   // Bed management modal
   showBedModal: boolean;

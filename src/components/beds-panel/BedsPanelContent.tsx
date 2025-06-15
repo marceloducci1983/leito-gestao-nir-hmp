@@ -1,14 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Department } from '@/types';
 import ResponsiveDepartmentSelector from '@/components/ResponsiveDepartmentSelector';
 import BedsManagementGrid from '@/components/BedsManagementGrid';
 
 interface BedsPanelContentProps {
-  departments: Department[];
-  selectedDepartment: Department;
-  onDepartmentSelect: (department: Department) => void;
+  departments: string[];
+  selectedDepartment: string;
+  onDepartmentSelect: (department: string) => void;
   departmentBeds: any[];
   sortedBeds: any[];
   searchTerm: string;

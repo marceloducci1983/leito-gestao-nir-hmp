@@ -1,13 +1,13 @@
 
 import { useState, useMemo } from 'react';
-import { Department, Patient } from '@/types';
+import { Patient } from '@/types';
 import { sortBedsByCustomOrder } from '@/utils/BedOrderUtils';
 
 export const useBedsPanelLogic = (centralData: any) => {
   // Estados para controlar os modais
   const [selectedBedId, setSelectedBedId] = useState<string>('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
   
   // Estado para pesquisa
   const [searchTerm, setSearchTerm] = useState('');

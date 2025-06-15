@@ -1,21 +1,17 @@
 
 import React from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
-import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
-import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
-import { useDeleteBed } from '@/hooks/mutations/useBedMutations';
-import { useDischargeFlow } from '@/hooks/useDischargeFlow';
 import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useResponsive } from '@/hooks/useResponsive';
 
-// Importações dos novos componentes
+// Importações dos componentes refatorados
 import BedsPanelHeader from '@/components/beds-panel/BedsPanelHeader';
 import BedSearchBar from '@/components/beds-panel/BedSearchBar';
 import BedsPanelContent from '@/components/beds-panel/BedsPanelContent';
 import BedsPanelModals from '@/components/beds-panel/BedsPanelModals';
 import { useBedsPanelLogic } from '@/components/beds-panel/useBedsPanelLogic';
+import { useBedsPanelHandlers } from '@/components/beds-panel/useBedsPanelHandlers';
 
 interface SupabaseBedsPanelProps {
   onDataChange?: (data: {
@@ -28,17 +24,7 @@ interface SupabaseBedsPanelProps {
 const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) => {
   const { centralData, isLoading, error, addPatient, transferPatient, addReservation } = useSupabaseBeds();
   const { departmentNames, isLoading: loadingDepartments } = useDepartmentNames();
-  const deleteReservationMutation = useDeleteReservation();
-  const updatePatientMutation = useUpdatePatient();
-  const deleteBedMutation = useDeleteBed();
-  const { toast } = useToast();
-
-  // Hook para gerenciar o fluxo de altas
-  const { 
-    handleDischargeRequest, 
-    isDischarging,
-    isRequestingDischarge 
-  } = useDischargeFlow();
+  const { isMobile } = useResponsive();
 
   // Estados e lógica do painel
   const {
@@ -67,9 +53,42 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     sortedBeds,
     availableBedsForTransfer
   } = useBedsPanelLogic(centralData);
-  
-  // Estados para responsividade
-  const { isMobile } = useResponsive();
+
+  // Handlers para ações dos leitos
+  const {
+    handleReserveBed,
+    handleAdmitPatient,
+    handleEditPatient,
+    handleTransferPatient,
+    handleDischargePatient,
+    handleDeleteReservation,
+    handleDeleteBed,
+    submitReservation,
+    submitPatient,
+    submitTransfer,
+    handleManageSectors,
+    handleCreateNewBed,
+    handleEditBed,
+    isDischarging
+  } = useBedsPanelHandlers(
+    centralData,
+    selectedBedId,
+    setSelectedBedId,
+    selectedPatient,
+    setSelectedPatient,
+    selectedDepartment,
+    setSelectedDepartment,
+    setShowReservationForm,
+    setShowPatientForm,
+    setShowTransferModal,
+    setIsEditingPatient,
+    setShowSectorModal,
+    setShowBedModal,
+    setSelectedBedForEdit,
+    addPatient,
+    transferPatient,
+    addReservation
+  );
 
   // Estado para modal de testes
   const [showTestingModal, setShowTestingModal] = React.useState(false);
@@ -109,172 +128,6 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     'PEDIATRIA',
     'MATERNIDADE'
   ];
-
-  // Handlers para os botões dos leitos
-  const handleReserveBed = (bedId: string) => {
-    const bed = centralData.beds.find((b: any) => b.id === bedId);
-    if (bed) {
-      setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department);
-      setShowReservationForm(true);
-    }
-  };
-
-  const handleAdmitPatient = (bedId: string) => {
-    const bed = centralData.beds.find((b: any) => b.id === bedId);
-    if (bed) {
-      setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department);
-      setSelectedPatient(null);
-      setIsEditingPatient(false);
-      setShowPatientForm(true);
-    }
-  };
-
-  const handleEditPatient = (bedId: string) => {
-    const bed = centralData.beds.find((b: any) => b.id === bedId);
-    if (bed && bed.patient) {
-      setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department);
-      setSelectedPatient(bed.patient);
-      setIsEditingPatient(true);
-      setShowPatientForm(true);
-    }
-  };
-
-  const handleTransferPatient = (bedId: string) => {
-    const bed = centralData.beds.find((b: any) => b.id === bedId);
-    if (bed && bed.patient) {
-      setSelectedBedId(bedId);
-      setSelectedPatient(bed.patient);
-      setShowTransferModal(true);
-    }
-  };
-
-  const handleDischargePatient = async (bedId: string) => {
-    const bed = centralData.beds.find((b: any) => b.id === bedId);
-    if (bed && bed.patient) {
-      console.log('🏥 Preparando solicitação de alta para:', {
-        patientId: bed.patient.id,
-        patientName: bed.patient.name,
-        bedId: bedId,
-        bedName: bed.name,
-        department: bed.department
-      });
-      
-      const result = await handleDischargeRequest({
-        patientId: bed.patient.id,
-        patientName: bed.patient.name,
-        bedId: bedId,
-        department: bed.department,
-        bedName: bed.name
-      });
-
-      if (result.success) {
-        console.log('✅ Alta solicitada com sucesso no painel');
-        toast({
-          title: "Alta solicitada",
-          description: `Alta de ${bed.patient.name} enviada para o monitoramento`,
-        });
-      } else {
-        console.error('❌ Erro na solicitação de alta no painel:', result.error);
-        toast({
-          title: "Erro",
-          description: "Erro ao solicitar alta. Tente novamente.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleDeleteReservation = async (bedId: string) => {
-    try {
-      await deleteReservationMutation.mutateAsync(bedId);
-    } catch (error) {
-      console.error('Erro ao excluir reserva:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir reserva",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteBed = async (bedId: string) => {
-    try {
-      await deleteBedMutation.mutateAsync(bedId);
-    } catch (error) {
-      console.error('Erro ao excluir leito:', error);
-    }
-  };
-
-  const submitReservation = async (reservationData: any) => {
-    try {
-      await addReservation({ 
-        bedId: selectedBedId, 
-        reservation: {
-          patient_name: reservationData.patient_name,
-          origin_clinic: reservationData.origin_clinic,
-          diagnosis: reservationData.diagnosis
-        }
-      });
-      setShowReservationForm(false);
-    } catch (error) {
-      console.error('Erro ao reservar leito:', error);
-    }
-  };
-
-  const submitPatient = async (patientData: any) => {
-    try {
-      if (isEditingPatient && selectedPatient) {
-        await updatePatientMutation.mutateAsync({
-          patientId: selectedPatient.id,
-          patientData: patientData
-        });
-      } else {
-        await addPatient({ bedId: selectedBedId, patientData });
-      }
-      setShowPatientForm(false);
-      setSelectedPatient(null);
-      setIsEditingPatient(false);
-    } catch (error) {
-      console.error('Erro ao processar paciente:', error);
-    }
-  };
-
-  const submitTransfer = async (targetDepartment: string, targetBedId: string) => {
-    if (!selectedPatient) return;
-
-    try {
-      await transferPatient({
-        patientId: selectedPatient.id,
-        fromBedId: selectedBedId,
-        toBedId: targetBedId
-      });
-      setShowTransferModal(false);
-      setSelectedPatient(null);
-    } catch (error) {
-      console.error('Erro ao transferir paciente:', error);
-    }
-  };
-
-  const handleManageSectors = () => {
-    setShowSectorModal(true);
-  };
-
-  const handleCreateNewBed = () => {
-    setSelectedBedForEdit(null);
-    setShowBedModal(true);
-  };
-
-  const handleEditBed = (bed: any) => {
-    setSelectedBedForEdit({
-      id: bed.id,
-      name: bed.name,
-      department: bed.department
-    });
-    setShowBedModal(true);
-  };
 
   const handleOpenTesting = () => {
     setShowTestingModal(true);
