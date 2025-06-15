@@ -39,8 +39,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Card className="w-full max-w-md mx-4">
+    <div 
+      className="min-h-screen flex items-center justify-center relative"
+      style={{
+        backgroundImage: `url('/lovable-uploads/8ee561c6-6f69-40d1-aa2e-552921f9de2a.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay semi-transparente para melhor legibilidade */}
+      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+      
+      {/* Card de login com fundo semi-transparente */}
+      <Card className="w-full max-w-md mx-4 relative z-10 bg-white/95 backdrop-blur-sm shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-800">
             SISTEMA DE GESTÃO DE LEITOS
