@@ -1,5 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type DepartmentType = Database['public']['Enums']['department_type'];
+type DischargeType = Database['public']['Enums']['discharge_type'];
 
 export interface TransferTestResults {
   success: boolean;
@@ -83,7 +87,7 @@ export const executeTransferTests = async (): Promise<TransferTestResults> => {
     console.log(`📋 Encontrados ${occupiedBeds.length} pacientes para transferir`);
 
     // Definir transferências planejadas
-    const transferPlans = [
+    const transferPlans: Array<{ fromDept: DepartmentType; toDept: DepartmentType }> = [
       { fromDept: 'CLINICA MEDICA', toDept: 'UTI ADULTO' },
       { fromDept: 'PRONTO SOCORRO', toDept: 'CLINICA MEDICA' },
       { fromDept: 'CLINICA CIRURGICA', toDept: 'CLINICA MEDICA' },
@@ -135,7 +139,6 @@ export const executeTransferTests = async (): Promise<TransferTestResults> => {
         const { error: transferError } = await supabase
           .from('patient_transfers')
           .insert({
-            patient_id: patient.id,
             from_bed_id: patientBed.id,
             to_bed_id: targetBed.id,
             from_department: plan.fromDept,
@@ -232,7 +235,7 @@ export const executeDischargeTests = async (): Promise<DischargeTestResults> => 
 
   try {
     // Buscar pacientes para dar alta (priorizando departamentos específicos)
-    const targetDepartments = ['MATERNIDADE', 'PEDIATRIA', 'PRONTO SOCORRO'];
+    const targetDepartments: DepartmentType[] = ['MATERNIDADE', 'PEDIATRIA', 'PRONTO SOCORRO'];
     
     const { data: patientsToDischarge, error: patientsError } = await supabase
       .from('patients')
@@ -259,7 +262,7 @@ export const executeDischargeTests = async (): Promise<DischargeTestResults> => 
 
     console.log(`👥 Encontrados ${patientsToDischarge.length} pacientes para alta`);
 
-    const dischargeTypes = ['POR MELHORA', 'A PEDIDO', 'POR MELHORA'];
+    const dischargeTypes: DischargeType[] = ['POR MELHORA', 'POR MELHORA', 'POR MELHORA'];
 
     // Executar altas
     for (let i = 0; i < patientsToDischarge.length; i++) {
@@ -289,7 +292,6 @@ export const executeDischargeTests = async (): Promise<DischargeTestResults> => 
         const { error: dischargeError } = await supabase
           .from('patient_discharges')
           .insert({
-            patient_id: patient.id,
             name: fullPatient.name,
             sex: fullPatient.sex,
             birth_date: fullPatient.birth_date,
@@ -301,13 +303,13 @@ export const executeDischargeTests = async (): Promise<DischargeTestResults> => 
             diagnosis: fullPatient.diagnosis,
             specialty: fullPatient.specialty,
             origin_city: fullPatient.origin_city,
-            occupation_days: fullPatient.occupation_days,
+            occupation_days: fullPatient.occupation_days || 0,
             actual_stay_days: actualStayDays,
             is_tfd: fullPatient.is_tfd,
             tfd_type: fullPatient.tfd_type,
             department: fullPatient.department,
             discharge_type: dischargeType,
-            bed_id: patient.beds?.name || patient.bed_id
+            bed_id: patient.beds?.name || patient.bed_id || 'N/A'
           });
 
         if (dischargeError) {
@@ -377,32 +379,29 @@ export const checkHistoricalDataIntegrity = async () => {
   
   try {
     // Verificar transferências
-    const { data: transfers, error: transfersError } = await supabase
+    const { count: transfersCount, error: transfersError } = await supabase
       .from('patient_transfers')
-      .select('count');
+      .select('*', { count: 'exact', head: true });
 
     if (transfersError) {
       console.error('Erro ao verificar transferências:', transfersError);
     }
 
     // Verificar altas
-    const { data: discharges, error: dischargesError } = await supabase
+    const { count: dischargesCount, error: dischargesError } = await supabase
       .from('patient_discharges')
-      .select('count');
+      .select('*', { count: 'exact', head: true });
 
     if (dischargesError) {
       console.error('Erro ao verificar altas:', dischargesError);
     }
 
-    const transfersCount = transfers?.[0]?.count || 0;
-    const dischargesCount = discharges?.[0]?.count || 0;
-
-    console.log(`📈 Transferências no histórico: ${transfersCount}`);
-    console.log(`📈 Altas no histórico: ${dischargesCount}`);
+    console.log(`📈 Transferências no histórico: ${transfersCount || 0}`);
+    console.log(`📈 Altas no histórico: ${dischargesCount || 0}`);
 
     return {
-      transfersInHistory: transfersCount,
-      dischargesInHistory: dischargesCount,
+      transfersInHistory: transfersCount || 0,
+      dischargesInHistory: dischargesCount || 0,
       dataIntegrityPassed: true
     };
 

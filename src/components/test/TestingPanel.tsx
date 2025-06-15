@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, TestTube, RotateCcw, CheckCircle, XCircle, Users, Bed, ArrowRightLeft, Tabs } from 'lucide-react';
+import { Loader2, TestTube, RotateCcw, CheckCircle, XCircle, Users, Bed, ArrowRightLeft } from 'lucide-react';
 import { runPatientAdmissionTest, clearTestData, TestingResults } from '@/utils/testDataHelper';
 import { useToast } from '@/hooks/use-toast';
 import Phase2TestingPanel from './Phase2TestingPanel';
