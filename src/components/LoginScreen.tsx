@@ -13,22 +13,29 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = () => {
-    if (username === 'admin' && password === '1234') {
-      onLogin();
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao Sistema de Gestão de Leitos NIR-HMP",
-      });
-    } else {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário ou senha incorretos",
-        variant: "destructive",
-      });
-    }
+  const handleLogin = async () => {
+    setIsLoading(true);
+    
+    // Simular delay de autenticação
+    setTimeout(() => {
+      if (username === 'admin' && password === '12345') {
+        onLogin();
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo ao Sistema de Gestão de Leitos NIR-HMP",
+        });
+      } else {
+        toast({
+          title: "Erro de autenticação",
+          description: "Usuário ou senha incorretos",
+          variant: "destructive",
+        });
+      }
+      setIsLoading(false);
+    }, 500);
   };
 
   return (
@@ -49,6 +56,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Digite seu usuário"
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -59,12 +67,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Digite sua senha"
-              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleLogin()}
+              disabled={isLoading}
             />
           </div>
-          <Button onClick={handleLogin} className="w-full">
-            Entrar
+          <Button 
+            onClick={handleLogin} 
+            className="w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'Entrando...' : 'Entrar'}
           </Button>
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>Usuário: admin</p>
+            <p>Senha: 12345</p>
+          </div>
         </CardContent>
       </Card>
     </div>

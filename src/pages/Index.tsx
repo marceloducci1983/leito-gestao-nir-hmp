@@ -14,7 +14,11 @@ import ArchivePanel from '@/components/ArchivePanel';
 import NirPanel from '@/components/NirPanel';
 import { useResponsive } from '@/hooks/useResponsive';
 
-const Index = () => {
+interface IndexProps {
+  onLogout: () => void;
+}
+
+const Index: React.FC<IndexProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('beds');
   const [centralData, setCentralData] = useState({
     beds: [],
@@ -26,7 +30,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavigationBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <NavigationBar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        onLogout={onLogout}
+      />
       
       <div className={`container mx-auto ${isMobile ? 'px-0 py-3' : 'px-4 py-6'}`}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
