@@ -257,7 +257,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          name: Database["public"]["Enums"]["department_type"]
+          name: Database["public"]["Enums"]["department_type"] | null
           name_text: string | null
           occupied_beds: number | null
           reserved_beds: number | null
@@ -268,7 +268,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          name: Database["public"]["Enums"]["department_type"]
+          name?: Database["public"]["Enums"]["department_type"] | null
           name_text?: string | null
           occupied_beds?: number | null
           reserved_beds?: number | null
@@ -279,7 +279,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          name?: Database["public"]["Enums"]["department_type"]
+          name?: Database["public"]["Enums"]["department_type"] | null
           name_text?: string | null
           occupied_beds?: number | null
           reserved_beds?: number | null
