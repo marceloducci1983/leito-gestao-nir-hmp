@@ -80,7 +80,8 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     setSelectedBedForEdit,
     addPatient,
     transferPatient,
-    addReservation
+    addReservation,
+    isEditingPatient
   });
 
   // Estado para modal de testes
