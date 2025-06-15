@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Bed, Department, Patient } from '@/types';
@@ -163,17 +164,17 @@ export const useBedsPanelHandlers = ({
     }
   };
 
-  const submitPatient = async (patientData: any) => {
+  const submitPatient = async (patientData: any, isEditing: boolean) => {
     try {
       await addPatient(patientData);
       toast({
-        title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
+        title: isEditing ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
         description: `${patientData.name} - ${patientData.diagnosis}`,
       });
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: isEditingPatient ? "Erro ao editar paciente" : "Erro ao admitir paciente",
+        description: isEditing ? "Erro ao editar paciente" : "Erro ao admitir paciente",
         variant: "destructive",
       });
     }

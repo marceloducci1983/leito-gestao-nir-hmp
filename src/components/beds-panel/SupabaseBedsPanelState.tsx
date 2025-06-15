@@ -63,7 +63,7 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     handleCreateNewBed,
     handleEditBed,
     isDischarging
-  } = useBedsPanelHandlers(
+  } = useBedsPanelHandlers({
     centralData,
     selectedBedId,
     setSelectedBedId,
@@ -81,7 +81,7 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     addPatient,
     transferPatient,
     addReservation
-  );
+  });
 
   // Estado para modal de testes
   const [showTestingModal, setShowTestingModal] = React.useState(false);

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateBed, useUpdateBed } from '@/hooks/mutations/useBedMutations';
 import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
+import { useToast } from '@/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
 
 interface BedManagementModalProps {
@@ -43,6 +44,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   const { departmentNames, isLoading: loadingDepartments, refetch: refetchDepartments } = useDepartmentNames();
   const createBedMutation = useCreateBed();
   const updateBedMutation = useUpdateBed();
+  const { toast } = useToast();
 
   // Usar departamentos dinâmicos do banco de dados sempre que disponível
   const departments = departmentNames.length > 0 ? departmentNames : fallbackDepartments;
