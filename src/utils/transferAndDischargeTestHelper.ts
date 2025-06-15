@@ -288,10 +288,11 @@ export const executeDischargeTests = async (): Promise<DischargeTestResults> => 
           throw new Error(`Erro ao buscar dados do paciente: ${fullPatientError.message}`);
         }
 
-        // Inserir na tabela de altas
+        // Inserir na tabela de altas com campos corretos conforme schema
         const { error: dischargeError } = await supabase
           .from('patient_discharges')
           .insert({
+            patient_id: fullPatient.id,
             name: fullPatient.name,
             sex: fullPatient.sex,
             birth_date: fullPatient.birth_date,
