@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Patient } from '@/types';
 import NewReservationForm from '@/components/forms/NewReservationForm';
@@ -68,6 +67,8 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
   showTestingModal = false,
   onCloseTestingModal
 }) => {
+  console.log('🔵 BedsPanelModals renderizado com showBedModal:', showBedModal);
+
   return (
     <>
       <NewReservationForm
@@ -105,9 +106,14 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
         departments={departments}
       />
 
+      {/* Bed Management Modal - com logs extras */}
+      {console.log('🔍 Verificando showBedModal:', showBedModal)}
       <BedManagementModal
         isOpen={showBedModal}
-        onClose={onCloseBedModal}
+        onClose={() => {
+          console.log('🔴 Fechando BedManagementModal');
+          onCloseBedModal();
+        }}
         departments={departments}
         bedData={selectedBedForEdit}
         isEditing={!!selectedBedForEdit}
