@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Settings, TestTube } from 'lucide-react';
-
 interface BedsPanelHeaderProps {
   totalBeds: number;
   occupiedBeds: number;
@@ -11,7 +9,6 @@ interface BedsPanelHeaderProps {
   onCreateNewBed: () => void;
   onOpenTesting?: () => void;
 }
-
 const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
   totalBeds,
   occupiedBeds,
@@ -20,10 +17,8 @@ const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
   onOpenTesting
 }) => {
   const availableBeds = totalBeds - occupiedBeds;
-  const occupationRate = totalBeds > 0 ? ((occupiedBeds / totalBeds) * 100).toFixed(1) : '0';
-
-  return (
-    <div className="flex flex-col gap-4">
+  const occupationRate = totalBeds > 0 ? (occupiedBeds / totalBeds * 100).toFixed(1) : '0';
+  return <div className="flex flex-col gap-4">
       {/* Estatísticas gerais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center">
@@ -62,23 +57,13 @@ const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
 
       {/* Botões de ação */}
       <div className="flex flex-wrap justify-center gap-2">
-        <Button onClick={onManageSectors} variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
-          Gerenciar Setores
-        </Button>
+        
         <Button onClick={onCreateNewBed} variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Criar Novo Leito
         </Button>
-        {onOpenTesting && (
-          <Button onClick={onOpenTesting} variant="outline" size="sm" className="border-orange-300 text-orange-700 hover:bg-orange-50">
-            <TestTube className="h-4 w-4 mr-2" />
-            Painel de Testes
-          </Button>
-        )}
+        {onOpenTesting}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default BedsPanelHeader;
