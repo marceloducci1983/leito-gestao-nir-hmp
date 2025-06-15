@@ -100,19 +100,35 @@ export const useBedsPanelHandlers = ({
   };
 
   const handleCreateNewBed = () => {
-    console.log('🔵 Botão "Criar Novo Leito" clicado');
-    console.log('🔍 Estado atual showBedModal:', setShowBedModal);
+    console.log('🔵 Botão "Criar Novo Leito" clicado - INÍCIO');
+    console.log('🔍 Estado atual setShowBedModal function:', typeof setShowBedModal);
     console.log('🔍 Departamentos disponíveis:', centralData?.departmentNames?.length || 0);
+    console.log('🔍 CentralData disponível:', !!centralData);
     
-    setSelectedBedForEdit(null);
-    setShowBedModal(true);
+    try {
+      console.log('⚙️ Resetando selectedBedForEdit para null...');
+      setSelectedBedForEdit(null);
+      
+      console.log('⚙️ Chamando setShowBedModal(true)...');
+      setShowBedModal(true);
+      
+      console.log('✅ setShowBedModal(true) executado com sucesso');
+      
+      // Verificar se o estado mudou após um pequeno delay
+      setTimeout(() => {
+        console.log('🔍 Verificação pós-execução - aguardando estado atualizar...');
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Erro ao executar handleCreateNewBed:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao abrir formulário de criação de leito",
+        variant: "destructive",
+      });
+    }
     
-    console.log('✅ setShowBedModal(true) executado');
-    
-    // Verificar se o estado mudou após um pequeno delay
-    setTimeout(() => {
-      console.log('🔍 Estado showBedModal após timeout:', setShowBedModal);
-    }, 100);
+    console.log('🔵 Botão "Criar Novo Leito" clicado - FIM');
   };
 
   const handleDeleteBed = async (bedId: string) => {

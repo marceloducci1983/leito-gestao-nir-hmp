@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,14 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   bedData,
   isEditing = false
 }) => {
-  console.log('🔵 BedManagementModal renderizado:', { isOpen, isEditing, departmentsCount: fallbackDepartments?.length });
+  console.log('🔵 BedManagementModal renderizado - INÍCIO');
+  console.log('🔍 Props recebidas:', { 
+    isOpen, 
+    isEditing, 
+    departmentsCount: fallbackDepartments?.length,
+    bedDataExists: !!bedData,
+    onCloseType: typeof onClose
+  });
 
   const [bedName, setBedName] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
@@ -38,6 +46,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
   // Usar departamentos dinâmicos do banco de dados sempre que disponível
   const departments = departmentNames.length > 0 ? departmentNames : fallbackDepartments;
+  console.log('🏥 Departamentos finais:', departments);
 
   // Função para atualizar lista de departamentos
   const handleRefreshDepartments = async () => {
@@ -46,6 +55,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   };
 
   useEffect(() => {
+    console.log('🔄 useEffect - Modal aberto/fechado:', isOpen);
     if (bedData && isOpen) {
       console.log('📝 Preenchendo dados do leito:', bedData);
       setBedName(bedData.name);
@@ -63,6 +73,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   // Atualizar departamentos quando o modal abrir
   useEffect(() => {
     if (isOpen && !loadingDepartments) {
+      console.log('🔄 Modal aberto - buscando departamentos atualizados');
       handleRefreshDepartments();
     }
   }, [isOpen]);
@@ -76,11 +87,21 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
     if (!bedName.trim()) {
       console.log('❌ Nome do leito é obrigatório');
+      toast({
+        title: "Erro",
+        description: "Nome do leito é obrigatório",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!selectedDepartment) {
       console.log('❌ Setor é obrigatório');
+      toast({
+        title: "Erro", 
+        description: "Setor é obrigatório",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -118,11 +139,11 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     return null;
   }
 
-  console.log('✅ Renderizando modal aberto');
+  console.log('✅ Renderizando modal aberto - pronto para uso');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md z-50 bg-white">
+      <DialogContent className="max-w-md z-[9999] bg-white border shadow-lg">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Leito' : 'Adicionar Novo Leito'}</DialogTitle>
         </DialogHeader>
@@ -150,7 +171,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Selecione o setor" />
                 </SelectTrigger>
-                <SelectContent className="z-50 bg-white">
+                <SelectContent className="z-[9999] bg-white border shadow-lg">
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
