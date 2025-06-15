@@ -7,7 +7,6 @@ import TransferModal from '@/components/forms/TransferModal';
 import SectorManagementModal from '@/components/forms/SectorManagementModal';
 import BedManagementModal from '@/components/forms/BedManagementModal';
 import TestingPanel from '@/components/test/TestingPanel';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface BedsPanelModalsProps {
   // Reservation modal
@@ -116,14 +115,10 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
 
       {/* Testing Modal */}
       {showTestingModal && onCloseTestingModal && (
-        <Dialog open={showTestingModal} onOpenChange={onCloseTestingModal}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>🧪 Painel de Testes do Sistema de Leitos</DialogTitle>
-            </DialogHeader>
-            <TestingPanel />
-          </DialogContent>
-        </Dialog>
+        <TestingPanel
+          isOpen={showTestingModal}
+          onClose={onCloseTestingModal}
+        />
       )}
     </>
   );
