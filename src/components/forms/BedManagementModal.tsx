@@ -6,16 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateBed, useUpdateBed } from '@/hooks/mutations/useBedMutations';
-import { Department } from '@/types';
+import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 
 interface BedManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  departments: Department[];
+  departments: string[];
   bedData?: {
     id?: string;
     name: string;
-    department: Department;
+    department: string;
   };
   isEditing?: boolean;
 }
@@ -23,15 +23,19 @@ interface BedManagementModalProps {
 const BedManagementModal: React.FC<BedManagementModalProps> = ({
   isOpen,
   onClose,
-  departments,
+  departments: fallbackDepartments,
   bedData,
   isEditing = false
 }) => {
   const [bedName, setBedName] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState<Department>('CLINICA MEDICA');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
 
+  const { departmentNames, isLoading: loadingDepartments } = useDepartmentNames();
   const createBedMutation = useCreateBed();
   const updateBedMutation = useUpdateBed();
+
+  // Usar departamentos dinâmicos do banco de dados ou fallback
+  const departments = departmentNames.length > 0 ? departmentNames : fallbackDepartments;
 
   useEffect(() => {
     if (bedData && isOpen) {
@@ -39,9 +43,9 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
       setSelectedDepartment(bedData.department);
     } else if (isOpen) {
       setBedName('');
-      setSelectedDepartment('CLINICA MEDICA');
+      setSelectedDepartment(departments[0] || 'CLINICA MEDICA');
     }
-  }, [bedData, isOpen]);
+  }, [bedData, isOpen, departments]);
 
   const handleSubmit = async () => {
     if (!bedName.trim()) {
@@ -67,14 +71,14 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
       // Reset form and close modal
       setBedName('');
-      setSelectedDepartment('CLINICA MEDICA');
+      setSelectedDepartment(departments[0] || 'CLINICA MEDICA');
       onClose();
     } catch (error) {
       console.error('Erro ao processar leito:', error);
     }
   };
 
-  const isLoading = createBedMutation.isPending || updateBedMutation.isPending;
+  const isLoading = createBedMutation.isPending || updateBedMutation.isPending || loadingDepartments;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -99,7 +103,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
             <Label htmlFor="bed-department">Setor/Departamento</Label>
             <Select 
               value={selectedDepartment} 
-              onValueChange={(value) => setSelectedDepartment(value as Department)}
+              onValueChange={(value) => setSelectedDepartment(value)}
               disabled={isLoading}
             >
               <SelectTrigger>

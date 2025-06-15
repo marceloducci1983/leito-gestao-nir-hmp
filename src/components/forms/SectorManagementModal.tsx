@@ -4,79 +4,89 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import { Department } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { useDepartments } from '@/hooks/queries/useDepartmentQueries';
+import { useCreateDepartment, useUpdateDepartment, useDeleteDepartment } from '@/hooks/mutations/useDepartmentMutations';
 
 interface SectorManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  departments: Department[];
+  departments: string[]; // Mantido para compatibilidade, mas não usado
 }
 
 const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
   isOpen,
-  onClose,
-  departments
+  onClose
 }) => {
   const [newSectorName, setNewSectorName] = useState('');
+  const [newSectorDescription, setNewSectorDescription] = useState('');
   const [editingSector, setEditingSector] = useState<string | null>(null);
   const [editSectorName, setEditSectorName] = useState('');
-  const { toast } = useToast();
+  const [editSectorDescription, setEditSectorDescription] = useState('');
 
-  const handleAddSector = () => {
+  const { data: departments = [], isLoading: loadingDepartments } = useDepartments();
+  const createDepartmentMutation = useCreateDepartment();
+  const updateDepartmentMutation = useUpdateDepartment();
+  const deleteDepartmentMutation = useDeleteDepartment();
+
+  const handleAddSector = async () => {
     if (!newSectorName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome do setor é obrigatório",
-        variant: "destructive",
-      });
       return;
     }
 
-    // Aqui seria implementada a lógica para adicionar setor
-    toast({
-      title: "Setor adicionado",
-      description: `Setor "${newSectorName}" criado com sucesso`,
-    });
-    setNewSectorName('');
-  };
-
-  const handleEditSector = (sector: Department) => {
-    setEditingSector(sector);
-    setEditSectorName(sector);
-  };
-
-  const handleSaveEdit = () => {
-    if (!editSectorName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome do setor é obrigatório",
-        variant: "destructive",
+    try {
+      await createDepartmentMutation.mutateAsync({
+        name: newSectorName.trim(),
+        description: newSectorDescription.trim() || undefined
       });
+      setNewSectorName('');
+      setNewSectorDescription('');
+    } catch (error) {
+      console.error('Error creating department:', error);
+    }
+  };
+
+  const handleEditSector = (department: any) => {
+    setEditingSector(department.id);
+    setEditSectorName(department.name);
+    setEditSectorDescription(department.description || '');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editSectorName.trim() || !editingSector) {
       return;
     }
 
-    // Aqui seria implementada a lógica para editar setor
-    toast({
-      title: "Setor editado",
-      description: `Setor atualizado para "${editSectorName}"`,
-    });
-    setEditingSector(null);
-    setEditSectorName('');
+    try {
+      await updateDepartmentMutation.mutateAsync({
+        id: editingSector,
+        name: editSectorName.trim(),
+        description: editSectorDescription.trim() || undefined
+      });
+      setEditingSector(null);
+      setEditSectorName('');
+      setEditSectorDescription('');
+    } catch (error) {
+      console.error('Error updating department:', error);
+    }
   };
 
-  const handleDeleteSector = (sector: Department) => {
-    // Aqui seria implementada a lógica para deletar setor
-    toast({
-      title: "Setor removido",
-      description: `Setor "${sector}" removido com sucesso`,
-    });
+  const handleDeleteSector = async (departmentId: string) => {
+    try {
+      await deleteDepartmentMutation.mutateAsync(departmentId);
+    } catch (error) {
+      console.error('Error deleting department:', error);
+    }
   };
+
+  const isLoading = createDepartmentMutation.isPending || 
+                   updateDepartmentMutation.isPending || 
+                   deleteDepartmentMutation.isPending;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerenciar Setores/Departamentos</DialogTitle>
         </DialogHeader>
@@ -85,19 +95,38 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
           {/* Adicionar novo setor */}
           <div className="border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Adicionar Novo Setor</h3>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="new-sector">Nome do Setor</Label>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="new-sector">Nome do Setor *</Label>
                 <Input
                   id="new-sector"
                   value={newSectorName}
                   onChange={(e) => setNewSectorName(e.target.value)}
-                  placeholder="Ex: ORTOPEDIA"
+                  placeholder="Ex: NEUROLOGIA"
+                  disabled={isLoading}
                 />
               </div>
-              <div className="flex items-end">
-                <Button onClick={handleAddSector}>
-                  <Plus className="h-4 w-4 mr-2" />
+              <div>
+                <Label htmlFor="new-sector-description">Descrição (opcional)</Label>
+                <Textarea
+                  id="new-sector-description"
+                  value={newSectorDescription}
+                  onChange={(e) => setNewSectorDescription(e.target.value)}
+                  placeholder="Descrição do setor..."
+                  disabled={isLoading}
+                  rows={2}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handleAddSector}
+                  disabled={isLoading || !newSectorName.trim()}
+                >
+                  {createDepartmentMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
                   Adicionar
                 </Button>
               </div>
@@ -107,51 +136,101 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
           {/* Lista de setores existentes */}
           <div className="border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Setores Existentes</h3>
-            <div className="space-y-2">
-              {departments.map((dept) => (
-                <div key={dept} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  {editingSector === dept ? (
-                    <div className="flex gap-2 flex-1">
-                      <Input
-                        value={editSectorName}
-                        onChange={(e) => setEditSectorName(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button size="sm" onClick={handleSaveEdit}>
-                        Salvar
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => setEditingSector(null)}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="font-medium">{dept}</span>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleEditSector(dept)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => handleDeleteSector(dept)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+            
+            {loadingDepartments ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando setores...</span>
+              </div>
+            ) : departments.length === 0 ? (
+              <p className="text-gray-500 text-center p-4">Nenhum setor encontrado</p>
+            ) : (
+              <div className="space-y-2">
+                {departments.map((dept) => (
+                  <div key={dept.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    {editingSector === dept.id ? (
+                      <div className="flex gap-2 flex-1">
+                        <div className="flex-1 space-y-2">
+                          <Input
+                            value={editSectorName}
+                            onChange={(e) => setEditSectorName(e.target.value)}
+                            placeholder="Nome do setor"
+                            disabled={isLoading}
+                          />
+                          <Textarea
+                            value={editSectorDescription}
+                            onChange={(e) => setEditSectorDescription(e.target.value)}
+                            placeholder="Descrição (opcional)"
+                            disabled={isLoading}
+                            rows={2}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={handleSaveEdit}
+                            disabled={isLoading || !editSectorName.trim()}
+                          >
+                            {updateDepartmentMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Salvar'
+                            )}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => {
+                              setEditingSector(null);
+                              setEditSectorName('');
+                              setEditSectorDescription('');
+                            }}
+                            disabled={isLoading}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+                    ) : (
+                      <>
+                        <div className="flex-1">
+                          <div className="font-medium">{dept.name}</div>
+                          {dept.description && (
+                            <div className="text-sm text-gray-600">{dept.description}</div>
+                          )}
+                          <div className="text-xs text-gray-500 mt-1">
+                            {dept.total_beds} leitos | {dept.occupied_beds} ocupados | {dept.reserved_beds} reservados
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditSector(dept)}
+                            disabled={isLoading}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeleteSector(dept.id)}
+                            disabled={isLoading || dept.total_beds > 0}
+                            title={dept.total_beds > 0 ? "Não é possível excluir setor com leitos" : "Excluir setor"}
+                          >
+                            {deleteDepartmentMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

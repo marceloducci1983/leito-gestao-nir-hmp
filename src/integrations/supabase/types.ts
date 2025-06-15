@@ -592,6 +592,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_department_type: {
+        Args: { new_department: string }
+        Returns: undefined
+      }
       calculate_occupation_days: {
         Args: { admission_date: string }
         Returns: number
@@ -615,6 +619,25 @@ export type Database = {
       create_bed: {
         Args: { p_name: string; p_department: string }
         Returns: string
+      }
+      create_department: {
+        Args: { p_name: string; p_description?: string }
+        Returns: string
+      }
+      delete_department: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
+      get_all_departments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          description: string
+          total_beds: number
+          occupied_beds: number
+          reserved_beds: number
+        }[]
       }
       get_ambulance_stats_by_city: {
         Args: { p_start_date?: string; p_end_date?: string }
@@ -708,6 +731,10 @@ export type Database = {
       }
       update_bed: {
         Args: { p_bed_id: string; p_name: string; p_department: string }
+        Returns: boolean
+      }
+      update_department: {
+        Args: { p_id: string; p_name: string; p_description?: string }
         Returns: boolean
       }
     }

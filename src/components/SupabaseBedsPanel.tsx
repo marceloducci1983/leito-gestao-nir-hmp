@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
 import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
 import { useDeleteBed } from '@/hooks/mutations/useBedMutations';
 import { useDischargeFlow } from '@/hooks/useDischargeFlow';
-import { Department } from '@/types';
+import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -27,6 +26,7 @@ interface SupabaseBedsPanelProps {
 
 const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) => {
   const { centralData, isLoading, error, addPatient, transferPatient, addReservation } = useSupabaseBeds();
+  const { departmentNames, isLoading: loadingDepartments } = useDepartmentNames();
   const deleteReservationMutation = useDeleteReservation();
   const updatePatientMutation = useUpdatePatient();
   const deleteBedMutation = useDeleteBed();
@@ -80,17 +80,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     }
   }, [centralData, onDataChange]);
 
-  const departments: Department[] = [
-    'CLINICA MEDICA',
-    'PRONTO SOCORRO', 
-    'CLINICA CIRURGICA',
-    'UTI ADULTO',
-    'UTI NEONATAL',
-    'PEDIATRIA',
-    'MATERNIDADE'
-  ];
-
-  if (isLoading) {
+  if (isLoading || loadingDepartments) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -108,12 +98,23 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     );
   }
 
+  // Usar departamentos dinâmicos do banco de dados
+  const departments = departmentNames.length > 0 ? departmentNames : [
+    'CLINICA MEDICA',
+    'PRONTO SOCORRO', 
+    'CLINICA CIRURGICA',
+    'UTI ADULTO',
+    'UTI NEONATAL',
+    'PEDIATRIA',
+    'MATERNIDADE'
+  ];
+
   // Handlers para os botões dos leitos
   const handleReserveBed = (bedId: string) => {
     const bed = centralData.beds.find((b: any) => b.id === bedId);
     if (bed) {
       setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department as Department);
+      setSelectedDepartment(bed.department);
       setShowReservationForm(true);
     }
   };
@@ -122,7 +123,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     const bed = centralData.beds.find((b: any) => b.id === bedId);
     if (bed) {
       setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department as Department);
+      setSelectedDepartment(bed.department);
       setSelectedPatient(null);
       setIsEditingPatient(false);
       setShowPatientForm(true);
@@ -133,7 +134,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     const bed = centralData.beds.find((b: any) => b.id === bedId);
     if (bed && bed.patient) {
       setSelectedBedId(bedId);
-      setSelectedDepartment(bed.department as Department);
+      setSelectedDepartment(bed.department);
       setSelectedPatient(bed.patient);
       setIsEditingPatient(true);
       setShowPatientForm(true);
