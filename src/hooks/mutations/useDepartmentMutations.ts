@@ -29,25 +29,6 @@ export const useCreateDepartment = () => {
 
       if (error) {
         console.error('❌ Erro ao criar departamento:', error);
-        // Tratamento específico para erros de ENUM
-        if (error.message?.includes('unsafe use of new value')) {
-          console.log('🔄 Tentando novamente após erro de ENUM...');
-          // Aguardar um pouco e tentar novamente
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          const { data: retryResult, error: retryError } = await supabase.rpc('create_department', {
-            p_name: data.name.toUpperCase(),
-            p_description: data.description || null
-          });
-          
-          if (retryError) {
-            console.error('❌ Erro na segunda tentativa:', retryError);
-            throw retryError;
-          }
-          
-          console.log('✅ Departamento criado na segunda tentativa:', retryResult);
-          return retryResult;
-        }
         throw error;
       }
 
@@ -65,13 +46,7 @@ export const useCreateDepartment = () => {
     },
     onError: (error: any) => {
       console.error('💥 Falha na criação do departamento:', error);
-      let errorMessage = "Erro ao criar setor";
-      
-      if (error.message?.includes('unsafe use of new value')) {
-        errorMessage = "Erro temporário de sincronização. Tente novamente em alguns segundos.";
-      } else if (error.message) {
-        errorMessage = `Erro ao criar setor: ${error.message}`;
-      }
+      const errorMessage = error.message ? `Erro ao criar setor: ${error.message}` : "Erro ao criar setor";
       
       toast({
         title: "Erro",
@@ -98,26 +73,6 @@ export const useUpdateDepartment = () => {
 
       if (error) {
         console.error('❌ Erro ao atualizar departamento:', error);
-        
-        // Tratamento específico para erros de ENUM
-        if (error.message?.includes('unsafe use of new value')) {
-          console.log('🔄 Tentando novamente após erro de ENUM...');
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          const { data: retryResult, error: retryError } = await supabase.rpc('update_department', {
-            p_id: data.id,
-            p_name: data.name.toUpperCase(),
-            p_description: data.description || null
-          });
-          
-          if (retryError) {
-            console.error('❌ Erro na segunda tentativa:', retryError);
-            throw retryError;
-          }
-          
-          console.log('✅ Departamento atualizado na segunda tentativa:', retryResult);
-          return retryResult;
-        }
         throw error;
       }
 
@@ -135,13 +90,7 @@ export const useUpdateDepartment = () => {
     },
     onError: (error: any) => {
       console.error('💥 Falha na atualização do departamento:', error);
-      let errorMessage = "Erro ao atualizar setor";
-      
-      if (error.message?.includes('unsafe use of new value')) {
-        errorMessage = "Erro temporário de sincronização. Tente novamente em alguns segundos.";
-      } else if (error.message) {
-        errorMessage = `Erro ao atualizar setor: ${error.message}`;
-      }
+      const errorMessage = error.message ? `Erro ao atualizar setor: ${error.message}` : "Erro ao atualizar setor";
       
       toast({
         title: "Erro",

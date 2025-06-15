@@ -3,42 +3,51 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface CreateBedData {
+  name: string;
+  department: string;
+}
+
+interface UpdateBedData {
+  bedId: string;
+  name: string;
+  department: string;
+}
+
 export const useCreateBed = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ name, department }: { name: string; department: string }) => {
-      console.log('Creating bed with:', { name, department });
+    mutationFn: async (data: CreateBedData) => {
+      console.log('🔄 Criando leito:', data);
       
-      const { data, error } = await supabase.rpc('create_bed', {
-        p_name: name,
-        p_department: department
+      const { data: result, error } = await supabase.rpc('create_bed', {
+        p_name: data.name,
+        p_department: data.department
       });
 
       if (error) {
-        console.error('Error creating bed:', error);
+        console.error('❌ Erro ao criar leito:', error);
         throw error;
       }
-      
-      console.log('Bed created successfully:', data);
-      return data;
+
+      console.log('✅ Leito criado com sucesso:', result);
+      return result;
     },
     onSuccess: () => {
-      // Invalidar todas as queries relacionadas a leitos
       queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.refetchQueries({ queryKey: ['beds'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
       toast({
-        title: "Leito criado com sucesso",
-        description: "O novo leito foi adicionado ao sistema",
+        title: "Sucesso",
+        description: "Leito criado com sucesso",
       });
     },
     onError: (error: any) => {
-      console.error('Erro ao criar leito:', error);
+      console.error('💥 Falha na criação do leito:', error);
       toast({
-        title: "Erro ao criar leito",
-        description: error.message || "Não foi possível criar o leito",
+        title: "Erro",
+        description: error.message || "Erro ao criar leito",
         variant: "destructive",
       });
     }
@@ -50,37 +59,36 @@ export const useUpdateBed = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ bedId, name, department }: { bedId: string; name: string; department: string }) => {
-      console.log('Updating bed with:', { bedId, name, department });
+    mutationFn: async (data: UpdateBedData) => {
+      console.log('🔄 Atualizando leito:', data);
       
-      const { data, error } = await supabase.rpc('update_bed', {
-        p_bed_id: bedId,
-        p_name: name,
-        p_department: department
+      const { data: result, error } = await supabase.rpc('update_bed', {
+        p_bed_id: data.bedId,
+        p_name: data.name,
+        p_department: data.department
       });
 
       if (error) {
-        console.error('Error updating bed:', error);
+        console.error('❌ Erro ao atualizar leito:', error);
         throw error;
       }
-      
-      console.log('Bed updated successfully:', data);
-      return data;
+
+      console.log('✅ Leito atualizado com sucesso:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.refetchQueries({ queryKey: ['beds'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
       toast({
-        title: "Leito editado com sucesso",
-        description: "As alterações foram salvas",
+        title: "Sucesso",
+        description: "Leito atualizado com sucesso",
       });
     },
     onError: (error: any) => {
-      console.error('Erro ao editar leito:', error);
+      console.error('💥 Falha na atualização do leito:', error);
       toast({
-        title: "Erro ao editar leito",
-        description: error.message || "Não foi possível salvar as alterações",
+        title: "Erro",
+        description: error.message || "Erro ao atualizar leito",
         variant: "destructive",
       });
     }
@@ -93,34 +101,34 @@ export const useDeleteBed = () => {
 
   return useMutation({
     mutationFn: async (bedId: string) => {
-      console.log('Deleting bed:', bedId);
+      console.log('🔄 Removendo leito:', bedId);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('beds')
         .delete()
         .eq('id', bedId);
 
       if (error) {
-        console.error('Error deleting bed:', error);
+        console.error('❌ Erro ao remover leito:', error);
         throw error;
       }
-      
-      console.log('Bed deleted successfully');
+
+      console.log('✅ Leito removido com sucesso');
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.refetchQueries({ queryKey: ['beds'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
       toast({
-        title: "Leito excluído com sucesso",
-        description: "O leito foi removido do sistema",
+        title: "Sucesso",
+        description: "Leito removido com sucesso",
       });
     },
     onError: (error: any) => {
-      console.error('Erro ao excluir leito:', error);
+      console.error('💥 Falha na remoção do leito:', error);
       toast({
-        title: "Erro ao excluir leito",
-        description: error.message || "Não foi possível excluir o leito",
+        title: "Erro",
+        description: error.message || "Erro ao remover leito",
         variant: "destructive",
       });
     }

@@ -122,6 +122,7 @@ export type Database = {
           bed_id: string | null
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text: string | null
           end_date: string | null
           id: string
           occupation_type: string
@@ -132,6 +133,7 @@ export type Database = {
           bed_id?: string | null
           created_at?: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           end_date?: string | null
           id?: string
           occupation_type: string
@@ -142,6 +144,7 @@ export type Database = {
           bed_id?: string | null
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           end_date?: string | null
           id?: string
           occupation_type?: string
@@ -163,6 +166,7 @@ export type Database = {
           bed_id: string | null
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text: string | null
           diagnosis: string
           id: string
           origin_clinic: string
@@ -173,6 +177,7 @@ export type Database = {
           bed_id?: string | null
           created_at?: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis: string
           id?: string
           origin_clinic: string
@@ -183,6 +188,7 @@ export type Database = {
           bed_id?: string | null
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis?: string
           id?: string
           origin_clinic?: string
@@ -204,6 +210,7 @@ export type Database = {
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
           department_id: string | null
+          department_text: string | null
           id: string
           is_custom: boolean | null
           is_occupied: boolean | null
@@ -215,6 +222,7 @@ export type Database = {
           created_at?: string
           department: Database["public"]["Enums"]["department_type"]
           department_id?: string | null
+          department_text?: string | null
           id?: string
           is_custom?: boolean | null
           is_occupied?: boolean | null
@@ -226,6 +234,7 @@ export type Database = {
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
           department_id?: string | null
+          department_text?: string | null
           id?: string
           is_custom?: boolean | null
           is_occupied?: boolean | null
@@ -249,6 +258,7 @@ export type Database = {
           description: string | null
           id: string
           name: Database["public"]["Enums"]["department_type"]
+          name_text: string | null
           occupied_beds: number | null
           reserved_beds: number | null
           total_beds: number | null
@@ -259,6 +269,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: Database["public"]["Enums"]["department_type"]
+          name_text?: string | null
           occupied_beds?: number | null
           reserved_beds?: number | null
           total_beds?: number | null
@@ -269,6 +280,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: Database["public"]["Enums"]["department_type"]
+          name_text?: string | null
           occupied_beds?: number | null
           reserved_beds?: number | null
           total_beds?: number | null
@@ -346,6 +358,7 @@ export type Database = {
           birth_date: string
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text: string | null
           diagnosis: string
           discharge_date: string
           discharge_type: Database["public"]["Enums"]["discharge_type"]
@@ -369,6 +382,7 @@ export type Database = {
           birth_date: string
           created_at?: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis: string
           discharge_date: string
           discharge_type: Database["public"]["Enums"]["discharge_type"]
@@ -392,6 +406,7 @@ export type Database = {
           birth_date?: string
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis?: string
           discharge_date?: string
           discharge_type?: Database["public"]["Enums"]["discharge_type"]
@@ -413,33 +428,39 @@ export type Database = {
           created_at: string
           from_bed_id: string | null
           from_department: Database["public"]["Enums"]["department_type"]
+          from_department_text: string | null
           id: string
           notes: string | null
           patient_id: string | null
           to_bed_id: string | null
           to_department: Database["public"]["Enums"]["department_type"]
+          to_department_text: string | null
           transfer_date: string
         }
         Insert: {
           created_at?: string
           from_bed_id?: string | null
           from_department: Database["public"]["Enums"]["department_type"]
+          from_department_text?: string | null
           id?: string
           notes?: string | null
           patient_id?: string | null
           to_bed_id?: string | null
           to_department: Database["public"]["Enums"]["department_type"]
+          to_department_text?: string | null
           transfer_date?: string
         }
         Update: {
           created_at?: string
           from_bed_id?: string | null
           from_department?: Database["public"]["Enums"]["department_type"]
+          from_department_text?: string | null
           id?: string
           notes?: string | null
           patient_id?: string | null
           to_bed_id?: string | null
           to_department?: Database["public"]["Enums"]["department_type"]
+          to_department_text?: string | null
           transfer_date?: string
         }
         Relationships: [
@@ -468,6 +489,7 @@ export type Database = {
           birth_date: string
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text: string | null
           diagnosis: string
           expected_discharge_date: string
           id: string
@@ -488,6 +510,7 @@ export type Database = {
           birth_date: string
           created_at?: string
           department: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis: string
           expected_discharge_date: string
           id?: string
@@ -508,6 +531,7 @@ export type Database = {
           birth_date?: string
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
+          department_text?: string | null
           diagnosis?: string
           expected_discharge_date?: string
           id?: string
