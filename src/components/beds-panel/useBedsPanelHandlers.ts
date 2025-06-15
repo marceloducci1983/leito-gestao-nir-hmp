@@ -18,9 +18,9 @@ interface UseBedsPanelHandlersProps {
   setShowSectorModal: (show: boolean) => void;
   setShowBedModal: (show: boolean) => void;
   setSelectedBedForEdit: (bed: any) => void;
-  addPatient: (patientData: any) => Promise<void>;
-  transferPatient: (transferData: any) => Promise<void>;
-  addReservation: (reservationData: any) => Promise<void>;
+  addPatient: (patientData: any) => void;
+  transferPatient: (transferData: any) => void;
+  addReservation: (reservationData: any) => void;
 }
 
 export const useBedsPanelHandlers = ({
@@ -150,7 +150,7 @@ export const useBedsPanelHandlers = ({
 
   const submitReservation = async (reservationData: any) => {
     try {
-      await addReservation(reservationData);
+      addReservation(reservationData);
       toast({
         title: "Leito reservado com sucesso",
         description: `Reserva para ${reservationData.patient_name}`,
@@ -164,17 +164,17 @@ export const useBedsPanelHandlers = ({
     }
   };
 
-  const submitPatient = async (patientData: any, isEditing: boolean) => {
+  const submitPatient = async (patientData: any) => {
     try {
-      await addPatient(patientData);
+      addPatient(patientData);
       toast({
-        title: isEditing ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
+        title: "Paciente admitido com sucesso",
         description: `${patientData.name} - ${patientData.diagnosis}`,
       });
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: isEditing ? "Erro ao editar paciente" : "Erro ao admitir paciente",
+        description: "Erro ao admitir paciente",
         variant: "destructive",
       });
     }
@@ -184,7 +184,7 @@ export const useBedsPanelHandlers = ({
     if (!selectedPatient) return;
 
     try {
-      await transferPatient({
+      transferPatient({
         patientId: selectedPatient.id,
         fromBedId: selectedBedId,
         toBedId: targetBedId
