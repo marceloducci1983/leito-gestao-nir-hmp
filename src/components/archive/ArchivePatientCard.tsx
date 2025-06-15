@@ -15,11 +15,11 @@ interface ArchivePatientCardProps {
 const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient }) => {
   const getDischargeTypeColor = (type: string) => {
     switch (type) {
-      case 'POR MELHORA': return 'bg-green-100 text-green-700 border-green-200';
-      case 'TRANSFERENCIA': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'EVASÃO': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'OBITO': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'POR MELHORA': return 'bg-green-50 text-green-600 border-green-100';
+      case 'TRANSFERENCIA': return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'EVASÃO': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
+      case 'OBITO': return 'bg-red-50 text-red-600 border-red-100';
+      default: return 'bg-gray-50 text-gray-600 border-gray-100';
     }
   };
 
@@ -33,25 +33,25 @@ const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200">
-      <CardHeader className="pb-4">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12 bg-blue-100">
-            <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold text-sm">
+    <Card className="hover:shadow-lg transition-all duration-200 border-gray-100 bg-white">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-start gap-3">
+          <Avatar className="h-10 w-10 bg-blue-50 border border-blue-100">
+            <AvatarFallback className="bg-blue-50 text-blue-600 font-semibold text-sm">
               {getInitials(patient.name)}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{patient.name}</h3>
-                <p className="text-sm text-gray-600 flex items-center gap-1">
-                  <User className="h-4 w-4" />
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-semibold text-gray-800 truncate">{patient.name}</h3>
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                  <User className="h-3 w-3" />
                   {patient.age} anos
                 </p>
               </div>
-              <Badge className={`${getDischargeTypeColor(patient.dischargeType)} font-medium`}>
+              <Badge className={`${getDischargeTypeColor(patient.dischargeType)} font-medium text-xs px-2 py-1 shrink-0`}>
                 {patient.dischargeType}
               </Badge>
             </div>
@@ -59,91 +59,86 @@ const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient }) => {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        {/* Informações Pessoais */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-            Informações Pessoais
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">Nascimento:</span>
-              <span className="font-medium">{formatDateOnly(patient.birthDate)}</span>
+      <CardContent className="space-y-3 px-4 pb-4">
+        {/* Informações Pessoais e Origem */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <div>
+              <span className="text-gray-600 text-xs">Nascimento</span>
+              <p className="font-medium text-gray-800">{formatDateOnly(patient.birthDate)}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">Origem:</span>
-              <span className="font-medium">{patient.originCity}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <MapPin className="h-4 w-4 text-gray-400" />
+            <div>
+              <span className="text-gray-600 text-xs">Origem</span>
+              <p className="font-medium text-gray-800 truncate">{patient.originCity}</p>
             </div>
           </div>
         </div>
 
         {/* Informações Médicas */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-            Informações Médicas
-          </h4>
-          <div className="space-y-3">
-            <div className="flex items-start gap-2 text-sm">
-              <Activity className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <span className="text-gray-600">Diagnóstico:</span>
-                <p className="font-medium mt-1 leading-relaxed">{patient.diagnosis}</p>
-              </div>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 text-sm">
+            <Activity className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <span className="text-gray-600 text-xs">Diagnóstico</span>
+              <p className="font-medium text-gray-800 text-sm leading-tight">{patient.diagnosis}</p>
             </div>
-            {patient.specialty && (
-              <div className="flex items-center gap-2 text-sm">
-                <Building className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-600">Especialidade:</span>
-                <span className="font-medium">{patient.specialty}</span>
-              </div>
-            )}
           </div>
+          {patient.specialty && (
+            <div className="flex items-center gap-2 text-sm ml-6">
+              <Building className="h-3 w-3 text-gray-400" />
+              <span className="text-gray-600 text-xs">Especialidade:</span>
+              <span className="font-medium text-gray-800 text-xs">{patient.specialty}</span>
+            </div>
+          )}
         </div>
 
         {/* Informações de Internação */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-            Internação
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Building className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">Departamento:</span>
-              <span className="font-medium">{patient.department}</span>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="flex items-center gap-1">
+            <Building className="h-3 w-3 text-gray-400" />
+            <div>
+              <p className="text-gray-500">Depto</p>
+              <p className="font-medium text-gray-800 truncate">{patient.department}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Bed className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">Leito:</span>
-              <span className="font-medium">{patient.bedId.split('-').pop()}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Bed className="h-3 w-3 text-gray-400" />
+            <div>
+              <p className="text-gray-500">Leito</p>
+              <p className="font-medium text-gray-800">{patient.bedId.split('-').pop()}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-600">Permanência:</span>
-              <span className="font-medium">{patient.actualStayDays} dias</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3 text-gray-400" />
+            <div>
+              <p className="text-gray-500">Permanência</p>
+              <p className="font-medium text-gray-800">{patient.actualStayDays} dias</p>
             </div>
           </div>
         </div>
 
-        {/* Datas e TFD */}
-        <div className="border-t pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Admissão</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">
+        {/* Datas e TFD - Layout mais compacto */}
+        <div className="border-t border-gray-100 pt-3 mt-3">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="text-center p-2 bg-gray-25 rounded-md border border-gray-100">
+              <p className="text-gray-500 mb-1">Admissão</p>
+              <p className="font-semibold text-gray-800">
                 {formatDateSaoPaulo(patient.admissionDate)}
               </p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Alta</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">
+            <div className="text-center p-2 bg-gray-25 rounded-md border border-gray-100">
+              <p className="text-gray-500 mb-1">Alta</p>
+              <p className="font-semibold text-gray-800">
                 {formatDateSaoPaulo(patient.dischargeDate)}
               </p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">TFD</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">
+            <div className="text-center p-2 bg-gray-25 rounded-md border border-gray-100">
+              <p className="text-gray-500 mb-1">TFD</p>
+              <p className="font-semibold">
                 {patient.isTFD ? (
                   <span className="text-blue-600">Sim</span>
                 ) : (
