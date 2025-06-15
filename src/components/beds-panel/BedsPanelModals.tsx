@@ -6,6 +6,8 @@ import NewPatientForm from '@/components/forms/NewPatientForm';
 import TransferModal from '@/components/forms/TransferModal';
 import SectorManagementModal from '@/components/forms/SectorManagementModal';
 import BedManagementModal from '@/components/forms/BedManagementModal';
+import TestingPanel from '@/components/test/TestingPanel';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface BedsPanelModalsProps {
   // Reservation modal
@@ -37,6 +39,10 @@ interface BedsPanelModalsProps {
   showBedModal: boolean;
   onCloseBedModal: () => void;
   selectedBedForEdit: any;
+  
+  // Testing modal
+  showTestingModal?: boolean;
+  onCloseTestingModal?: () => void;
 }
 
 const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
@@ -59,7 +65,9 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
   departments,
   showBedModal,
   onCloseBedModal,
-  selectedBedForEdit
+  selectedBedForEdit,
+  showTestingModal = false,
+  onCloseTestingModal
 }) => {
   return (
     <>
@@ -105,6 +113,18 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
         bedData={selectedBedForEdit}
         isEditing={!!selectedBedForEdit}
       />
+
+      {/* Testing Modal */}
+      {showTestingModal && onCloseTestingModal && (
+        <Dialog open={showTestingModal} onOpenChange={onCloseTestingModal}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>🧪 Painel de Testes do Sistema de Leitos</DialogTitle>
+            </DialogHeader>
+            <TestingPanel />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };

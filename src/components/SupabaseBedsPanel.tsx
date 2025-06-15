@@ -70,6 +70,9 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
   // Estados para responsividade
   const { isMobile } = useResponsive();
 
+  // Estado para modal de testes
+  const [showTestingModal, setShowTestingModal] = React.useState(false);
+
   // Update parent component with data
   React.useEffect(() => {
     if (onDataChange) {
@@ -271,6 +274,10 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     setShowBedModal(true);
   };
 
+  const handleOpenTesting = () => {
+    setShowTestingModal(true);
+  };
+
   // Para cada leito, determine se está em processo de alta
   const bedsWithDischargeState = sortedBeds.map((bed: any) => ({
     ...bed,
@@ -284,6 +291,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
         occupiedBeds={centralData.beds.filter((bed: any) => bed.isOccupied).length}
         onManageSectors={handleManageSectors}
         onCreateNewBed={handleCreateNewBed}
+        onOpenTesting={handleOpenTesting}
       />
 
       <BedSearchBar
@@ -340,6 +348,8 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
           setSelectedBedForEdit(null);
         }}
         selectedBedForEdit={selectedBedForEdit}
+        showTestingModal={showTestingModal}
+        onCloseTestingModal={() => setShowTestingModal(false)}
       />
     </div>
   );

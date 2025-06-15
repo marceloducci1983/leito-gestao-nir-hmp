@@ -1,55 +1,80 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus } from 'lucide-react';
-import { useResponsive } from '@/hooks/useResponsive';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Settings, TestTube } from 'lucide-react';
 
 interface BedsPanelHeaderProps {
   totalBeds: number;
   occupiedBeds: number;
   onManageSectors: () => void;
   onCreateNewBed: () => void;
+  onOpenTesting?: () => void;
 }
 
 const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
   totalBeds,
   occupiedBeds,
   onManageSectors,
-  onCreateNewBed
+  onCreateNewBed,
+  onOpenTesting
 }) => {
-  const { isMobile } = useResponsive();
+  const availableBeds = totalBeds - occupiedBeds;
+  const occupationRate = totalBeds > 0 ? ((occupiedBeds / totalBeds) * 100).toFixed(1) : '0';
 
   return (
-    <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} items-start sm:items-center ${isMobile ? 'px-4' : ''}`}>
-      <h1 className={`text-2xl font-bold text-gray-900 ${isMobile ? 'mb-3' : ''}`}>Painel de Leitos</h1>
-      
-      <div className={`${isMobile ? 'w-full' : 'flex items-center gap-4'}`}>
-        <div className="text-sm text-gray-600 mb-3 sm:mb-0">
-          {occupiedBeds} / {totalBeds} leitos ocupados
+    <div className="flex flex-col gap-4">
+      {/* Estatísticas gerais */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">{totalBeds}</div>
+          <div className="text-sm text-gray-600">Total de Leitos</div>
         </div>
-        
-        {isMobile ? (
-          <div className="grid grid-cols-2 gap-2">
-            <Button onClick={onManageSectors} variant="outline" size="sm" className="w-full">
-              <Settings className="h-4 w-4 mr-2" />
-              GERENCIAR SETORES
-            </Button>
-            <Button onClick={onCreateNewBed} variant="outline" size="sm" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              CRIAR LEITO
-            </Button>
-          </div>
-        ) : (
-          <>
-            <Button onClick={onManageSectors} variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              GERENCIAR SETORES
-            </Button>
-            <Button onClick={onCreateNewBed} variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              CRIAR LEITO
-            </Button>
-          </>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-red-600">{occupiedBeds}</div>
+          <div className="text-sm text-gray-600">Ocupados</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">{availableBeds}</div>
+          <div className="text-sm text-gray-600">Disponíveis</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">{occupationRate}%</div>
+          <div className="text-sm text-gray-600">Taxa de Ocupação</div>
+        </div>
+      </div>
+
+      {/* Badges de status */}
+      <div className="flex flex-wrap justify-center gap-2">
+        <Badge variant="outline" className="bg-blue-50">
+          {totalBeds} leitos totais
+        </Badge>
+        <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+          {occupiedBeds} ocupados
+        </Badge>
+        <Badge variant="default" className="bg-green-50 text-green-700 border-green-200">
+          {availableBeds} livres
+        </Badge>
+        <Badge variant="secondary">
+          {occupationRate}% ocupação
+        </Badge>
+      </div>
+
+      {/* Botões de ação */}
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button onClick={onManageSectors} variant="outline" size="sm">
+          <Settings className="h-4 w-4 mr-2" />
+          Gerenciar Setores
+        </Button>
+        <Button onClick={onCreateNewBed} variant="outline" size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Criar Novo Leito
+        </Button>
+        {onOpenTesting && (
+          <Button onClick={onOpenTesting} variant="outline" size="sm" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+            <TestTube className="h-4 w-4 mr-2" />
+            Painel de Testes
+          </Button>
         )}
       </div>
     </div>
