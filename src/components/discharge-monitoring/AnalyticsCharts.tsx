@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -31,10 +32,29 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Info sobre nova metodologia de cálculo */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-medium mt-0.5">
+              ℹ
+            </div>
+            <div className="text-sm">
+              <p className="font-medium text-blue-800 mb-1">Metodologia de Cálculo</p>
+              <p className="text-blue-700">
+                Os tempos exibidos neste dashboard são calculados a partir das <strong>07:00h da manhã</strong> do dia da solicitação de alta até o momento da efetivação, 
+                proporcionando uma visão mais padronizada dos tempos de processamento.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Tempo Médio de Alta por Departamento (minutos)</CardTitle>
+            <p className="text-sm text-gray-600">Calculado a partir das 07:00h do dia da solicitação</p>
           </CardHeader>
           <CardContent>
             {dischargeStatsByDeptInMinutes.length === 0 ? (
@@ -55,7 +75,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     interval={0}
                   />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio']} />
+                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio (desde 07:00h)']} />
                   <Bar dataKey="avg_minutes" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
@@ -66,6 +86,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
         <Card>
           <CardHeader>
             <CardTitle>Tempo Médio de Alta por Município (minutos)</CardTitle>
+            <p className="text-sm text-gray-600">Calculado a partir das 07:00h do dia da solicitação</p>
           </CardHeader>
           <CardContent>
             {dischargeStatsByCityInMinutes.length === 0 ? (
@@ -86,7 +107,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     interval={0}
                   />
                   <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio']} />
+                  <Tooltip formatter={(value: number) => [`${value}min`, 'Temp. Medio (desde 07:00h)']} />
                   <Bar dataKey="avg_minutes" fill="#10b981" />
                 </BarChart>
               </ResponsiveContainer>
@@ -98,6 +119,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
       <Card>
         <CardHeader>
           <CardTitle>Altas com Demora Superior a 5 Horas</CardTitle>
+          <p className="text-sm text-gray-600">Baseado no tempo desde 07:00h do dia da solicitação</p>
         </CardHeader>
         <CardContent>
           {delayedDischargesInMinutes.length === 0 ? (
@@ -114,6 +136,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                       <p className="text-sm text-gray-600">{delayed.department}</p>
                       <p className="text-sm">
                         Tempo de espera: <span className="font-medium text-orange-600">{delayed.delay_minutes}min</span>
+                        <span className="text-xs text-gray-500 ml-1">(desde 07:00h)</span>
                       </p>
                       <p className="text-sm">
                         Solicitado: {formatDateTimeSaoPaulo(delayed.discharge_requested_at)}
