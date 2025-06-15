@@ -85,11 +85,11 @@ const NirPanel: React.FC = () => {
                   </div>
                   <div className="text-sm text-green-700">
                     <p className="font-medium">• Análise de Internações Prolongadas</p>
-                    <p className="ml-2 text-xs">Relatórios de pacientes com internações > 15 dias</p>
+                    <p className="ml-2 text-xs">Relatórios de pacientes com internações &gt; 15 dias</p>
                   </div>
                   <div className="text-sm text-green-700">
                     <p className="font-medium">• Controle de Reinternações</p>
-                    <p className="ml-2 text-xs">Monitoramento de retornos em < 30 dias</p>
+                    <p className="ml-2 text-xs">Monitoramento de retornos em &lt; 30 dias</p>
                   </div>
                   <div className="text-sm text-green-700">
                     <p className="font-medium">• Dashboards e Análises</p>
