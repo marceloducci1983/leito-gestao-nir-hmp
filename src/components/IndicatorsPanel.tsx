@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, FileText } from 'lucide-react';
 import { format, subDays, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface IndicatorsPanelProps {
   data: {
@@ -31,6 +31,20 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
     'MATERNIDADE'
   ];
 
+  // Função para abreviar nomes dos departamentos
+  const getDepartmentAbbreviation = (dept: string): string => {
+    const abbreviations: Record<string, string> = {
+      'CLINICA MEDICA': 'Clínica Médica',
+      'PRONTO SOCORRO': 'Pronto Socorro',
+      'CLINICA CIRURGICA': 'Cirúrgica',
+      'UTI ADULTO': 'UTI Adulto',
+      'UTI NEONATAL': 'UTI Neonatal',
+      'PEDIATRIA': 'Pediatria',
+      'MATERNIDADE': 'Maternidade'
+    };
+    return abbreviations[dept] || dept;
+  };
+
   const indicators = useMemo(() => {
     const { beds, archivedPatients } = data;
 
@@ -48,6 +62,7 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
 
       return {
         department: dept,
+        displayName: getDepartmentAbbreviation(dept),
         total: deptTotal,
         occupied: deptOccupied,
         available: deptTotal - deptOccupied,
@@ -55,14 +70,15 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
       };
     });
 
-    // Calculate patients per day by department
+    // Calculate patients per day by department - filtrar apenas departamentos com pacientes
     const patientsPerDay = departments.map(dept => {
       const deptPatients = beds.filter(bed => bed.department === dept && bed.isOccupied).length;
       return {
         department: dept,
+        displayName: getDepartmentAbbreviation(dept),
         patients: deptPatients
       };
-    });
+    }).filter(item => item.patients > 0); // Filtrar apenas departamentos com pacientes
 
     // Calculate average length of stay
     const relevantDischarges = archivedPatients.filter(patient => {
@@ -81,6 +97,12 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
       totalDischarges: relevantDischarges.length
     };
   }, [data, startDate, endDate, departments]);
+
+  // Custom label function for pie chart
+  const renderCustomLabel = ({ displayName, patients, percent }: any) => {
+    if (percent < 0.05) return null; // Não mostrar label para fatias muito pequenas
+    return `${displayName}: ${patients}`;
+  };
 
   const handlePrint = () => {
     const printContent = document.getElementById('indicators-content');
@@ -244,7 +266,7 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
               <BarChart data={indicators.departmentOccupancy} margin={{ top: 20, right: 30, left: 20, bottom: 120 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
-                  dataKey="department" 
+                  dataKey="displayName" 
                   angle={-30}
                   textAnchor="end"
                   height={120}
@@ -252,38 +274,54 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
                   interval={0}
                 />
                 <YAxis />
-                <Tooltip />
+                <Tooltip 
+                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Ocupação']}
+                />
                 <Bar dataKey="occupancyRate" fill="#8884d8" name="Taxa de Ocupação (%)" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Patients per Department Pie Chart */}
+        {/* Patients per Department Pie Chart - Melhorado */}
         <Card>
           <CardHeader>
             <CardTitle>Pacientes por Departamento (Atual)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={indicators.patientsPerDay}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ department, patients }) => `${department}: ${patients}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="patients"
-                >
-                  {indicators.patientsPerDay.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {indicators.patientsPerDay.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>Nenhum paciente internado no momento.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={400}>
+                <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <Pie
+                    data={indicators.patientsPerDay}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="patients"
+                    label={renderCustomLabel}
+                    labelLine={false}
+                  >
+                    {indicators.patientsPerDay.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number, name: string, props: any) => [
+                      `${value} paciente${value !== 1 ? 's' : ''}`, 
+                      props.payload.displayName
+                    ]}
+                  />
+                  <Legend 
+                    formatter={(value: string, entry: any) => entry.payload.displayName}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -307,7 +345,7 @@ const IndicatorsPanel: React.FC<IndicatorsPanelProps> = ({ data }) => {
                 <tbody>
                   {indicators.departmentOccupancy.map(dept => (
                     <tr key={dept.department} className="border-b">
-                      <td className="p-2 font-medium">{dept.department}</td>
+                      <td className="p-2 font-medium">{dept.displayName}</td>
                       <td className="text-center p-2">{dept.total}</td>
                       <td className="text-center p-2 text-red-600">{dept.occupied}</td>
                       <td className="text-center p-2 text-green-600">{dept.available}</td>
