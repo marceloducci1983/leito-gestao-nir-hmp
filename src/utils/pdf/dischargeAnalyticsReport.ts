@@ -69,9 +69,9 @@ export const generateAnalyticsDashboardReport = (
     doc.text(`Tempo médio geral: ${(avgDeptOverall * 60).toFixed(0)} minutos`, margin, yPosition + 10);
     yPosition += 25;
 
-    // Cabeçalho da tabela de departamentos
+    // Cabeçalho da tabela de departamentos - Posições ajustadas
     const deptHeaders = ['DEPARTAMENTO', 'TEMPO MÉDIO (min)', 'TOTAL ALTAS', 'ATRASOS'];
-    const deptPositions = [margin, margin + 80, margin + 140, margin + 180];
+    const deptPositions = [margin, margin + 65, margin + 125, margin + 165];
     
     yPosition = addTableHeader(doc, deptHeaders, deptPositions, yPosition);
 
@@ -82,7 +82,7 @@ export const generateAnalyticsDashboardReport = (
       
       const avgMinutes = Math.round(item.avg_hours * 60);
       
-      doc.text(item.department.substring(0, 25), deptPositions[0], yPosition);
+      doc.text(item.department.substring(0, 20), deptPositions[0], yPosition);
       doc.text(`${avgMinutes}min`, deptPositions[1], yPosition);
       doc.text(item.total_discharges.toString(), deptPositions[2], yPosition);
       doc.text(item.delayed_discharges.toString(), deptPositions[3], yPosition);
@@ -115,9 +115,9 @@ export const generateAnalyticsDashboardReport = (
     doc.text(`Municípios atendidos: ${cityStats.length}`, margin, yPosition + 20);
     yPosition += 35;
 
-    // Cabeçalho da tabela de municípios (Top 10)
+    // Cabeçalho da tabela de municípios (Top 10) - Posições ajustadas
     const cityHeaders = ['MUNICÍPIO', 'TEMPO MÉDIO (min)', 'TOTAL ALTAS'];
-    const cityPositions = [margin, margin + 100, margin + 170];
+    const cityPositions = [margin, margin + 85, margin + 155];
     
     yPosition = addTableHeader(doc, cityHeaders, cityPositions, yPosition);
 
@@ -128,7 +128,7 @@ export const generateAnalyticsDashboardReport = (
       yPosition = checkPageBreak(doc, yPosition);
       
       const avgMinutes = Math.round(item.avg_hours * 60);
-      const cityName = (item.origin_city || 'Não informado').substring(0, 30);
+      const cityName = (item.origin_city || 'Não informado').substring(0, 25);
       
       doc.text(cityName, cityPositions[0], yPosition);
       doc.text(`${avgMinutes}min`, cityPositions[1], yPosition);
