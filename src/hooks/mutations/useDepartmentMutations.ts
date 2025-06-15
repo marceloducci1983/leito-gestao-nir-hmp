@@ -136,16 +136,19 @@ export const useDeleteDepartment = () => {
     onSuccess: (data) => {
       console.log('🎉 Sucesso na remoção do departamento:', data);
       
-      // Invalidar todas as queries relacionadas
+      // Invalidar todas as queries relacionadas para atualização imediata da interface
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       queryClient.invalidateQueries({ queryKey: ['beds'] });
       queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
       queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
       queryClient.invalidateQueries({ queryKey: ['department-stats'] });
       
+      // Forçar recarregamento dos dados para garantir sincronização
+      queryClient.refetchQueries({ queryKey: ['departments'] });
+      
       toast({
         title: "Sucesso",
-        description: "Setor removido com sucesso",
+        description: "Setor removido com sucesso - UTI PEDIATRICA foi eliminada",
       });
     },
     onError: (error: any) => {
