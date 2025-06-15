@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
@@ -98,7 +99,7 @@ const SupabaseBedsPanel: React.FC<SupabaseBedsPanelProps> = ({ onDataChange }) =
     );
   }
 
-  // Usar departamentos dinâmicos do banco de dados
+  // Usar departamentos dinâmicos do banco de dados com fallback
   const departments = departmentNames.length > 0 ? departmentNames : [
     'CLINICA MEDICA',
     'PRONTO SOCORRO', 

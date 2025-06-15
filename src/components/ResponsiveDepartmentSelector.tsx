@@ -1,15 +1,15 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useResponsive } from '@/hooks/useResponsive';
-import { Department } from '@/types';
 
 interface ResponsiveDepartmentSelectorProps {
-  departments: Department[];
-  selectedDepartment: Department;
-  onDepartmentSelect: (department: Department) => void;
+  departments: string[];
+  selectedDepartment: string;
+  onDepartmentSelect: (department: string) => void;
   departmentBeds: any[];
   children: React.ReactNode;
 }
@@ -23,7 +23,7 @@ const ResponsiveDepartmentSelector: React.FC<ResponsiveDepartmentSelectorProps> 
 }) => {
   const { isMobile, isTablet } = useResponsive();
 
-  const getDepartmentStats = (department: Department) => {
+  const getDepartmentStats = (department: string) => {
     const beds = departmentBeds.filter(bed => bed.department === department);
     const occupiedCount = beds.filter(bed => bed.isOccupied).length;
     const reservedCount = beds.filter(bed => bed.isReserved).length;
@@ -36,7 +36,7 @@ const ResponsiveDepartmentSelector: React.FC<ResponsiveDepartmentSelectorProps> 
     return (
       <div className="space-y-4">
         <div className="px-4">
-          <Select value={selectedDepartment} onValueChange={(value) => onDepartmentSelect(value as Department)}>
+          <Select value={selectedDepartment} onValueChange={(value) => onDepartmentSelect(value)}>
             <SelectTrigger className="w-full h-12">
               <SelectValue placeholder="Selecionar Departamento" />
             </SelectTrigger>
@@ -140,7 +140,7 @@ const ResponsiveDepartmentSelector: React.FC<ResponsiveDepartmentSelectorProps> 
 
   // Desktop view - keep original tabs
   return (
-    <Tabs value={selectedDepartment} onValueChange={(value) => onDepartmentSelect(value as Department)} className="w-full">
+    <Tabs value={selectedDepartment} onValueChange={(value) => onDepartmentSelect(value)} className="w-full">
       <TabsList className="grid w-full grid-cols-7">
         {departments.map(department => {
           const stats = getDepartmentStats(department);

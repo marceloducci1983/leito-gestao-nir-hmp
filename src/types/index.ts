@@ -44,4 +44,5 @@ export interface DischargedPatient extends Patient {
   actualStayDays: number;
 }
 
-export type Department = 'CLINICA MEDICA' | 'PRONTO SOCORRO' | 'CLINICA CIRURGICA' | 'UTI ADULTO' | 'UTI NEONATAL' | 'PEDIATRIA' | 'MATERNIDADE';
+// Mudança: Department agora é string para permitir departamentos dinâmicos
+export type Department = string;
