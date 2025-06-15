@@ -42,10 +42,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     <div 
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: `url('/lovable-uploads/770446f2-866e-4b25-8ffb-d8f7a08a5e3c.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundImage: `url('/lovable-uploads/e0710d35-e746-4dd3-b74e-aa7fa404e37c.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
+        backgroundSize: 'cover, cover',
+        backgroundPosition: 'center, center',
+        backgroundRepeat: 'no-repeat, no-repeat',
+        backgroundColor: '#1e40af'
       }}
     >
       {/* Overlay semi-transparente para melhor legibilidade */}
