@@ -31,6 +31,13 @@ const TfdArchiveSection: React.FC = () => {
       (patientData?.tfdType?.toLowerCase() || '').includes(searchLower);
   });
 
+  // Função para determinar a cor do card baseada no índice
+  const getCardColors = (index: number) => {
+    return index % 2 === 0 
+      ? 'bg-gray-50 border-gray-300' 
+      : 'bg-blue-50 border-blue-300';
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -67,13 +74,13 @@ const TfdArchiveSection: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredArchives.map((archive) => {
+          {filteredArchives.map((archive, index) => {
             const patientData = archive.patient_data as TfdPatientData;
             const interventions = Array.isArray(archive.interventions) ? 
               (archive.interventions as unknown as TfdIntervention[]) : [];
             
             return (
-              <Card key={archive.id} className="bg-gray-50 border-gray-300">
+              <Card key={archive.id} className={`${getCardColors(index)}`}>
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg flex items-center gap-2">
