@@ -60,6 +60,7 @@ export type Database = {
           bed: string | null
           cancelled_at: string | null
           confirmed_at: string | null
+          contact: string | null
           created_at: string
           id: string
           is_puerpera: boolean
@@ -79,6 +80,7 @@ export type Database = {
           bed?: string | null
           cancelled_at?: string | null
           confirmed_at?: string | null
+          contact?: string | null
           created_at?: string
           id?: string
           is_puerpera?: boolean
@@ -98,6 +100,7 @@ export type Database = {
           bed?: string | null
           cancelled_at?: string | null
           confirmed_at?: string | null
+          contact?: string | null
           created_at?: string
           id?: string
           is_puerpera?: boolean

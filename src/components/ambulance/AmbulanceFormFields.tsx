@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -60,6 +59,16 @@ const AmbulanceFormFields: React.FC<AmbulanceFormFieldsProps> = ({ formData, set
           onChange={(e) => setFormData({ ...formData, bed: e.target.value })}
           placeholder="Digite o número do leito (ex: 12A, Box-3, etc.)"
           required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="contact">Contato</Label>
+        <Input
+          id="contact"
+          value={formData.contact}
+          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+          placeholder="Digite o telefone ou outro contato (ex: (31) 99999-9999)"
         />
       </div>
 

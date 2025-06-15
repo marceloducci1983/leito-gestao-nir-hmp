@@ -11,6 +11,7 @@ export interface AmbulanceFormData {
   origin_city: string;
   request_date: string;
   request_time: string;
+  contact: string;
 }
 
 export const initialFormData: AmbulanceFormData = {
@@ -24,5 +25,6 @@ export const initialFormData: AmbulanceFormData = {
   vehicle_subtype: 'BASICA',
   origin_city: '',
   request_date: '',
-  request_time: ''
+  request_time: '',
+  contact: ''
 };

@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,6 +12,7 @@ interface AmbulanceRequestData {
   vehicle_type: 'AMBULANCIA' | 'CARRO_COMUM';
   vehicle_subtype?: 'BASICA' | 'AVANCADA';
   origin_city: string;
+  contact?: string;
 }
 
 export const useCreateAmbulanceRequest = () => {

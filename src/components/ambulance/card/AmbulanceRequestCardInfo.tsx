@@ -1,8 +1,6 @@
 
 import React from 'react';
-import { Car, Bed, Building, MapPin } from 'lucide-react';
-import { formatDateSaoPaulo, formatTimeSaoPaulo } from '@/utils/timezoneUtils';
-import { fromZonedTime } from 'date-fns-tz';
+import { MapPin, User, Bed, Car, Phone, Clock, Baby } from 'lucide-react';
 
 interface AmbulanceRequestCardInfoProps {
   sector?: string;
@@ -15,6 +13,7 @@ interface AmbulanceRequestCardInfoProps {
   appropriateCrib?: boolean;
   requestDate: string;
   requestTime: string;
+  contact?: string;
 }
 
 const AmbulanceRequestCardInfo: React.FC<AmbulanceRequestCardInfoProps> = ({
@@ -27,85 +26,69 @@ const AmbulanceRequestCardInfo: React.FC<AmbulanceRequestCardInfoProps> = ({
   isPuerpera,
   appropriateCrib,
   requestDate,
-  requestTime
+  requestTime,
+  contact
 }) => {
-  const getVehicleInfo = () => {
+  const formatVehicleType = () => {
     if (vehicleType === 'AMBULANCIA') {
-      return `Ambulância ${vehicleSubtype || 'Básica'}`;
+      return vehicleSubtype ? `Ambulância ${vehicleSubtype}` : 'Ambulância';
     }
     return 'Carro Comum';
   };
 
-  const formatRequestDateTime = () => {
-    try {
-      // Combinar data e hora da solicitação
-      const dateTimeString = `${requestDate}T${requestTime}`;
-      const requestDateTime = new Date(dateTimeString);
-      
-      // Tratar a data/hora como horário de Brasília (não UTC)
-      const saoPauloDate = fromZonedTime(requestDateTime, 'America/Sao_Paulo');
-      
-      return `${formatDateSaoPaulo(saoPauloDate)} às ${formatTimeSaoPaulo(saoPauloDate)}`;
-    } catch (error) {
-      console.error('Error formatting request date/time:', error);
-      return `${requestDate} às ${requestTime}`;
-    }
+  const formatDateTime = () => {
+    const date = new Date(requestDate);
+    const formattedDate = date.toLocaleDateString('pt-BR');
+    return `${formattedDate} às ${requestTime}`;
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-2">
-        {sector && (
-          <div className="flex items-center space-x-2 text-sm">
-            <Building className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">Setor:</span>
-            <span>{sector}</span>
-          </div>
-        )}
-        
-        {bed && (
-          <div className="flex items-center space-x-2 text-sm">
-            <Bed className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">Leito:</span>
-            <span>{bed}</span>
-          </div>
-        )}
-
-        {/* ORIGEM COM DESTAQUE - TAMANHO REDUZIDO */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg rounded-lg p-3 transform hover:scale-105 transition-all duration-200">
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5 text-green-600" />
-            <span className="font-bold text-green-800 text-xs">Origem:</span>
-            <span className="font-semibold text-green-700 text-base">{originCity}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2 text-sm">
-          <Car className="h-4 w-4 text-gray-500" />
-          <span className="font-medium">Veículo:</span>
-          <span>{getVehicleInfo()}</span>
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+      <div className="flex items-center gap-2">
+        <User className="w-4 h-4 text-blue-600" />
+        <span><strong>Setor:</strong> {sector || 'Não informado'}</span>
       </div>
 
-      <div className="space-y-2">
-        <div className="text-sm">
-          <span className="font-medium">Mobilidade:</span>
-          <span className="ml-2">{mobility}</span>
+      <div className="flex items-center gap-2">
+        <Bed className="w-4 h-4 text-green-600" />
+        <span><strong>Leito:</strong> {bed || 'Não informado'}</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <MapPin className="w-4 h-4 text-red-600" />
+        <span><strong>Origem:</strong> {originCity}</span>
+      </div>
+
+      {contact && (
+        <div className="flex items-center gap-2">
+          <Phone className="w-4 h-4 text-purple-600" />
+          <span><strong>Contato:</strong> {contact}</span>
         </div>
+      )}
 
-        {isPuerpera && appropriateCrib && (
-          <div className="text-sm">
-            <span className="font-medium text-green-600">✓ Berço apropriado</span>
-          </div>
-        )}
+      <div className="flex items-center gap-2">
+        <Car className="w-4 h-4 text-orange-600" />
+        <span><strong>Veículo:</strong> {formatVehicleType()}</span>
+      </div>
 
-        <div className="text-sm">
-          <span className="font-medium">Data/Hora:</span>
-          <span className="ml-2">
-            {formatRequestDateTime()}
+      <div className="flex items-center gap-2">
+        <User className="w-4 h-4 text-indigo-600" />
+        <span><strong>Mobilidade:</strong> {mobility}</span>
+      </div>
+
+      <div className="flex items-center gap-2 md:col-span-2">
+        <Clock className="w-4 h-4 text-gray-600" />
+        <span><strong>Solicitado em:</strong> {formatDateTime()}</span>
+      </div>
+
+      {isPuerpera && (
+        <div className="flex items-center gap-2 md:col-span-2">
+          <Baby className="w-4 h-4 text-pink-600" />
+          <span className="text-pink-700 font-medium">
+            Puérpera {appropriateCrib ? '(com berço apropriado)' : ''}
           </span>
         </div>
-      </div>
+      )}
     </div>
   );
 };

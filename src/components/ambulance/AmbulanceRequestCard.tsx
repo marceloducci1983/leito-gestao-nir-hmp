@@ -22,6 +22,7 @@ interface AmbulanceRequest {
   confirmed_at?: string;
   cancelled_at?: string;
   created_at: string;
+  contact?: string;
 }
 
 interface AmbulanceRequestCardProps {
@@ -51,6 +52,7 @@ const AmbulanceRequestCard: React.FC<AmbulanceRequestCardProps> = ({ request }) 
           appropriateCrib={request.appropriate_crib}
           requestDate={request.request_date}
           requestTime={request.request_time}
+          contact={request.contact}
         />
 
         <AmbulanceRequestCardActions
