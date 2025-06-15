@@ -594,7 +594,7 @@ export type Database = {
     Functions: {
       add_department_type: {
         Args: { new_department: string }
-        Returns: undefined
+        Returns: boolean
       }
       calculate_occupation_days: {
         Args: { admission_date: string }
@@ -626,6 +626,10 @@ export type Database = {
       }
       delete_department: {
         Args: { p_id: string }
+        Returns: boolean
+      }
+      enum_value_exists: {
+        Args: { enum_name: string; enum_value: string }
         Returns: boolean
       }
       get_all_departments: {

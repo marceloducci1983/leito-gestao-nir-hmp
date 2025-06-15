@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react';
 import { useDepartments } from '@/hooks/queries/useDepartmentQueries';
 import { useCreateDepartment, useUpdateDepartment, useDeleteDepartment } from '@/hooks/mutations/useDepartmentMutations';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SectorManagementModalProps {
   isOpen: boolean;
@@ -35,6 +36,8 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
       return;
     }
 
+    console.log('📝 Iniciando criação de setor:', newSectorName.trim());
+    
     try {
       await createDepartmentMutation.mutateAsync({
         name: newSectorName.trim(),
@@ -42,12 +45,14 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
       });
       setNewSectorName('');
       setNewSectorDescription('');
+      console.log('✅ Setor criado e formulário limpo');
     } catch (error) {
-      console.error('Error creating department:', error);
+      console.error('❌ Erro na criação do setor:', error);
     }
   };
 
   const handleEditSector = (department: any) => {
+    console.log('✏️ Editando setor:', department);
     setEditingSector(department.id);
     setEditSectorName(department.name);
     setEditSectorDescription(department.description || '');
@@ -58,6 +63,11 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
       return;
     }
 
+    console.log('💾 Salvando edição do setor:', {
+      id: editingSector,
+      name: editSectorName.trim()
+    });
+
     try {
       await updateDepartmentMutation.mutateAsync({
         id: editingSector,
@@ -67,16 +77,20 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
       setEditingSector(null);
       setEditSectorName('');
       setEditSectorDescription('');
+      console.log('✅ Edição salva e formulário limpo');
     } catch (error) {
-      console.error('Error updating department:', error);
+      console.error('❌ Erro na edição do setor:', error);
     }
   };
 
   const handleDeleteSector = async (departmentId: string) => {
+    console.log('🗑️ Removendo setor:', departmentId);
+    
     try {
       await deleteDepartmentMutation.mutateAsync(departmentId);
+      console.log('✅ Setor removido com sucesso');
     } catch (error) {
-      console.error('Error deleting department:', error);
+      console.error('❌ Erro na remoção do setor:', error);
     }
   };
 
@@ -92,6 +106,14 @@ const SectorManagementModal: React.FC<SectorManagementModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Alerta informativo */}
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Os setores criados aqui ficarão disponíveis para criação de leitos e internação de pacientes.
+            </AlertDescription>
+          </Alert>
+
           {/* Adicionar novo setor */}
           <div className="border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Adicionar Novo Setor</h3>
