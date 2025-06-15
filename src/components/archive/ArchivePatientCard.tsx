@@ -10,9 +10,10 @@ import { Calendar, MapPin, Activity, Building, Bed, Clock, User } from 'lucide-r
 
 interface ArchivePatientCardProps {
   patient: DischargedPatient;
+  cardIndex?: number;
 }
 
-const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient }) => {
+const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient, cardIndex = 0 }) => {
   const getDischargeTypeColor = (type: string) => {
     switch (type) {
       case 'POR MELHORA': return 'bg-emerald-50/80 text-emerald-700 border-emerald-200/50 ring-1 ring-emerald-100';
@@ -32,8 +33,13 @@ const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient }) => {
       .toUpperCase();
   };
 
+  // Determinar a cor da borda baseada no índice
+  const getBorderColor = (index: number) => {
+    return index % 2 === 0 ? 'border-l-red-500' : 'border-l-blue-500';
+  };
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-slate-200/60 bg-gradient-to-br from-white via-slate-50/30 to-white shadow-sm backdrop-blur-sm rounded-xl ring-1 ring-slate-100/50">
+    <Card className={`group hover:shadow-lg transition-all duration-300 border-slate-200/60 bg-gradient-to-br from-white via-slate-50/30 to-white shadow-sm backdrop-blur-sm rounded-xl ring-1 ring-slate-100/50 border-l-4 ${getBorderColor(cardIndex)}`}>
       <CardHeader className="pb-2 pt-3 px-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-100/50 shadow-inner ring-1 ring-blue-50">

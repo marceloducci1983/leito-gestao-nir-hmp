@@ -28,8 +28,12 @@ const ArchivePatientList: React.FC<ArchivePatientListProps> = ({
 
   return (
     <div className="grid gap-4">
-      {patients.map((patient) => (
-        <ArchivePatientCard key={patient.id} patient={patient} />
+      {patients.map((patient, index) => (
+        <ArchivePatientCard 
+          key={patient.id} 
+          patient={patient} 
+          cardIndex={index}
+        />
       ))}
     </div>
   );
