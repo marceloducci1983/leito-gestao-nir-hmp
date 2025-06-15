@@ -1,8 +1,11 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Printer } from 'lucide-react';
 import { formatDateTimeSaoPaulo } from '@/utils/timezoneUtils';
+import { generateAnalyticsDashboardReport } from '@/utils/pdf/dischargeAnalyticsReport';
+import { toast } from 'sonner';
 
 interface AnalyticsChartsProps {
   dischargeStatsByDept: any[];
@@ -30,8 +33,35 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
     delay_minutes: Math.round((delayed.delay_hours || 0) * 60)
   }));
 
+  const handlePrintReport = () => {
+    try {
+      console.log('📄 Gerando relatório PDF do dashboard analítico...');
+      generateAnalyticsDashboardReport(
+        dischargeStatsByDept,
+        dischargeStatsByCity,
+        delayedDischarges
+      );
+      toast.success('Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('❌ Erro ao gerar relatório PDF:', error);
+      toast.error('Erro ao gerar relatório PDF');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Cabeçalho com botão IMPRIMIR */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Dashboard Analítico</h2>
+          <p className="text-gray-600">Análise de tempos de alta baseada na metodologia das 07:00h</p>
+        </div>
+        <Button onClick={handlePrintReport} className="flex items-center gap-2">
+          <Printer size={18} />
+          IMPRIMIR
+        </Button>
+      </div>
+
       {/* Info sobre nova metodologia de cálculo */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="p-4">
