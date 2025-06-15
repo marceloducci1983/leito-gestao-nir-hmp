@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Settings, TestTube } from 'lucide-react';
-
 interface BedsPanelHeaderProps {
   totalBeds: number;
   occupiedBeds: number;
@@ -11,7 +9,6 @@ interface BedsPanelHeaderProps {
   onCreateNewBed: () => void;
   onOpenTesting?: () => void;
 }
-
 const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
   totalBeds,
   occupiedBeds,
@@ -21,9 +18,7 @@ const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
 }) => {
   const availableBeds = totalBeds - occupiedBeds;
   const occupationRate = totalBeds > 0 ? (occupiedBeds / totalBeds * 100).toFixed(1) : '0';
-
-  return (
-    <div className="flex flex-col gap-4">
+  return <div className="flex flex-col gap-4">
       {/* Estatísticas gerais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="text-center">
@@ -67,15 +62,8 @@ const BedsPanelHeader: React.FC<BedsPanelHeaderProps> = ({
           Criar Novo Leito
         </Button>
         
-        {onOpenTesting && (
-          <Button onClick={onOpenTesting} variant="outline" size="sm">
-            <TestTube className="h-4 w-4 mr-2" />
-            Testes
-          </Button>
-        )}
+        {onOpenTesting}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default BedsPanelHeader;
