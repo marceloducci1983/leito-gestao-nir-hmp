@@ -42,7 +42,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     <div 
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: `url('/lovable-uploads/8ee561c6-6f69-40d1-aa2e-552921f9de2a.png')`,
+        backgroundImage: `url('/lovable-uploads/770446f2-866e-4b25-8ffb-d8f7a08a5e3c.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
