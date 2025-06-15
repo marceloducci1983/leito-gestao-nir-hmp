@@ -99,7 +99,7 @@ export const testPatients: TestPatient[] = [
     admissionTime: "21:45"
   },
 
-  // CLINICA CIRURGICA (2 pacientes)
+  // CLINICA CIRURGICA (3 pacientes - adicionando 1)
   {
     name: "Luiza Fernandes",
     sex: "feminino",
@@ -127,8 +127,21 @@ export const testPatients: TestPatient[] = [
     admissionDate: "2025-06-13",
     admissionTime: "06:30"
   },
+  {
+    name: "Marcela Rodrigues Silva",
+    sex: "feminino",
+    birthDate: "12/05/1991",
+    diagnosis: "Pós-operatório de apendicectomia por videolaparoscopia. Apendicite aguda complicada.",
+    specialty: "Cirurgia Geral",
+    expectedDischargeDate: "2025-06-19",
+    originCity: "Lagoa Santa",
+    isTFD: false,
+    department: "CLINICA CIRURGICA",
+    admissionDate: "2025-06-15",
+    admissionTime: "02:30"
+  },
 
-  // UTI ADULTO (2 pacientes)
+  // UTI ADULTO (3 pacientes - adicionando 1)
   {
     name: "Carmen Lúcia Pereira",
     sex: "feminino",
@@ -156,8 +169,22 @@ export const testPatients: TestPatient[] = [
     admissionDate: "2025-06-11",
     admissionTime: "18:40"
   },
+  {
+    name: "Francisco das Chagas Neto",
+    sex: "masculino",
+    birthDate: "08/03/1948",
+    diagnosis: "Infarto agudo do miocárdio com supradesnivelamento do segmento ST. Angioplastia primária realizada.",
+    specialty: "Cardiologia",
+    expectedDischargeDate: "2025-06-26",
+    originCity: "Pedro Leopoldo",
+    isTFD: true,
+    tfdType: "Cardiologia intervencionista",
+    department: "UTI ADULTO",
+    admissionDate: "2025-06-12",
+    admissionTime: "05:45"
+  },
 
-  // PEDIATRIA (2 pacientes)
+  // PEDIATRIA (3 pacientes - adicionando 1)
   {
     name: "Gabriel Mendes",
     sex: "masculino",
@@ -185,8 +212,21 @@ export const testPatients: TestPatient[] = [
     admissionDate: "2025-06-15",
     admissionTime: "15:10"
   },
+  {
+    name: "Lucas Eduardo Campos",
+    sex: "masculino",
+    birthDate: "14/02/2018",
+    diagnosis: "Crise convulsiva febril complexa. Primeira crise, necessita investigação neurológica.",
+    specialty: "Neurologia Pediátrica",
+    expectedDischargeDate: "2025-06-18",
+    originCity: "Confins",
+    isTFD: false,
+    department: "PEDIATRIA",
+    admissionDate: "2025-06-15",
+    admissionTime: "20:15"
+  },
 
-  // UTI NEONATAL (2 pacientes)
+  // UTI NEONATAL (3 pacientes - adicionando 1)
   {
     name: "Miguel Nascimento",
     sex: "masculino",
@@ -214,8 +254,22 @@ export const testPatients: TestPatient[] = [
     admissionDate: "2025-05-28",
     admissionTime: "08:30"
   },
+  {
+    name: "Arthur Silva Costa",
+    sex: "masculino",
+    birthDate: "10/06/2025",
+    diagnosis: "Cardiopatia congênita complexa. Tetralogia de Fallot, aguardando cirurgia cardíaca.",
+    specialty: "Cardiologia Pediátrica",
+    expectedDischargeDate: "2025-07-20",
+    originCity: "Sete Lagoas",
+    isTFD: true,
+    tfdType: "Cirurgia cardíaca neonatal",
+    department: "UTI NEONATAL",
+    admissionDate: "2025-06-10",
+    admissionTime: "16:20"
+  },
 
-  // MATERNIDADE (1 paciente)
+  // MATERNIDADE (3 pacientes - adicionando 2)
   {
     name: "Juliana Cardoso",
     sex: "feminino",
@@ -228,5 +282,32 @@ export const testPatients: TestPatient[] = [
     department: "MATERNIDADE",
     admissionDate: "2025-06-14",
     admissionTime: "22:15"
+  },
+  {
+    name: "Camila Aparecida Souza",
+    sex: "feminino",
+    birthDate: "28/07/1992",
+    diagnosis: "Pós-parto normal. Gestação gemelar a termo, parto vaginal sem complicações.",
+    specialty: "Obstetrícia",
+    expectedDischargeDate: "2025-06-16",
+    originCity: "Ibirité",
+    isTFD: false,
+    department: "MATERNIDADE",
+    admissionDate: "2025-06-14",
+    admissionTime: "04:45"
+  },
+  {
+    name: "Roberta Cristina Lima",
+    sex: "feminino",
+    birthDate: "03/09/1989",
+    diagnosis: "Pós-parto cesariana eletiva. Cesárea anterior, gestação única a termo.",
+    specialty: "Obstetrícia",
+    expectedDischargeDate: "2025-06-18",
+    originCity: "Esmeraldas",
+    isTFD: true,
+    tfdType: "Alto risco obstétrico",
+    department: "MATERNIDADE",
+    admissionDate: "2025-06-15",
+    admissionTime: "08:30"
   }
 ];
