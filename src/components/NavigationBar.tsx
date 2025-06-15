@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { 
   Bed, 
   BarChart3, 
@@ -8,7 +10,8 @@ import {
   AlertTriangle, 
   ClipboardCheck, 
   Archive, 
-  Settings 
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
 import MobileNavigation from './MobileNavigation';
@@ -16,9 +19,10 @@ import MobileNavigation from './MobileNavigation';
 interface NavigationBarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
+  onLogout: () => void;
 }
 
-const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange }) => {
+const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange, onLogout }) => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   if (isMobile) {
@@ -30,7 +34,17 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange })
               <h1 className="text-lg font-bold text-gray-900">NIR - HMP</h1>
               <p className="text-xs text-gray-600">Sistema de Gestão de Leitos</p>
             </div>
-            <MobileNavigation activeTab={activeTab} onTabChange={onTabChange} />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLogout}
+                className="h-8 w-8 p-0"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+              <MobileNavigation activeTab={activeTab} onTabChange={onTabChange} />
+            </div>
           </div>
         </div>
       </div>
@@ -41,6 +55,21 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange })
     return (
       <div className="w-full border-b bg-white shadow-sm">
         <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-2 pt-2">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">NIR - HMP</h1>
+              <p className="text-xs text-gray-600">Sistema de Gestão de Leitos</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLogout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </Button>
+          </div>
           <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 h-14">
               <TabsTrigger value="beds" className="flex items-center gap-2 text-sm">
@@ -73,6 +102,21 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabChange })
   return (
     <div className="w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between mb-2 pt-2">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">NIR - HMP</h1>
+            <p className="text-sm text-gray-600">Sistema de Gestão de Leitos</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sair</span>
+          </Button>
+        </div>
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-8 h-14">
             <TabsTrigger value="beds" className="flex items-center gap-2 text-xs sm:text-sm">
