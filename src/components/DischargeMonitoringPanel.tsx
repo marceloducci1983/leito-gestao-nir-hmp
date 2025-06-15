@@ -53,13 +53,30 @@ const DischargeMonitoringPanel: React.FC = () => {
       return sortBy === 'oldest' ? dateA - dateB : dateB - dateA;
     });
 
+  // Função modificada para calcular tempo de espera a partir das 7h da manhã do dia da solicitação
   const calculateWaitTime = (requestedAt: string) => {
     const requested = new Date(requestedAt);
     const now = new Date();
-    const diffMs = now.getTime() - requested.getTime();
+    
+    // Criar data base: início do dia da solicitação + 7 horas (7h da manhã)
+    const requestDay = new Date(requested);
+    requestDay.setHours(0, 0, 0, 0); // Zerar horas para início do dia
+    const baseTime = new Date(requestDay.getTime() + (7 * 60 * 60 * 1000)); // Adicionar 7 horas
+    
+    // Calcular diferença entre agora e 7h da manhã do dia da solicitação
+    const diffMs = now.getTime() - baseTime.getTime();
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return { hours, minutes, isOverdue: hours >= 5 };
+    
+    // Garantir que o tempo mínimo seja 0 (caso a solicitação seja antes das 7h)
+    const finalHours = Math.max(0, hours);
+    const finalMinutes = Math.max(0, minutes);
+    
+    return { 
+      hours: finalHours, 
+      minutes: finalMinutes, 
+      isOverdue: finalHours >= 5 
+    };
   };
 
   const handleEffectiveDischarge = (id: string) => {
