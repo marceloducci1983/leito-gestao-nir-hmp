@@ -23,9 +23,12 @@ const TfdArchiveSection: React.FC = () => {
 
   const filteredArchives = archives.filter(archive => {
     const patientData = archive.patient_data as TfdPatientData;
-    return archive.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (patientData?.originCity?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (patientData?.diagnosis?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    
+    return archive.patient_name.toLowerCase().includes(searchLower) ||
+      (patientData?.originCity?.toLowerCase() || '').includes(searchLower) ||
+      (patientData?.diagnosis?.toLowerCase() || '').includes(searchLower) ||
+      (patientData?.tfdType?.toLowerCase() || '').includes(searchLower);
   });
 
   if (isLoading) {
@@ -42,7 +45,7 @@ const TfdArchiveSection: React.FC = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Buscar por nome, cidade ou diagnóstico..."
+            placeholder="Buscar por nome, cidade, diagnóstico ou tipo de TFD..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
