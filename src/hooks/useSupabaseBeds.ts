@@ -42,11 +42,17 @@ export const useSupabaseBeds = () => {
     };
   }, [bedsData, dischargedData, dischargeControlData, departmentStats]);
 
+  // Função addPatient que retorna Promise
+  const addPatient = async (data: { bedId: string; patientData: any }) => {
+    console.log('🔄 useSupabaseBeds.addPatient chamado com:', data);
+    return await addPatientMutation.mutateAsync(data);
+  };
+
   return {
     centralData,
     isLoading: bedsLoading || dischargedLoading || dischargeControlLoading || statsLoading,
     error: bedsError || dischargedError,
-    addPatient: addPatientMutation.mutate,
+    addPatient,
     updatePatient: updatePatientMutation.mutate,
     dischargePatient: dischargePatientMutation.mutate,
     transferPatient: transferPatientMutation.mutate,

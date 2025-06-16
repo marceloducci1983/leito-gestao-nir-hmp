@@ -20,7 +20,7 @@ interface UseBedsPanelHandlersProps {
   setShowSectorModal: (show: boolean) => void;
   setShowBedModal: (show: boolean) => void;
   setSelectedBedForEdit: (bed: any) => void;
-  addPatient: (data: any) => void;
+  addPatient: (data: any) => Promise<void>;
   transferPatient: (data: any) => void;
   addReservation: (data: any) => void;
   isEditingPatient: boolean;
@@ -95,11 +95,10 @@ export const useBedsPanelHandlers = ({
     console.log('👤 Paciente encontrado:', bed.patient);
     
     try {
-      // Usar useRequestDischarge para enviar para MONITORAMENTO DE ALTAS
       await requestDischargeMutation.mutateAsync({
         patientId: bed.patient.id,
         patientName: bed.patient.name,
-        bedId: bed.name, // Usar o nome do leito
+        bedId: bed.name,
         department: bed.patient.department,
         bedName: bed.name
       });
@@ -123,7 +122,6 @@ export const useBedsPanelHandlers = ({
 
   const handleDeleteReservation = async (bedId: string) => {
     try {
-      // Lógica para excluir a reserva seria implementada aqui
       toast({
         title: "Reserva excluída",
         description: "A reserva foi removida com sucesso",
@@ -152,7 +150,6 @@ export const useBedsPanelHandlers = ({
       
       console.log('✅ setShowBedModal(true) executado com sucesso');
       
-      // Verificar se o estado mudou após um pequeno delay
       setTimeout(() => {
         console.log('🔍 Verificação pós-execução - aguardando estado atualizar...');
       }, 100);
@@ -205,14 +202,40 @@ export const useBedsPanelHandlers = ({
     }
   };
 
-  const submitPatient = (patientData: any) => {
+  const submitPatient = async (patientData: any) => {
+    console.log('📝 submitPatient iniciado com dados:', patientData);
+    console.log('🏥 Leito selecionado:', selectedBedId);
+    
+    if (!selectedBedId) {
+      console.error('❌ selectedBedId não encontrado');
+      toast({
+        title: "Erro",
+        description: "Leito não selecionado",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      addPatient(patientData);
+      console.log('⚡ Chamando addPatient com bedId e patientData...');
+      await addPatient({
+        bedId: selectedBedId,
+        patientData: patientData
+      });
+      
+      console.log('✅ Paciente admitido com sucesso');
+      
+      // Fechar modal apenas após sucesso
+      setShowPatientForm(false);
+      setSelectedPatient(null);
+      setIsEditingPatient(false);
+      
       toast({
         title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
         description: `${patientData.name} - ${patientData.diagnosis}`,
       });
     } catch (error: any) {
+      console.error('❌ Erro ao processar paciente:', error);
       toast({
         title: "Erro",
         description: isEditingPatient ? "Erro ao editar paciente" : "Erro ao admitir paciente",
