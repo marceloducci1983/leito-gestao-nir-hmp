@@ -20,7 +20,7 @@ interface UseBedsPanelHandlersProps {
   setShowSectorModal: (show: boolean) => void;
   setShowBedModal: (show: boolean) => void;
   setSelectedBedForEdit: (bed: any) => void;
-  addPatient: (data: any) => Promise<void>;
+  addPatient: (data: any) => Promise<any>;
   transferPatient: (data: any) => void;
   addReservation: (data: any) => void;
   isEditingPatient: boolean;
