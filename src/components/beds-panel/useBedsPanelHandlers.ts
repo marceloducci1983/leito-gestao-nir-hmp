@@ -1,6 +1,8 @@
 
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
+import { useDeleteBed } from '@/hooks/mutations/useBedMutations';
 import { Bed, Department, Patient } from '@/types';
 
 interface UseBedsPanelHandlersProps {
@@ -45,6 +47,8 @@ export const useBedsPanelHandlers = ({
   isEditingPatient
 }: UseBedsPanelHandlersProps) => {
   const { toast } = useToast();
+  const requestDischargeMutation = useRequestDischarge();
+  const deleteBedMutation = useDeleteBed();
 
   const handleReserveBed = (bedId: string) => {
     setSelectedBedId(bedId);
@@ -52,10 +56,12 @@ export const useBedsPanelHandlers = ({
   };
 
   const handleAdmitPatient = (bedId: string) => {
+    console.log('🏥 handleAdmitPatient chamado para leito:', bedId);
     setSelectedBedId(bedId);
     setSelectedPatient(null);
     setIsEditingPatient(false);
     setShowPatientForm(true);
+    console.log('✅ handleAdmitPatient executado - modal deve abrir');
   };
 
   const handleEditPatient = (bedId: string) => {
@@ -77,12 +83,41 @@ export const useBedsPanelHandlers = ({
     }
   };
 
-  const handleDischargePatient = (bedId: string) => {
+  const handleDischargePatient = async (bedId: string) => {
+    console.log('🏥 handleDischargePatient iniciado para leito:', bedId);
+    
     const bed = centralData.beds.find((b: Bed) => b.id === bedId);
-    if (bed && bed.patient) {
-      setSelectedBedId(bedId);
-      setSelectedPatient(bed.patient);
-      // setShowDischargeModal(true); // Certifique-se de ter um estado para o modal de alta
+    if (!bed || !bed.patient) {
+      console.log('❌ Leito ou paciente não encontrado');
+      return;
+    }
+
+    console.log('👤 Paciente encontrado:', bed.patient);
+    
+    try {
+      // Usar useRequestDischarge para enviar para MONITORAMENTO DE ALTAS
+      await requestDischargeMutation.mutateAsync({
+        patientId: bed.patient.id,
+        patientName: bed.patient.name,
+        bedId: bed.name, // Usar o nome do leito
+        department: bed.patient.department,
+        bedName: bed.name
+      });
+
+      console.log('✅ Solicitação de alta enviada para MONITORAMENTO DE ALTAS');
+      
+      toast({
+        title: "Alta solicitada com sucesso",
+        description: `${bed.patient.name} - Solicitação enviada para monitoramento`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Erro ao solicitar alta:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao solicitar alta",
+        variant: "destructive",
+      });
     }
   };
 
@@ -135,13 +170,17 @@ export const useBedsPanelHandlers = ({
   };
 
   const handleDeleteBed = async (bedId: string) => {
+    console.log('🗑️ Excluindo leito customizado:', bedId);
+    
     try {
-      // Lógica para excluir o leito seria implementada aqui
+      await deleteBedMutation.mutateAsync(bedId);
+      
       toast({
         title: "Leito excluído",
-        description: "O leito customizado foi removido",
+        description: "O leito customizado foi removido com sucesso",
       });
     } catch (error: any) {
+      console.error('❌ Erro ao excluir leito:', error);
       toast({
         title: "Erro",
         description: "Erro ao excluir leito",
@@ -213,8 +252,8 @@ export const useBedsPanelHandlers = ({
   };
 
   const isDischarging = useCallback((bedId: string) => {
-    return false;
-  }, []);
+    return requestDischargeMutation.isPending;
+  }, [requestDischargeMutation.isPending]);
 
   return {
     handleReserveBed,

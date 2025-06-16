@@ -31,12 +31,17 @@ export const BedHeader: React.FC<BedHeaderProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <BedStatus isOccupied={isOccupied} isReserved={isReserved} />
-          {isCustom && onDeleteBed && (
+          {isCustom && onDeleteBed && !isOccupied && !isReserved && (
             <Button
               size="sm"
               variant="outline"
-              className="h-6 w-6 p-0"
-              onClick={onDeleteBed}
+              className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Tem certeza que deseja excluir este leito?')) {
+                  onDeleteBed();
+                }
+              }}
               title="Excluir leito customizado"
             >
               <Trash2 className="h-3 w-3" />

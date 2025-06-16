@@ -145,7 +145,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md z-[9999] bg-white border shadow-lg">
+      <DialogContent className="max-w-md bg-white border shadow-lg" style={{ zIndex: 99999 }}>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Leito' : 'Adicionar Novo Leito'}</DialogTitle>
         </DialogHeader>
@@ -159,6 +159,8 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
               onChange={(e) => setBedName(e.target.value)}
               placeholder="Ex: 101A, UTI-05, etc."
               disabled={isLoading}
+              autoFocus
+              style={{ zIndex: 99999 }}
             />
           </div>
 
@@ -170,10 +172,10 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
                 onValueChange={(value) => setSelectedDepartment(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1" style={{ zIndex: 99999 }}>
                   <SelectValue placeholder="Selecione o setor" />
                 </SelectTrigger>
-                <SelectContent className="z-[9999] bg-white border shadow-lg">
+                <SelectContent className="bg-white border shadow-lg" style={{ zIndex: 99999 }}>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}

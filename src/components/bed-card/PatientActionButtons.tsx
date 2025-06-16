@@ -21,14 +21,27 @@ export const PatientActionButtons: React.FC<PatientActionButtonsProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleDischargeClick = async () => {
-    if (isProcessing) return;
+    console.log('🔴 Botão DAR ALTA clicado');
+    
+    if (isProcessing || isDischarging) {
+      console.log('⚠️ Já está processando, ignorando clique');
+      return;
+    }
     
     setIsProcessing(true);
+    console.log('⚡ Chamando onDischargePatient...');
+    
     try {
       await onDischargePatient();
+      console.log('✅ onDischargePatient executado com sucesso');
+    } catch (error) {
+      console.error('❌ Erro em onDischargePatient:', error);
     } finally {
       // Reset após 2 segundos para permitir nova tentativa se necessário
-      setTimeout(() => setIsProcessing(false), 2000);
+      setTimeout(() => {
+        console.log('🔄 Resetando estado de processamento');
+        setIsProcessing(false);
+      }, 2000);
     }
   };
 
