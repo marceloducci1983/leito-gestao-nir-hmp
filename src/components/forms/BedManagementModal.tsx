@@ -29,14 +29,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   bedData,
   isEditing = false
 }) => {
-  console.log('🔵 BedManagementModal renderizado - INÍCIO');
-  console.log('🔍 Props recebidas:', { 
-    isOpen, 
-    isEditing, 
-    departmentsCount: fallbackDepartments?.length,
-    bedDataExists: !!bedData,
-    onCloseType: typeof onClose
-  });
+  console.log('🔵 BedManagementModal renderizado - isOpen:', isOpen);
 
   const [bedName, setBedName] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
@@ -46,9 +39,12 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   const updateBedMutation = useUpdateBed();
   const { toast } = useToast();
 
-  // Usar departamentos dinâmicos do banco de dados sempre que disponível
-  const departments = departmentNames.length > 0 ? departmentNames : fallbackDepartments;
-  console.log('🏥 Departamentos finais:', departments);
+  // Usar departamentos dinâmicos do banco de dados sempre que disponível (excluindo UTI PEDIATRICA)
+  const departments = departmentNames.length > 0 ? 
+    departmentNames.filter(dept => dept !== 'UTI PEDIATRICA') : 
+    fallbackDepartments.filter(dept => dept !== 'UTI PEDIATRICA');
+
+  console.log('🏥 Departamentos finais (sem UTI PEDIATRICA):', departments);
 
   // Função para atualizar lista de departamentos
   const handleRefreshDepartments = async () => {
@@ -115,11 +111,21 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
           name: bedName.trim(),
           department: selectedDepartment
         });
+        
+        toast({
+          title: "Sucesso",
+          description: "Leito atualizado com sucesso",
+        });
       } else {
         console.log('🆕 Criando novo leito');
         await createBedMutation.mutateAsync({
           name: bedName.trim(),
           department: selectedDepartment
+        });
+        
+        toast({
+          title: "Sucesso",
+          description: "Leito criado com sucesso",
         });
       }
 
@@ -131,6 +137,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
       onClose();
     } catch (error) {
       console.error('❌ Erro ao processar leito:', error);
+      // O erro será tratado pelas mutations
     }
   };
 
@@ -145,7 +152,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white border shadow-lg" style={{ zIndex: 99999 }}>
+      <DialogContent className="max-w-md bg-white border shadow-lg" style={{ zIndex: 9999 }}>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Leito' : 'Adicionar Novo Leito'}</DialogTitle>
         </DialogHeader>
@@ -160,7 +167,6 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
               placeholder="Ex: 101A, UTI-05, etc."
               disabled={isLoading}
               autoFocus
-              style={{ zIndex: 99999 }}
             />
           </div>
 
@@ -172,10 +178,10 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
                 onValueChange={(value) => setSelectedDepartment(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger className="flex-1" style={{ zIndex: 99999 }}>
+                <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Selecione o setor" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border shadow-lg" style={{ zIndex: 99999 }}>
+                <SelectContent className="bg-white border shadow-lg" style={{ zIndex: 9999 }}>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}

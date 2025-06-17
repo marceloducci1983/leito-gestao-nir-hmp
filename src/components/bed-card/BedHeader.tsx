@@ -22,6 +22,13 @@ export const BedHeader: React.FC<BedHeaderProps> = ({
   isCustom,
   onDeleteBed
 }) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Tem certeza que deseja excluir este leito customizado?')) {
+      onDeleteBed?.();
+    }
+  };
+
   return (
     <CardHeader className="pb-2">
       <CardTitle className="flex justify-between items-start text-sm">
@@ -36,12 +43,7 @@ export const BedHeader: React.FC<BedHeaderProps> = ({
               size="sm"
               variant="outline"
               className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm('Tem certeza que deseja excluir este leito?')) {
-                  onDeleteBed();
-                }
-              }}
+              onClick={handleDeleteClick}
               title="Excluir leito customizado"
             >
               <Trash2 className="h-3 w-3" />

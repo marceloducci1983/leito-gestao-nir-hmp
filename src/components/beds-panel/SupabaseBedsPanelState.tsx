@@ -84,9 +84,6 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     isEditingPatient
   });
 
-  // Estado para modal de testes
-  const [showTestingModal, setShowTestingModal] = React.useState(false);
-
   // Update parent component with data
   React.useEffect(() => {
     if (onDataChange) {
@@ -94,8 +91,8 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     }
   }, [centralData, onDataChange]);
 
-  // Usar departamentos dinâmicos do banco de dados com fallback
-  const departments = departmentNames.length > 0 ? departmentNames : [
+  // Usar departamentos dinâmicos do banco de dados com fallback (sem UTI PEDIATRICA)
+  const fallbackDepartments = [
     'CLINICA MEDICA',
     'PRONTO SOCORRO', 
     'CLINICA CIRURGICA',
@@ -105,9 +102,9 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     'MATERNIDADE'
   ];
 
-  const handleOpenTesting = () => {
-    setShowTestingModal(true);
-  };
+  const departments = departmentNames.length > 0 ? 
+    departmentNames.filter(dept => dept !== 'UTI PEDIATRICA') : 
+    fallbackDepartments;
 
   // Para cada leito, determine se está em processo de alta
   const bedsWithDischargeState = sortedBeds.map((bed: any) => ({
@@ -144,8 +141,6 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     setShowSectorModal,
     showBedModal,
     setShowBedModal,
-    showTestingModal,
-    setShowTestingModal,
     
     // Selected items
     selectedBedId,
@@ -169,7 +164,6 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     submitTransfer,
     handleManageSectors,
     handleCreateNewBed,
-    handleEditBed,
-    handleOpenTesting
+    handleEditBed
   };
 };

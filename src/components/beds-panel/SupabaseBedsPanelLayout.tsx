@@ -35,8 +35,6 @@ interface SupabaseBedsPanelLayoutProps {
   setShowSectorModal: (show: boolean) => void;
   showBedModal: boolean;
   setShowBedModal: (show: boolean) => void;
-  showTestingModal: boolean;
-  setShowTestingModal: (show: boolean) => void;
   
   // Selected items
   selectedBedId: string;
@@ -61,7 +59,6 @@ interface SupabaseBedsPanelLayoutProps {
   handleManageSectors: () => void;
   handleCreateNewBed: () => void;
   handleEditBed: (bed: any) => void;
-  handleOpenTesting: () => void;
 }
 
 const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
@@ -86,8 +83,6 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
   setShowSectorModal,
   showBedModal,
   setShowBedModal,
-  showTestingModal,
-  setShowTestingModal,
   selectedBedId,
   selectedPatient,
   setSelectedPatient,
@@ -107,8 +102,7 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
   submitTransfer,
   handleManageSectors,
   handleCreateNewBed,
-  handleEditBed,
-  handleOpenTesting
+  handleEditBed
 }) => {
   if (isLoading) {
     return (
@@ -135,7 +129,6 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
         occupiedBeds={centralData.beds.filter((bed: any) => bed.isOccupied).length}
         onManageSectors={handleManageSectors}
         onCreateNewBed={handleCreateNewBed}
-        onOpenTesting={handleOpenTesting}
       />
 
       <BedSearchBar
@@ -192,8 +185,6 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
           setSelectedBedForEdit(null);
         }}
         selectedBedForEdit={selectedBedForEdit}
-        showTestingModal={showTestingModal}
-        onCloseTestingModal={() => setShowTestingModal(false)}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
@@ -149,10 +148,6 @@ export const useBedsPanelHandlers = ({
       setShowBedModal(true);
       
       console.log('✅ setShowBedModal(true) executado com sucesso');
-      
-      setTimeout(() => {
-        console.log('🔍 Verificação pós-execução - aguardando estado atualizar...');
-      }, 100);
       
     } catch (error) {
       console.error('❌ Erro ao executar handleCreateNewBed:', error);
