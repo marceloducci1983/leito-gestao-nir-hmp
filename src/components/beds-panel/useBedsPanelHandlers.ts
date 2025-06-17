@@ -200,6 +200,8 @@ export const useBedsPanelHandlers = ({
   const submitPatient = async (patientData: any) => {
     console.log('📝 submitPatient iniciado com dados:', patientData);
     console.log('🏥 Leito selecionado:', selectedBedId);
+    console.log('🏭 Departamento selecionado:', selectedDepartment);
+    console.log('✏️ Está editando?', isEditingPatient);
     
     if (!selectedBedId) {
       console.error('❌ selectedBedId não encontrado');
@@ -213,17 +215,28 @@ export const useBedsPanelHandlers = ({
 
     try {
       console.log('⚡ Chamando addPatient com bedId e patientData...');
-      await addPatient({
+      
+      // Garantir que o departamento seja passado corretamente
+      const patientDataWithDepartment = {
+        ...patientData,
+        department: patientData.department || selectedDepartment
+      };
+      
+      console.log('🔄 Dados finais do paciente a serem enviados:', patientDataWithDepartment);
+      
+      const result = await addPatient({
         bedId: selectedBedId,
-        patientData: patientData
+        patientData: patientDataWithDepartment
       });
       
+      console.log('✅ Resposta do addPatient:', result);
       console.log('✅ Paciente admitido com sucesso');
       
       // Fechar modal apenas após sucesso
       setShowPatientForm(false);
       setSelectedPatient(null);
       setIsEditingPatient(false);
+      setSelectedBedId('');
       
       toast({
         title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",

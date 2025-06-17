@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReservationForm from '@/components/forms/ReservationForm';
-import PatientForm from '@/components/forms/PatientForm';
+import NewPatientForm from '@/components/forms/NewPatientForm';
 import TransferModal from '@/components/forms/TransferModal';
 import SectorManagementModal from '@/components/forms/SectorManagementModal';
 import BedManagementModal from '@/components/forms/BedManagementModal';
@@ -51,8 +51,11 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
   onCloseBedModal,
   selectedBedForEdit
 }) => {
-  console.log('🔄 BedsPanelModals - showBedModal:', showBedModal);
-  console.log('🔄 BedsPanelModals - selectedBedForEdit:', selectedBedForEdit);
+  console.log('🔄 BedsPanelModals - showPatientForm:', showPatientForm);
+  console.log('🔄 BedsPanelModals - selectedPatient:', selectedPatient);
+  console.log('🔄 BedsPanelModals - isEditingPatient:', isEditingPatient);
+  console.log('🔄 BedsPanelModals - selectedBedId:', selectedBedId);
+  console.log('🔄 BedsPanelModals - selectedDepartment:', selectedDepartment);
 
   return (
     <>
@@ -65,11 +68,14 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
       )}
 
       {showPatientForm && (
-        <PatientForm
+        <NewPatientForm
           isOpen={showPatientForm}
           onClose={onClosePatientForm}
           onSubmit={onSubmitPatient}
+          bedId={selectedBedId}
+          department={selectedDepartment}
           patient={selectedPatient}
+          patientData={selectedPatient}
           isEditing={isEditingPatient}
         />
       )}
