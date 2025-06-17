@@ -71,8 +71,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     <div 
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: `url('/lovable-uploads/3f7ace4a-e70a-4405-8133-c0e97fd2251b.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
-        backgroundSize: 'cover, cover',
+        backgroundImage: `url('/lovable-uploads/8143bc74-87be-4426-81bb-81483cfd88e5.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
+        backgroundSize: 'contain, cover',
         backgroundPosition: 'center, center',
         backgroundRepeat: 'no-repeat, no-repeat',
         backgroundColor: '#1e40af'
@@ -94,11 +94,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
       {/* Overlay with dynamic opacity for better contrast */}
       <div className={`absolute inset-0 transition-all duration-300 ${
-        isDarkMode ? 'bg-black bg-opacity-60' : 'bg-black bg-opacity-40'
+        isDarkMode ? 'bg-black bg-opacity-70' : 'bg-white bg-opacity-20'
       }`}></div>
       
       {/* Card de login adaptável ao tema */}
-      <Card className="w-full max-w-md mx-4 relative z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-2xl transition-all duration-300">
+      <Card className="w-full max-w-md mx-4 relative z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-2xl transition-all duration-300 border-2 border-white/20">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors duration-300">
             SISTEMA DE GESTÃO DE LEITOS
