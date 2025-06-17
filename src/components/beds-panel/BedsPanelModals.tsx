@@ -58,27 +58,30 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
     <>
       {showReservationForm && (
         <ReservationForm
-          onSubmit={onSubmitReservation}
+          isOpen={showReservationForm}
           onClose={onCloseReservationForm}
-          bedId={selectedBedId}
-          departmentName={selectedDepartment}
+          onSubmit={onSubmitReservation}
         />
       )}
 
       {showPatientForm && (
         <PatientForm
-          onSubmit={onSubmitPatient}
+          isOpen={showPatientForm}
           onClose={onClosePatientForm}
+          onSubmit={onSubmitPatient}
+          patient={selectedPatient}
           isEditing={isEditingPatient}
-          initialData={selectedPatient}
         />
       )}
 
-      {showTransferModal && (
+      {showTransferModal && selectedPatient && (
         <TransferModal
-          onSubmit={onSubmitTransfer}
+          isOpen={showTransferModal}
           onClose={onCloseTransferModal}
+          onSubmit={onSubmitTransfer}
+          patientName={selectedPatient.name}
           availableBeds={availableBedsForTransfer}
+          currentDepartment={selectedPatient.department}
         />
       )}
 
