@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCreateBed, useUpdateBed } from '@/hooks/mutations/useBedMutations';
 import { useDepartmentNames } from '@/hooks/queries/useDepartmentQueries';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Plus } from 'lucide-react';
 
 interface BedManagementModalProps {
   isOpen: boolean;
@@ -29,7 +29,9 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   bedData,
   isEditing = false
 }) => {
-  console.log('🔵 BedManagementModal renderizado - isOpen:', isOpen);
+  console.log('🔵 [BED_MODAL] Modal renderizado - isOpen:', isOpen);
+  console.log('🔍 [BED_MODAL] bedData recebido:', bedData);
+  console.log('🔍 [BED_MODAL] isEditing:', isEditing);
 
   const [bedName, setBedName] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
@@ -44,47 +46,47 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     departmentNames.filter(dept => dept !== 'UTI PEDIATRICA') : 
     fallbackDepartments.filter(dept => dept !== 'UTI PEDIATRICA');
 
-  console.log('🏥 Departamentos finais (sem UTI PEDIATRICA):', departments);
+  console.log('🏥 [BED_MODAL] Departamentos finais (sem UTI PEDIATRICA):', departments);
 
   // Função para atualizar lista de departamentos
   const handleRefreshDepartments = async () => {
-    console.log('🔄 Atualizando lista de departamentos...');
+    console.log('🔄 [BED_MODAL] Atualizando lista de departamentos...');
     await refetchDepartments();
   };
 
   useEffect(() => {
-    console.log('🔄 useEffect - Modal aberto/fechado:', isOpen);
+    console.log('🔄 [BED_MODAL] useEffect - Modal aberto/fechado:', isOpen);
     if (bedData && isOpen) {
-      console.log('📝 Preenchendo dados do leito:', bedData);
+      console.log('📝 [BED_MODAL] Preenchendo dados do leito:', bedData);
       setBedName(bedData.name);
       setSelectedDepartment(bedData.department);
     } else if (isOpen) {
-      console.log('🆕 Criando novo leito - resetando formulário');
+      console.log('🆕 [BED_MODAL] Criando novo leito - resetando formulário');
       setBedName('');
       // Usar o primeiro departamento disponível ou fallback
       const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
       setSelectedDepartment(defaultDept);
-      console.log('🏥 Departamento padrão selecionado:', defaultDept);
+      console.log('🏥 [BED_MODAL] Departamento padrão selecionado:', defaultDept);
     }
   }, [bedData, isOpen, departments]);
 
   // Atualizar departamentos quando o modal abrir
   useEffect(() => {
     if (isOpen && !loadingDepartments) {
-      console.log('🔄 Modal aberto - buscando departamentos atualizados');
+      console.log('🔄 [BED_MODAL] Modal aberto - buscando departamentos atualizados');
       handleRefreshDepartments();
     }
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    console.log('📝 Submetendo formulário:', { 
+    console.log('📝 [BED_MODAL] Submetendo formulário:', { 
       bedName: bedName.trim(), 
       selectedDepartment, 
       isEditing 
     });
 
     if (!bedName.trim()) {
-      console.log('❌ Nome do leito é obrigatório');
+      console.log('❌ [BED_MODAL] Nome do leito é obrigatório');
       toast({
         title: "Erro",
         description: "Nome do leito é obrigatório",
@@ -94,7 +96,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     }
 
     if (!selectedDepartment) {
-      console.log('❌ Setor é obrigatório');
+      console.log('❌ [BED_MODAL] Setor é obrigatório');
       toast({
         title: "Erro", 
         description: "Setor é obrigatório",
@@ -105,38 +107,39 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
 
     try {
       if (isEditing && bedData?.id) {
-        console.log('🔄 Atualizando leito:', bedData.id);
+        console.log('🔄 [BED_MODAL] Atualizando leito:', bedData.id);
         await updateBedMutation.mutateAsync({
           bedId: bedData.id,
           name: bedName.trim(),
           department: selectedDepartment
         });
         
-        toast({
-          title: "Sucesso",
-          description: "Leito atualizado com sucesso",
-        });
+        console.log('✅ [BED_MODAL] Leito atualizado com sucesso');
       } else {
-        console.log('🆕 Criando novo leito');
-        await createBedMutation.mutateAsync({
+        console.log('🆕 [BED_MODAL] Criando novo leito...');
+        console.log('📊 [BED_MODAL] Dados para criação:', {
           name: bedName.trim(),
           department: selectedDepartment
         });
         
-        toast({
-          title: "Sucesso",
-          description: "Leito criado com sucesso",
+        const result = await createBedMutation.mutateAsync({
+          name: bedName.trim(),
+          department: selectedDepartment
         });
+        
+        console.log('✅ [BED_MODAL] Leito criado com sucesso! Resultado:', result);
       }
 
-      console.log('✅ Operação concluída com sucesso');
+      console.log('✅ [BED_MODAL] Operação concluída com sucesso');
+      
       // Reset form and close modal
       setBedName('');
       const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
       setSelectedDepartment(defaultDept);
       onClose();
+      
     } catch (error) {
-      console.error('❌ Erro ao processar leito:', error);
+      console.error('❌ [BED_MODAL] Erro ao processar leito:', error);
       // O erro será tratado pelas mutations
     }
   };
@@ -144,17 +147,20 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   const isLoading = createBedMutation.isPending || updateBedMutation.isPending || loadingDepartments;
 
   if (!isOpen) {
-    console.log('❌ Modal não está aberto, não renderizando');
+    console.log('❌ [BED_MODAL] Modal não está aberto, não renderizando');
     return null;
   }
 
-  console.log('✅ Renderizando modal aberto - pronto para uso');
+  console.log('✅ [BED_MODAL] Renderizando modal aberto - pronto para uso');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-white border shadow-lg" style={{ zIndex: 9999 }}>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Leito' : 'Adicionar Novo Leito'}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            {isEditing ? 'Editar Leito' : 'Adicionar Novo Leito'}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -167,12 +173,16 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
               placeholder="Ex: 101A, UTI-05, etc."
               disabled={isLoading}
               autoFocus
+              className="mt-1"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              O nome deve ser único dentro do departamento
+            </p>
           </div>
 
           <div>
             <Label htmlFor="bed-department">Setor/Departamento</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-1">
               <Select 
                 value={selectedDepartment} 
                 onValueChange={(value) => setSelectedDepartment(value)}
@@ -220,7 +230,14 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
               className="flex-1"
               disabled={isLoading || !bedName.trim() || !selectedDepartment}
             >
-              {isLoading ? 'Processando...' : (isEditing ? 'Salvar Alterações' : 'Criar Leito')}
+              {isLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                isEditing ? 'Salvar Alterações' : 'Criar Leito'
+              )}
             </Button>
           </div>
         </div>

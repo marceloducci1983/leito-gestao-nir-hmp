@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
@@ -135,22 +136,24 @@ export const useBedsPanelHandlers = ({
   };
 
   const handleCreateNewBed = () => {
-    console.log('🔵 Botão "Criar Novo Leito" clicado - INÍCIO');
-    console.log('🔍 Estado atual setShowBedModal function:', typeof setShowBedModal);
-    console.log('🔍 Departamentos disponíveis:', centralData?.departmentNames?.length || 0);
-    console.log('🔍 CentralData disponível:', !!centralData);
+    console.log('🔵 [HANDLER] Botão "Criar Novo Leito" clicado - INÍCIO');
+    console.log('🔍 [HANDLER] Estado atual setShowBedModal function:', typeof setShowBedModal);
+    console.log('🔍 [HANDLER] Departamentos disponíveis:', centralData?.departmentNames?.length || 0);
+    console.log('🔍 [HANDLER] CentralData disponível:', !!centralData);
+    console.log('🔍 [HANDLER] Departamento selecionado:', selectedDepartment);
     
     try {
-      console.log('⚙️ Resetando selectedBedForEdit para null...');
+      console.log('⚙️ [HANDLER] Resetando selectedBedForEdit para null...');
       setSelectedBedForEdit(null);
       
-      console.log('⚙️ Chamando setShowBedModal(true)...');
+      console.log('⚙️ [HANDLER] Chamando setShowBedModal(true)...');
       setShowBedModal(true);
       
-      console.log('✅ setShowBedModal(true) executado com sucesso');
+      console.log('✅ [HANDLER] setShowBedModal(true) executado com sucesso');
+      console.log('✅ [HANDLER] Modal deve estar aberto agora');
       
     } catch (error) {
-      console.error('❌ Erro ao executar handleCreateNewBed:', error);
+      console.error('❌ [HANDLER] Erro ao executar handleCreateNewBed:', error);
       toast({
         title: "Erro",
         description: "Erro ao abrir formulário de criação de leito",
@@ -158,26 +161,30 @@ export const useBedsPanelHandlers = ({
       });
     }
     
-    console.log('🔵 Botão "Criar Novo Leito" clicado - FIM');
+    console.log('🔵 [HANDLER] Botão "Criar Novo Leito" clicado - FIM');
   };
 
   const handleDeleteBed = async (bedId: string) => {
-    console.log('🗑️ Excluindo leito customizado:', bedId);
+    console.log('🗑️ [HANDLER] Excluindo leito customizado:', bedId);
     
-    try {
-      await deleteBedMutation.mutateAsync(bedId);
-      
-      toast({
-        title: "Leito excluído",
-        description: "O leito customizado foi removido com sucesso",
-      });
-    } catch (error: any) {
-      console.error('❌ Erro ao excluir leito:', error);
+    if (!bedId) {
+      console.error('❌ [HANDLER] ID do leito não fornecido');
       toast({
         title: "Erro",
-        description: "Erro ao excluir leito",
+        description: "ID do leito não identificado",
         variant: "destructive",
       });
+      return;
+    }
+    
+    try {
+      console.log('⚡ [HANDLER] Chamando mutation para excluir leito...');
+      await deleteBedMutation.mutateAsync(bedId);
+      console.log('✅ [HANDLER] Leito excluído com sucesso');
+      
+    } catch (error: any) {
+      console.error('❌ [HANDLER] Erro ao excluir leito:', error);
+      // O toast de erro já é exibido pela mutation
     }
   };
 

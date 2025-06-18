@@ -24,8 +24,23 @@ export const BedHeader: React.FC<BedHeaderProps> = ({
 }) => {
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('Tem certeza que deseja excluir este leito customizado?')) {
-      onDeleteBed?.();
+    console.log('🗑️ [BED_HEADER] Botão de exclusão clicado para leito:', name);
+    
+    if (!onDeleteBed) {
+      console.log('❌ [BED_HEADER] Função onDeleteBed não fornecida');
+      return;
+    }
+    
+    if (isOccupied || isReserved) {
+      console.log('❌ [BED_HEADER] Leito está ocupado ou reservado, não pode ser excluído');
+      return;
+    }
+    
+    if (window.confirm(`Tem certeza que deseja excluir o leito customizado "${name}"?`)) {
+      console.log('✅ [BED_HEADER] Usuário confirmou exclusão, chamando onDeleteBed...');
+      onDeleteBed();
+    } else {
+      console.log('❌ [BED_HEADER] Usuário cancelou exclusão');
     }
   };
 
@@ -42,7 +57,7 @@ export const BedHeader: React.FC<BedHeaderProps> = ({
             <Button
               size="sm"
               variant="outline"
-              className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
               onClick={handleDeleteClick}
               title="Excluir leito customizado"
             >

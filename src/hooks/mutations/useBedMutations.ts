@@ -20,40 +20,71 @@ export const useCreateBed = () => {
 
   return useMutation({
     mutationFn: async (data: CreateBedData) => {
-      console.log('🔄 Criando leito:', data);
+      console.log('🔄 [MUTATION] Iniciando criação de leito:', data);
       
+      // Validar dados de entrada
+      if (!data.name || !data.department) {
+        console.error('❌ [MUTATION] Dados inválidos:', data);
+        throw new Error('Nome do leito e departamento são obrigatórios');
+      }
+
+      console.log('⚡ [MUTATION] Chamando função create_bed no Supabase...');
       const { data: result, error } = await supabase.rpc('create_bed', {
-        p_name: data.name,
+        p_name: data.name.trim(),
         p_department: data.department
       });
 
       if (error) {
-        console.error('❌ Erro ao criar leito:', error);
-        throw error;
+        console.error('❌ [MUTATION] Erro do Supabase:', error);
+        throw new Error(`Erro ao criar leito: ${error.message}`);
       }
 
-      console.log('✅ Leito criado com sucesso:', result);
+      if (!result) {
+        console.error('❌ [MUTATION] Função retornou resultado vazio');
+        throw new Error('Erro interno: função não retornou ID do leito');
+      }
+
+      console.log('✅ [MUTATION] Leito criado com sucesso! ID:', result);
       return result;
     },
-    onSuccess: () => {
-      // Invalidar todas as queries relacionadas para garantir sincronização
-      queryClient.invalidateQueries({ queryKey: ['beds'] });
-      queryClient.invalidateQueries({ queryKey: ['departments'] });
-      queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
-      queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
-      queryClient.invalidateQueries({ queryKey: ['department-stats'] });
+    onSuccess: (bedId, variables) => {
+      console.log('🎉 [MUTATION] onSuccess executado para leito:', bedId);
+      
+      // Invalidar múltiplas queries para garantir sincronização completa
+      const queriesToInvalidate = [
+        { queryKey: ['beds'] },
+        { queryKey: ['departments'] },
+        { queryKey: ['department-stats'] },
+        { queryKey: ['discharged-patients'] },
+        { queryKey: ['discharge-control'] }
+      ];
+
+      console.log('🔄 [MUTATION] Invalidando queries:', queriesToInvalidate.length);
+      
+      queriesToInvalidate.forEach(query => {
+        queryClient.invalidateQueries(query);
+      });
+
+      // Forçar refetch imediato das queries de leitos
+      queryClient.refetchQueries({ queryKey: ['beds'] });
       
       toast({
-        title: "Sucesso",
-        description: "Leito criado com sucesso e totalmente integrado",
+        title: "✅ Leito criado com sucesso!",
+        description: `${variables.name} foi adicionado ao ${variables.department}`,
+        duration: 3000,
       });
+
+      console.log('✅ [MUTATION] Processo de criação finalizado com sucesso');
     },
-    onError: (error: any) => {
-      console.error('💥 Falha na criação do leito:', error);
+    onError: (error: any, variables) => {
+      console.error('💥 [MUTATION] onError executado:', error);
+      console.error('💥 [MUTATION] Variáveis que falharam:', variables);
+      
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar leito",
+        title: "❌ Erro ao criar leito",
+        description: error.message || "Erro desconhecido ao criar leito",
         variant: "destructive",
+        duration: 5000,
       });
     }
   });
@@ -65,7 +96,7 @@ export const useUpdateBed = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateBedData) => {
-      console.log('🔄 Atualizando leito:', data);
+      console.log('🔄 [UPDATE] Atualizando leito:', data);
       
       const { data: result, error } = await supabase.rpc('update_bed', {
         p_bed_id: data.bedId,
@@ -74,11 +105,11 @@ export const useUpdateBed = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao atualizar leito:', error);
+        console.error('❌ [UPDATE] Erro ao atualizar leito:', error);
         throw error;
       }
 
-      console.log('✅ Leito atualizado com sucesso:', result);
+      console.log('✅ [UPDATE] Leito atualizado com sucesso:', result);
       return result;
     },
     onSuccess: () => {
@@ -111,19 +142,28 @@ export const useDeleteBed = () => {
 
   return useMutation({
     mutationFn: async (bedId: string) => {
-      console.log('🔄 Removendo leito:', bedId);
+      console.log('🗑️ [DELETE] Removendo leito customizado:', bedId);
       
-      const { data, error } = await supabase
-        .from('beds')
-        .delete()
-        .eq('id', bedId);
-
-      if (error) {
-        console.error('❌ Erro ao remover leito:', error);
-        throw error;
+      if (!bedId) {
+        throw new Error('ID do leito é obrigatório');
       }
 
-      console.log('✅ Leito removido com sucesso');
+      // Usar a função específica para leitos customizados
+      const { data, error } = await supabase.rpc('delete_custom_bed', {
+        p_bed_id: bedId
+      });
+
+      if (error) {
+        console.error('❌ [DELETE] Erro ao remover leito:', error);
+        throw new Error(`Erro ao excluir leito: ${error.message}`);
+      }
+
+      if (!data) {
+        console.error('❌ [DELETE] Leito não encontrado ou não é customizado');
+        throw new Error('Leito não encontrado ou não pode ser excluído');
+      }
+
+      console.log('✅ [DELETE] Leito removido com sucesso');
       return data;
     },
     onSuccess: () => {
@@ -134,16 +174,19 @@ export const useDeleteBed = () => {
       queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
       queryClient.invalidateQueries({ queryKey: ['department-stats'] });
       
+      // Forçar refetch imediato
+      queryClient.refetchQueries({ queryKey: ['beds'] });
+      
       toast({
-        title: "Sucesso",
-        description: "Leito removido com sucesso",
+        title: "✅ Leito excluído",
+        description: "O leito customizado foi removido com sucesso",
       });
     },
     onError: (error: any) => {
       console.error('💥 Falha na remoção do leito:', error);
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao remover leito",
+        title: "❌ Erro",
+        description: error.message || "Erro ao excluir leito",
         variant: "destructive",
       });
     }
