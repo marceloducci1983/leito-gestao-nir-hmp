@@ -1,0 +1,87 @@
+
+import React, { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+
+interface BedManagementFormProps {
+  bedName: string;
+  setBedName: (name: string) => void;
+  selectedDepartment: string;
+  setSelectedDepartment: (dept: string) => void;
+  departments: string[];
+  isLoading: boolean;
+  loadingDepartments: boolean;
+  onRefreshDepartments: () => void;
+  departmentNames: string[];
+}
+
+export const BedManagementForm: React.FC<BedManagementFormProps> = ({
+  bedName,
+  setBedName,
+  selectedDepartment,
+  setSelectedDepartment,
+  departments,
+  isLoading,
+  loadingDepartments,
+  onRefreshDepartments,
+  departmentNames
+}) => {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="bed-name">Nome do Leito</Label>
+        <Input
+          id="bed-name"
+          value={bedName}
+          onChange={(e) => setBedName(e.target.value)}
+          placeholder="Ex: 101A, UTI-05, etc."
+          disabled={isLoading}
+          autoFocus
+          className="mt-1"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          O nome deve ser único dentro do departamento
+        </p>
+      </div>
+
+      <div>
+        <Label htmlFor="bed-department">Setor/Departamento</Label>
+        <div className="flex gap-2 mt-1">
+          <Select 
+            value={selectedDepartment} 
+            onValueChange={(value) => setSelectedDepartment(value)}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Selecione o setor" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border shadow-lg" style={{ zIndex: 9999 }}>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={onRefreshDepartments}
+            disabled={isLoading}
+            title="Atualizar lista de setores"
+          >
+            <RefreshCw className={`h-4 w-4 ${loadingDepartments ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {departments.length} setores disponíveis
+          {departmentNames.length > 0 && ' (atualizados do banco)'}
+        </p>
+      </div>
+    </div>
+  );
+};

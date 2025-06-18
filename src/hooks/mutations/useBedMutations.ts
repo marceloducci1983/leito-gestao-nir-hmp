@@ -148,18 +148,32 @@ export const useDeleteBed = () => {
         throw new Error('ID do leito é obrigatório');
       }
 
-      // Chamar função do banco diretamente sem usar RPC typado
+      // Usar query SQL direta em vez de RPC tipado para evitar erro de tipo
       const { data, error } = await supabase
-        .rpc('delete_custom_bed', { p_bed_id: bedId });
+        .from('beds')
+        .select('*')
+        .eq('id', bedId)
+        .eq('is_custom', true)
+        .single();
 
-      if (error) {
-        console.error('❌ [DELETE] Erro ao remover leito:', error);
-        throw new Error(`Erro ao excluir leito: ${error.message}`);
-      }
-
-      if (!data) {
+      if (error || !data) {
         console.error('❌ [DELETE] Leito não encontrado ou não é customizado');
         throw new Error('Leito não encontrado ou não pode ser excluído');
+      }
+
+      if (data.is_occupied || data.is_reserved) {
+        throw new Error('Não é possível excluir leito ocupado ou reservado');
+      }
+
+      // Deletar o leito
+      const { error: deleteError } = await supabase
+        .from('beds')
+        .delete()
+        .eq('id', bedId);
+
+      if (deleteError) {
+        console.error('❌ [DELETE] Erro ao remover leito:', deleteError);
+        throw new Error(`Erro ao excluir leito: ${deleteError.message}`);
       }
 
       console.log('✅ [DELETE] Leito removido com sucesso');
