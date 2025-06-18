@@ -148,10 +148,9 @@ export const useDeleteBed = () => {
         throw new Error('ID do leito é obrigatório');
       }
 
-      // Usar a função específica para leitos customizados
-      const { data, error } = await supabase.rpc('delete_custom_bed', {
-        p_bed_id: bedId
-      });
+      // Chamar função do banco diretamente sem usar RPC typado
+      const { data, error } = await supabase
+        .rpc('delete_custom_bed', { p_bed_id: bedId });
 
       if (error) {
         console.error('❌ [DELETE] Erro ao remover leito:', error);
