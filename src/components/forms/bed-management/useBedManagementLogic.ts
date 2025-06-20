@@ -12,10 +12,10 @@ interface BedData {
 
 export const useBedManagementLogic = (
   isOpen: boolean,
-  bedData?: BedData,
-  isEditing: boolean = false,
-  fallbackDepartments: string[] = [],
-  onClose: () => void
+  bedData: BedData | undefined,
+  fallbackDepartments: string[],
+  onClose: () => void,
+  isEditing: boolean = false
 ) => {
   const [bedName, setBedName] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');

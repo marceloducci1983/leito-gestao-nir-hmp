@@ -40,7 +40,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     loadingDepartments,
     handleRefreshDepartments,
     handleSubmit
-  } = useBedManagementLogic(isOpen, bedData, isEditing, fallbackDepartments, onClose);
+  } = useBedManagementLogic(isOpen, bedData, fallbackDepartments, onClose, isEditing);
 
   if (!isOpen) {
     console.log('❌ [BED_MODAL] Modal não está aberto, não renderizando');
