@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Plus, Save } from 'lucide-react';
 
 interface BedManagementActionsProps {
   onCancel: () => void;
@@ -20,8 +20,20 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
   selectedDepartment,
   isEditing
 }) => {
+  const isFormValid = bedName.trim().length > 0 && selectedDepartment.length > 0;
+  const isSubmitDisabled = isLoading || !isFormValid;
+
+  console.log('🎬 [BED_ACTIONS] Renderizando ações:', {
+    isLoading,
+    bedName: bedName.trim(),
+    selectedDepartment,
+    isFormValid,
+    isSubmitDisabled,
+    isEditing
+  });
+
   return (
-    <div className="flex gap-3 pt-4">
+    <div className="flex gap-3 pt-4 border-t">
       <Button 
         variant="outline" 
         onClick={onCancel} 
@@ -30,10 +42,12 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
       >
         Cancelar
       </Button>
+      
       <Button 
         onClick={onSubmit} 
         className="flex-1"
-        disabled={isLoading || !bedName.trim() || !selectedDepartment}
+        disabled={isSubmitDisabled}
+        variant={isFormValid ? "default" : "secondary"}
       >
         {isLoading ? (
           <>
@@ -41,7 +55,19 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
             Processando...
           </>
         ) : (
-          isEditing ? 'Salvar Alterações' : 'Criar Leito'
+          <>
+            {isEditing ? (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Alterações
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Leito
+              </>
+            )}
+          </>
         )}
       </Button>
     </div>

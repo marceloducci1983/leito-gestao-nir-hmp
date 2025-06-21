@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,14 +29,27 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
   onRefreshDepartments,
   departmentNames
 }) => {
+  console.log('📋 [BED_FORM] Renderizando formulário:', {
+    bedName,
+    selectedDepartment,
+    departments: departments.length,
+    isLoading,
+    loadingDepartments
+  });
+
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="bed-name">Nome do Leito</Label>
+        <Label htmlFor="bed-name" className="text-sm font-medium">
+          Nome do Leito *
+        </Label>
         <Input
           id="bed-name"
           value={bedName}
-          onChange={(e) => setBedName(e.target.value)}
+          onChange={(e) => {
+            console.log('📝 [BED_FORM] Nome alterado:', e.target.value);
+            setBedName(e.target.value);
+          }}
           placeholder="Ex: 101A, UTI-05, etc."
           disabled={isLoading}
           autoFocus
@@ -48,22 +61,33 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
       </div>
 
       <div>
-        <Label htmlFor="bed-department">Setor/Departamento</Label>
+        <Label htmlFor="bed-department" className="text-sm font-medium">
+          Setor/Departamento *
+        </Label>
         <div className="flex gap-2 mt-1">
           <Select 
             value={selectedDepartment} 
-            onValueChange={(value) => setSelectedDepartment(value)}
+            onValueChange={(value) => {
+              console.log('🏥 [BED_FORM] Departamento alterado:', value);
+              setSelectedDepartment(value);
+            }}
             disabled={isLoading}
           >
             <SelectTrigger className="flex-1">
               <SelectValue placeholder="Selecione o setor" />
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg" style={{ zIndex: 9999 }}>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+            <SelectContent className="bg-white border shadow-lg max-h-60" style={{ zIndex: 9999 }}>
+              {departments.length === 0 ? (
+                <SelectItem value="loading" disabled>
+                  {loadingDepartments ? 'Carregando...' : 'Nenhum setor disponível'}
                 </SelectItem>
-              ))}
+              ) : (
+                departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
           <Button
@@ -71,7 +95,7 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
             variant="outline"
             size="icon"
             onClick={onRefreshDepartments}
-            disabled={isLoading}
+            disabled={isLoading || loadingDepartments}
             title="Atualizar lista de setores"
           >
             <RefreshCw className={`h-4 w-4 ${loadingDepartments ? 'animate-spin' : ''}`} />
@@ -80,6 +104,7 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
         <p className="text-xs text-gray-500 mt-1">
           {departments.length} setores disponíveis
           {departmentNames.length > 0 && ' (atualizados do banco)'}
+          {loadingDepartments && ' - Carregando...'}
         </p>
       </div>
     </div>

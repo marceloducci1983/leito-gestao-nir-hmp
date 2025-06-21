@@ -18,72 +18,108 @@ export const useBedManagementLogic = (
   isEditing: boolean = false
 ) => {
   const [bedName, setBedName] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('CLINICA MEDICA');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
 
   const { departmentNames, isLoading: loadingDepartments, refetch: refetchDepartments } = useDepartmentNames();
   const createBedMutation = useCreateBed();
   const updateBedMutation = useUpdateBed();
   const { toast } = useToast();
 
-  // Usar departamentos dinâmicos do banco de dados sempre que disponível (excluindo UTI PEDIATRICA)
+  // Preparar lista final de departamentos (sempre excluir UTI PEDIATRICA)
   const departments = departmentNames.length > 0 ? 
     departmentNames.filter(dept => dept !== 'UTI PEDIATRICA') : 
     fallbackDepartments.filter(dept => dept !== 'UTI PEDIATRICA');
 
-  console.log('🏥 [BED_MODAL] Departamentos finais (sem UTI PEDIATRICA):', departments);
+  console.log('🔄 [BED_LOGIC] Hook inicializado:', {
+    isOpen,
+    isEditing,
+    bedData,
+    departmentNames: departmentNames.length,
+    departments: departments.length,
+    loadingDepartments
+  });
+
+  // ETAPA 1: Inicialização correta dos valores
+  useEffect(() => {
+    console.log('🔄 [BED_LOGIC] useEffect [isOpen, bedData, departments]');
+    
+    if (!isOpen) {
+      console.log('📝 [BED_LOGIC] Modal fechado - mantendo estados');
+      return;
+    }
+
+    if (bedData && isEditing) {
+      // Modo edição - preencher com dados existentes
+      console.log('📝 [BED_LOGIC] Modo EDIÇÃO - preenchendo dados:', bedData);
+      setBedName(bedData.name);
+      setSelectedDepartment(bedData.department);
+    } else {
+      // Modo criação - valores padrão
+      console.log('📝 [BED_LOGIC] Modo CRIAÇÃO - definindo valores padrão');
+      setBedName('');
+      
+      // Aguardar departamentos serem carregados
+      if (departments.length > 0) {
+        const defaultDept = departments[0];
+        console.log('🏥 [BED_LOGIC] Departamento padrão selecionado:', defaultDept);
+        setSelectedDepartment(defaultDept);
+      } else if (!loadingDepartments) {
+        // Se não está carregando e não tem departamentos, usar fallback
+        console.log('⚠️ [BED_LOGIC] Usando fallback - sem departamentos do banco');
+        const fallbackFiltered = fallbackDepartments.filter(dept => dept !== 'UTI PEDIATRICA');
+        if (fallbackFiltered.length > 0) {
+          setSelectedDepartment(fallbackFiltered[0]);
+        }
+      }
+    }
+  }, [isOpen, bedData, isEditing, departments, loadingDepartments, fallbackDepartments]);
+
+  // ETAPA 2: Carregar departamentos quando modal abrir
+  useEffect(() => {
+    if (isOpen && !loadingDepartments && departmentNames.length === 0) {
+      console.log('🔄 [BED_LOGIC] Modal aberto - carregando departamentos');
+      refetchDepartments();
+    }
+  }, [isOpen, loadingDepartments, departmentNames.length, refetchDepartments]);
 
   // Função para atualizar lista de departamentos
   const handleRefreshDepartments = async () => {
-    console.log('🔄 [BED_MODAL] Atualizando lista de departamentos...');
-    await refetchDepartments();
+    console.log('🔄 [BED_LOGIC] Refresh manual de departamentos');
+    try {
+      await refetchDepartments();
+      console.log('✅ [BED_LOGIC] Departamentos atualizados com sucesso');
+    } catch (error) {
+      console.error('❌ [BED_LOGIC] Erro ao atualizar departamentos:', error);
+    }
   };
 
-  useEffect(() => {
-    console.log('🔄 [BED_MODAL] useEffect - Modal aberto/fechado:', isOpen);
-    if (bedData && isOpen) {
-      console.log('📝 [BED_MODAL] Preenchendo dados do leito:', bedData);
-      setBedName(bedData.name);
-      setSelectedDepartment(bedData.department);
-    } else if (isOpen) {
-      console.log('🆕 [BED_MODAL] Criando novo leito - resetando formulário');
-      setBedName('');
-      // Usar o primeiro departamento disponível ou fallback
-      const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
-      setSelectedDepartment(defaultDept);
-      console.log('🏥 [BED_MODAL] Departamento padrão selecionado:', defaultDept);
-    }
-  }, [bedData, isOpen, departments]);
-
-  // Atualizar departamentos quando o modal abrir
-  useEffect(() => {
-    if (isOpen && !loadingDepartments) {
-      console.log('🔄 [BED_MODAL] Modal aberto - buscando departamentos atualizados');
-      handleRefreshDepartments();
-    }
-  }, [isOpen]);
-
+  // ETAPA 4: Validação e submit melhorados
   const handleSubmit = async () => {
-    console.log('📝 [BED_MODAL] Submetendo formulário:', { 
-      bedName: bedName.trim(), 
-      selectedDepartment, 
-      isEditing 
+    const trimmedBedName = bedName.trim();
+    
+    console.log('📝 [BED_LOGIC] Iniciando submit:', { 
+      bedName: trimmedBedName, 
+      selectedDepartment,
+      isEditing,
+      bedData
     });
 
-    if (!bedName.trim()) {
-      console.log('❌ [BED_MODAL] Nome do leito é obrigatório');
+    // Validações com feedback claro
+    if (!trimmedBedName) {
+      console.log('❌ [BED_LOGIC] Validação falhou: nome vazio');
       toast({
-        title: "Erro",
-        description: "Nome do leito é obrigatório",
+        title: "❌ Erro de Validação",
+        description: "O nome do leito é obrigatório",
         variant: "destructive",
       });
       return;
     }
 
     if (!selectedDepartment) {
-      console.log('❌ [BED_MODAL] Setor é obrigatório');
+      console.log('❌ [BED_LOGIC] Validação falhou: departamento vazio');
       toast({
-        title: "Erro", 
-        description: "Setor é obrigatório",
+        title: "❌ Erro de Validação", 
+        description: "Selecione um setor/departamento",
         variant: "destructive",
       });
       return;
@@ -91,44 +127,55 @@ export const useBedManagementLogic = (
 
     try {
       if (isEditing && bedData?.id) {
-        console.log('🔄 [BED_MODAL] Atualizando leito:', bedData.id);
+        console.log('🔄 [BED_LOGIC] Atualizando leito existente:', bedData.id);
         await updateBedMutation.mutateAsync({
           bedId: bedData.id,
-          name: bedName.trim(),
+          name: trimmedBedName,
           department: selectedDepartment
         });
         
-        console.log('✅ [BED_MODAL] Leito atualizado com sucesso');
+        toast({
+          title: "✅ Leito Atualizado",
+          description: `${trimmedBedName} foi atualizado no ${selectedDepartment}`,
+        });
+        
+        console.log('✅ [BED_LOGIC] Leito atualizado com sucesso');
       } else {
-        console.log('🆕 [BED_MODAL] Criando novo leito...');
-        console.log('📊 [BED_MODAL] Dados para criação:', {
-          name: bedName.trim(),
-          department: selectedDepartment
-        });
-        
+        console.log('🆕 [BED_LOGIC] Criando novo leito');
         const result = await createBedMutation.mutateAsync({
-          name: bedName.trim(),
+          name: trimmedBedName,
           department: selectedDepartment
         });
         
-        console.log('✅ [BED_MODAL] Leito criado com sucesso! Resultado:', result);
+        console.log('✅ [BED_LOGIC] Leito criado com sucesso:', result);
       }
 
-      console.log('✅ [BED_MODAL] Operação concluída com sucesso');
-      
-      // Reset form and close modal
+      // Reset do formulário e fechamento
+      console.log('🔄 [BED_LOGIC] Resetando formulário e fechando modal');
       setBedName('');
-      const defaultDept = departments.length > 0 ? departments[0] : 'CLINICA MEDICA';
-      setSelectedDepartment(defaultDept);
+      if (departments.length > 0) {
+        setSelectedDepartment(departments[0]);
+      }
       onClose();
       
     } catch (error) {
-      console.error('❌ [BED_MODAL] Erro ao processar leito:', error);
-      // O erro será tratado pelas mutations
+      console.error('💥 [BED_LOGIC] Erro no submit:', error);
+      // O toast de erro será mostrado pelas mutations
     }
   };
 
-  const isLoading = createBedMutation.isPending || updateBedMutation.isPending || loadingDepartments;
+  // ETAPA 3: Controle de loading otimizado
+  const isLoading = createBedMutation.isPending || updateBedMutation.isPending;
+  const isFormDisabled = isLoading;
+
+  console.log('📊 [BED_LOGIC] Estados finais:', {
+    bedName,
+    selectedDepartment,
+    departments: departments.length,
+    isLoading,
+    isFormDisabled,
+    loadingDepartments
+  });
 
   return {
     bedName,
@@ -137,7 +184,7 @@ export const useBedManagementLogic = (
     setSelectedDepartment,
     departments,
     departmentNames,
-    isLoading,
+    isLoading: isFormDisabled, // Apenas mutations bloqueiam o form
     loadingDepartments,
     handleRefreshDepartments,
     handleSubmit
