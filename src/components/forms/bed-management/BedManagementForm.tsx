@@ -16,6 +16,7 @@ interface BedManagementFormProps {
   loadingDepartments: boolean;
   onRefreshDepartments: () => void;
   departmentNames: string[];
+  isFormReady: boolean;
 }
 
 export const BedManagementForm: React.FC<BedManagementFormProps> = ({
@@ -27,14 +28,16 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
   isLoading,
   loadingDepartments,
   onRefreshDepartments,
-  departmentNames
+  departmentNames,
+  isFormReady
 }) => {
-  console.log('📋 [BED_FORM] Renderizando formulário:', {
+  console.log('🔧 [BED_FORM] Renderizando formulário:', {
     bedName,
     selectedDepartment,
     departments: departments.length,
     isLoading,
-    loadingDepartments
+    loadingDepartments,
+    isFormReady
   });
 
   return (
@@ -47,7 +50,7 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
           id="bed-name"
           value={bedName}
           onChange={(e) => {
-            console.log('📝 [BED_FORM] Nome alterado:', e.target.value);
+            console.log('🔧 [BED_FORM] Nome alterado:', e.target.value);
             setBedName(e.target.value);
           }}
           placeholder="Ex: 101A, UTI-05, etc."
@@ -56,7 +59,7 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
           className="mt-1"
         />
         <p className="text-xs text-gray-500 mt-1">
-          O nome deve ser único dentro do departamento
+          Digite um nome único para o leito
         </p>
       </div>
 
@@ -68,18 +71,22 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
           <Select 
             value={selectedDepartment} 
             onValueChange={(value) => {
-              console.log('🏥 [BED_FORM] Departamento alterado:', value);
+              console.log('🔧 [BED_FORM] Departamento alterado:', value);
               setSelectedDepartment(value);
             }}
-            disabled={isLoading}
+            disabled={isLoading || !isFormReady}
           >
             <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Selecione o setor" />
+              <SelectValue placeholder={
+                loadingDepartments ? "Carregando..." : 
+                departments.length === 0 ? "Nenhum setor disponível" : 
+                "Selecione o setor"
+              } />
             </SelectTrigger>
             <SelectContent className="bg-white border shadow-lg max-h-60" style={{ zIndex: 9999 }}>
               {departments.length === 0 ? (
                 <SelectItem value="loading" disabled>
-                  {loadingDepartments ? 'Carregando...' : 'Nenhum setor disponível'}
+                  {loadingDepartments ? 'Carregando setores...' : 'Nenhum setor disponível'}
                 </SelectItem>
               ) : (
                 departments.map((dept) => (
@@ -103,8 +110,8 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
         </div>
         <p className="text-xs text-gray-500 mt-1">
           {departments.length} setores disponíveis
-          {departmentNames.length > 0 && ' (atualizados do banco)'}
-          {loadingDepartments && ' - Carregando...'}
+          {departmentNames.length > 0 && ' (carregados do banco)'}
+          {loadingDepartments && ' - Atualizando...'}
         </p>
       </div>
     </div>

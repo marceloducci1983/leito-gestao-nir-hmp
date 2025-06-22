@@ -10,6 +10,7 @@ interface BedManagementActionsProps {
   bedName: string;
   selectedDepartment: string;
   isEditing: boolean;
+  isFormReady: boolean;
 }
 
 export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
@@ -18,18 +19,21 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
   isLoading,
   bedName,
   selectedDepartment,
-  isEditing
+  isEditing,
+  isFormReady
 }) => {
+  // ETAPA 4: Validação simples que permite digitação
   const isFormValid = bedName.trim().length > 0 && selectedDepartment.length > 0;
-  const isSubmitDisabled = isLoading || !isFormValid;
+  const isSubmitDisabled = isLoading || !isFormValid || !isFormReady;
 
-  console.log('🎬 [BED_ACTIONS] Renderizando ações:', {
+  console.log('🔧 [BED_ACTIONS] Renderizando ações:', {
     isLoading,
     bedName: bedName.trim(),
     selectedDepartment,
     isFormValid,
     isSubmitDisabled,
-    isEditing
+    isEditing,
+    isFormReady
   });
 
   return (
@@ -47,12 +51,12 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
         onClick={onSubmit} 
         className="flex-1"
         disabled={isSubmitDisabled}
-        variant={isFormValid ? "default" : "secondary"}
+        variant={isFormValid && isFormReady ? "default" : "secondary"}
       >
         {isLoading ? (
           <>
             <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            Processando...
+            {isEditing ? 'Salvando...' : 'Criando...'}
           </>
         ) : (
           <>

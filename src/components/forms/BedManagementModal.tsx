@@ -25,7 +25,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
   bedData,
   isEditing = false
 }) => {
-  console.log('🔵 [BED_MODAL] Modal renderizado:', {
+  console.log('🔧 [BED_MODAL] Modal renderizado:', {
     isOpen,
     isEditing,
     bedData,
@@ -42,14 +42,15 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     isLoading,
     loadingDepartments,
     handleRefreshDepartments,
-    handleSubmit
+    handleSubmit,
+    isFormReady
   } = useBedManagementLogic(isOpen, bedData, fallbackDepartments, onClose, isEditing);
 
   if (!isOpen) {
     return null;
   }
 
-  console.log('✅ [BED_MODAL] Modal aberto - renderizando conteúdo');
+  console.log('✅ [BED_MODAL] Modal aberto - renderizando conteúdo completo');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -81,6 +82,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
             loadingDepartments={loadingDepartments}
             onRefreshDepartments={handleRefreshDepartments}
             departmentNames={departmentNames}
+            isFormReady={isFormReady}
           />
         </div>
 
@@ -91,6 +93,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
           bedName={bedName}
           selectedDepartment={selectedDepartment}
           isEditing={isEditing}
+          isFormReady={isFormReady}
         />
       </DialogContent>
     </Dialog>
