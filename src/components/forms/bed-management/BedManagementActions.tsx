@@ -11,6 +11,7 @@ interface BedManagementActionsProps {
   selectedDepartment: string;
   isEditing: boolean;
   isFormReady: boolean;
+  hasDepartments?: boolean;
 }
 
 export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
@@ -20,11 +21,12 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
   bedName,
   selectedDepartment,
   isEditing,
-  isFormReady
+  isFormReady,
+  hasDepartments = true
 }) => {
-  // ETAPA 4: Validação simples que permite digitação
-  const isFormValid = bedName.trim().length > 0 && selectedDepartment.length > 0;
-  const isSubmitDisabled = isLoading || !isFormValid || !isFormReady;
+  // CORREÇÃO: Validação simples e clara
+  const isFormValid = bedName.trim().length > 0 && selectedDepartment.length > 0 && hasDepartments;
+  const isSubmitDisabled = isLoading || !isFormValid;
 
   console.log('🔧 [BED_ACTIONS] Renderizando ações:', {
     isLoading,
@@ -33,7 +35,8 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
     isFormValid,
     isSubmitDisabled,
     isEditing,
-    isFormReady
+    isFormReady,
+    hasDepartments
   });
 
   return (
@@ -51,7 +54,7 @@ export const BedManagementActions: React.FC<BedManagementActionsProps> = ({
         onClick={onSubmit} 
         className="flex-1"
         disabled={isSubmitDisabled}
-        variant={isFormValid && isFormReady ? "default" : "secondary"}
+        variant={isFormValid ? "default" : "secondary"}
       >
         {isLoading ? (
           <>

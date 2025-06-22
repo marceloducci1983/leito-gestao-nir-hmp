@@ -25,7 +25,7 @@ export const useBedManagementLogic = (
   const updateBedMutation = useUpdateBed();
   const { toast } = useToast();
 
-  // ETAPA 2: Lista final de departamentos com fallback robusto
+  // CORREÇÃO: Lista robusta de departamentos com fallback imediato
   const departments = departmentNames.length > 0 ? 
     departmentNames.filter(dept => dept !== 'UTI PEDIATRICA') : 
     fallbackDepartments.filter(dept => dept !== 'UTI PEDIATRICA');
@@ -40,7 +40,7 @@ export const useBedManagementLogic = (
     loadingDepartments
   });
 
-  // ETAPA 1: Inicialização correta e separada por modo
+  // CORREÇÃO: Inicialização simplificada e robusta
   useEffect(() => {
     console.log('🔧 [BED_LOGIC] useEffect inicialização - isOpen:', isOpen);
     
@@ -57,21 +57,32 @@ export const useBedManagementLogic = (
       setBedName(bedData.name);
       setSelectedDepartment(bedData.department);
     } else {
-      // MODO CRIAÇÃO: Valores padrão limpos
-      console.log('🔧 [BED_LOGIC] MODO CRIAÇÃO - limpando formulário');
+      // MODO CRIAÇÃO: Valores padrão limpos mas funcionais
+      console.log('🔧 [BED_LOGIC] MODO CRIAÇÃO - inicializando campos');
       setBedName('');
       
-      // Aguardar departamentos e selecionar o primeiro disponível
-      if (departments.length > 0) {
-        const defaultDept = departments[0];
-        console.log('🔧 [BED_LOGIC] Selecionando departamento padrão:', defaultDept);
+      // CORREÇÃO: Usar fallback imediatamente se disponível
+      const availableDepartments = departments.length > 0 ? departments : fallbackDepartments;
+      if (availableDepartments.length > 0) {
+        const defaultDept = availableDepartments[0];
+        console.log('🔧 [BED_LOGIC] Departamento padrão selecionado:', defaultDept);
         setSelectedDepartment(defaultDept);
       } else {
-        console.log('🔧 [BED_LOGIC] Nenhum departamento disponível ainda');
+        console.log('🔧 [BED_LOGIC] Aguardando departamentos...');
         setSelectedDepartment('');
       }
     }
-  }, [isOpen, isEditing, bedData, departments]);
+  }, [isOpen, isEditing, bedData?.name, bedData?.department]); // Dependências específicas
+
+  // CORREÇÃO: Atualizar departamento quando dados do banco chegarem
+  useEffect(() => {
+    // Só atualizar se estiver no modo criação e não tiver departamento selecionado
+    if (isOpen && !isEditing && !selectedDepartment && departments.length > 0) {
+      const defaultDept = departments[0];
+      console.log('🔧 [BED_LOGIC] Atualizando para departamento do banco:', defaultDept);
+      setSelectedDepartment(defaultDept);
+    }
+  }, [departments, isOpen, isEditing, selectedDepartment]);
 
   // Carregar departamentos quando modal abrir
   useEffect(() => {
@@ -97,7 +108,7 @@ export const useBedManagementLogic = (
     }
   };
 
-  // ETAPA 4: Validação apenas no submit, permitindo digitação livre
+  // CORREÇÃO: Validação apenas no submit
   const handleSubmit = async () => {
     const trimmedBedName = bedName.trim();
     
@@ -163,16 +174,19 @@ export const useBedManagementLogic = (
     }
   };
 
-  // ETAPA 3: Estados de loading separados
+  // CORREÇÃO: Estados de loading separados e menos restritivos
   const isSubmitting = createBedMutation.isPending || updateBedMutation.isPending;
-  const isFormReady = departments.length > 0 && !loadingDepartments;
+  const hasDepartments = departments.length > 0 || fallbackDepartments.length > 0;
+  const isFormReady = true; // CORREÇÃO: Formulário sempre pronto quando modal abrir
 
   console.log('🔧 [BED_LOGIC] Estados finais:', {
     bedName,
     selectedDepartment,
     departments: departments.length,
+    fallbackDepartments: fallbackDepartments.length,
     isSubmitting,
     isFormReady,
+    hasDepartments,
     loadingDepartments
   });
 
@@ -187,6 +201,7 @@ export const useBedManagementLogic = (
     loadingDepartments,
     handleRefreshDepartments,
     handleSubmit,
-    isFormReady
+    isFormReady,
+    hasDepartments
   };
 };

@@ -43,7 +43,8 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
     loadingDepartments,
     handleRefreshDepartments,
     handleSubmit,
-    isFormReady
+    isFormReady,
+    hasDepartments
   } = useBedManagementLogic(isOpen, bedData, fallbackDepartments, onClose, isEditing);
 
   if (!isOpen) {
@@ -83,6 +84,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
             onRefreshDepartments={handleRefreshDepartments}
             departmentNames={departmentNames}
             isFormReady={isFormReady}
+            hasDepartments={hasDepartments}
           />
         </div>
 
@@ -94,6 +96,7 @@ const BedManagementModal: React.FC<BedManagementModalProps> = ({
           selectedDepartment={selectedDepartment}
           isEditing={isEditing}
           isFormReady={isFormReady}
+          hasDepartments={hasDepartments}
         />
       </DialogContent>
     </Dialog>

@@ -17,6 +17,7 @@ interface BedManagementFormProps {
   onRefreshDepartments: () => void;
   departmentNames: string[];
   isFormReady: boolean;
+  hasDepartments?: boolean;
 }
 
 export const BedManagementForm: React.FC<BedManagementFormProps> = ({
@@ -29,7 +30,8 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
   loadingDepartments,
   onRefreshDepartments,
   departmentNames,
-  isFormReady
+  isFormReady,
+  hasDepartments = true
 }) => {
   console.log('🔧 [BED_FORM] Renderizando formulário:', {
     bedName,
@@ -37,7 +39,8 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
     departments: departments.length,
     isLoading,
     loadingDepartments,
-    isFormReady
+    isFormReady,
+    hasDepartments
   });
 
   return (
@@ -54,7 +57,7 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
             setBedName(e.target.value);
           }}
           placeholder="Ex: 101A, UTI-05, etc."
-          disabled={isLoading}
+          disabled={isLoading} // CORREÇÃO: Só desabilitar durante submit
           autoFocus
           className="mt-1"
         />
@@ -74,17 +77,17 @@ export const BedManagementForm: React.FC<BedManagementFormProps> = ({
               console.log('🔧 [BED_FORM] Departamento alterado:', value);
               setSelectedDepartment(value);
             }}
-            disabled={isLoading || !isFormReady}
+            disabled={isLoading} // CORREÇÃO: Só desabilitar durante submit
           >
             <SelectTrigger className="flex-1">
               <SelectValue placeholder={
                 loadingDepartments ? "Carregando..." : 
-                departments.length === 0 ? "Nenhum setor disponível" : 
+                !hasDepartments ? "Nenhum setor disponível" : 
                 "Selecione o setor"
               } />
             </SelectTrigger>
             <SelectContent className="bg-white border shadow-lg max-h-60" style={{ zIndex: 9999 }}>
-              {departments.length === 0 ? (
+              {!hasDepartments ? (
                 <SelectItem value="loading" disabled>
                   {loadingDepartments ? 'Carregando setores...' : 'Nenhum setor disponível'}
                 </SelectItem>
