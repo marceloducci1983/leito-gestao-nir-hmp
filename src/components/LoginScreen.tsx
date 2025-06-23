@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -70,7 +71,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     <div 
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: `url('/lovable-uploads/3aba15ef-b102-41a3-a281-c9f4c28ead93.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
+        backgroundImage: `url('/lovable-uploads/e88a02d5-fb65-4fd9-abed-f27eb630e39b.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
         backgroundSize: 'cover, cover',
         backgroundPosition: 'center, center',
         backgroundRepeat: 'no-repeat, no-repeat',
