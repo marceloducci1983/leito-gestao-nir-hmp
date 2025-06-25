@@ -67,19 +67,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Tentando fazer login com:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(),
+        password: password,
       });
 
       if (error) {
+        console.error('Erro de login:', error);
         toast.error('Erro no login: ' + error.message);
         return { error };
       }
 
+      console.log('Login realizado com sucesso:', data);
       toast.success('Login realizado com sucesso!');
       return { error: null };
     } catch (error) {
+      console.error('Erro inesperado no login:', error);
       toast.error('Erro inesperado no login');
       return { error };
     }
@@ -153,9 +158,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Configurar listener de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
@@ -163,28 +172,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           // Buscar perfil do usuário
           const userProfile = await fetchProfile(session.user.id);
-          setProfile(userProfile);
+          if (mounted) {
+            setProfile(userProfile);
+          }
         } else {
-          setProfile(null);
+          if (mounted) {
+            setProfile(null);
+          }
         }
 
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 
     // Verificar sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
+        fetchProfile(session.user.id).then((profile) => {
+          if (mounted) {
+            setProfile(profile);
+            setLoading(false);
+          }
+        });
+      } else {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {

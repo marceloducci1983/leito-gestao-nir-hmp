@@ -4,18 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sun, Moon } from 'lucide-react';
 
 export const NewAuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -33,13 +31,6 @@ export const NewAuthScreen: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     await signIn(email, password);
-    setLoading(false);
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    await signUp(email, password, fullName);
     setLoading(false);
   };
 
@@ -86,101 +77,41 @@ export const NewAuthScreen: React.FC = () => {
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 transition-colors duration-300">NIR - HMP</p>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div>
-                  <Label htmlFor="signin-email" className="dark:text-gray-200">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Digite seu email"
-                    disabled={loading}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="signin-password" className="dark:text-gray-200">Senha</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Digite sua senha"
-                    disabled={loading}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" 
-                  disabled={loading}
-                >
-                  {loading ? 'Entrando...' : 'Entrar'}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div>
-                  <Label htmlFor="signup-name" className="dark:text-gray-200">Nome Completo</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Digite seu nome completo"
-                    disabled={loading}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="signup-email" className="dark:text-gray-200">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Digite seu email"
-                    disabled={loading}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="signup-password" className="dark:text-gray-200">Senha</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Digite sua senha"
-                    disabled={loading}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" 
-                  disabled={loading}
-                >
-                  {loading ? 'Cadastrando...' : 'Cadastrar'}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="dark:text-gray-200">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu email"
+                disabled={loading}
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="dark:text-gray-200">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+                disabled={loading}
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+                required
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" 
+              disabled={loading}
+            >
+              {loading ? 'Entrando...' : 'Entrar'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
