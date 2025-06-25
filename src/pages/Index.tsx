@@ -1,93 +1,102 @@
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Toaster } from '@/components/ui/toaster';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NavigationBar from '@/components/NavigationBar';
-import BottomNavigation from '@/components/BottomNavigation';
-import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
+import BedsPanel from '@/components/BedsPanel';
 import IndicatorsPanel from '@/components/IndicatorsPanel';
-import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
-import TfdPanel from '@/components/TfdPanel';
-import AlertsPanel from '@/components/AlertsPanel';
 import DischargeMonitoringPanel from '@/components/DischargeMonitoringPanel';
+import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
+import AlertsPanel from '@/components/AlertsPanel';
+import TfdPanel from '@/components/TfdPanel';
 import ArchivePanel from '@/components/ArchivePanel';
-import NirPanel from '@/components/NirPanel';
-import { useResponsive } from '@/hooks/useResponsive';
+import { TestingPanel } from '@/components/test/TestingPanel';
+import { SettingsPanel } from '@/components/settings/SettingsPanel';
+import { UserMenu } from '@/components/UserMenu';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface IndexProps {
-  onLogout: () => void;
+  onLogout?: () => void; // Deprecated, não mais usado
 }
 
-const Index: React.FC<IndexProps> = ({ onLogout }) => {
+const Index: React.FC<IndexProps> = () => {
   const [activeTab, setActiveTab] = useState('beds');
-  const [centralData, setCentralData] = useState({
-    beds: [],
-    archivedPatients: [],
-    dischargeMonitoring: []
-  });
-  
-  const { isMobile } = useResponsive();
+  const { isAdmin } = useAuth();
+
+  const handleSettingsClick = () => {
+    setActiveTab('settings');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <NavigationBar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        onLogout={onLogout}
-      />
-      
-      <div className={`container mx-auto ${isMobile ? 'px-0 py-3' : 'px-4 py-6'}`}>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header com menu do usuário */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Sistema de Gestão de Leitos
+            </h1>
+            <p className="text-muted-foreground">NIR - HMP</p>
+          </div>
+          <UserMenu onSettingsClick={handleSettingsClick} />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="mb-6">
+            <NavigationBar />
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto p-1 bg-muted/50">
+              <TabsTrigger value="beds" className="text-xs sm:text-sm">Leitos</TabsTrigger>
+              <TabsTrigger value="indicators" className="text-xs sm:text-sm">Indicadores</TabsTrigger>
+              <TabsTrigger value="discharges" className="text-xs sm:text-sm">Altas</TabsTrigger>
+              <TabsTrigger value="expected" className="text-xs sm:text-sm">Previsões</TabsTrigger>
+              <TabsTrigger value="alerts" className="text-xs sm:text-sm">Alertas</TabsTrigger>
+              <TabsTrigger value="tfd" className="text-xs sm:text-sm">TFD</TabsTrigger>
+              <TabsTrigger value="archive" className="text-xs sm:text-sm">Arquivo</TabsTrigger>
+              <TabsTrigger value="testing" className="text-xs sm:text-sm">Testes</TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="settings" className="text-xs sm:text-sm">Configurações</TabsTrigger>
+              )}
+            </TabsList>
+          </div>
+
           <TabsContent value="beds" className="mt-0">
-            <SupabaseBedsPanel onDataChange={setCentralData} />
+            <BedsPanel />
           </TabsContent>
-          
+
           <TabsContent value="indicators" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <IndicatorsPanel data={centralData} />
-            </div>
+            <IndicatorsPanel />
           </TabsContent>
-          
-          <TabsContent value="expected-discharges" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <ExpectedDischargesPanel data={centralData} />
-            </div>
+
+          <TabsContent value="discharges" className="mt-0">
+            <DischargeMonitoringPanel />
           </TabsContent>
-          
-          <TabsContent value="tfd" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <TfdPanel />
-            </div>
+
+          <TabsContent value="expected" className="mt-0">
+            <ExpectedDischargesPanel />
           </TabsContent>
-          
+
           <TabsContent value="alerts" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <AlertsPanel />
-            </div>
+            <AlertsPanel />
           </TabsContent>
-          
-          <TabsContent value="discharge-monitoring" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <DischargeMonitoringPanel />
-            </div>
+
+          <TabsContent value="tfd" className="mt-0">
+            <TfdPanel />
           </TabsContent>
-          
+
           <TabsContent value="archive" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <ArchivePanel archivedPatients={centralData.archivedPatients} />
-            </div>
+            <ArchivePanel />
           </TabsContent>
-          
-          <TabsContent value="nir" className="mt-0">
-            <div className={isMobile ? 'px-4' : ''}>
-              <NirPanel />
-            </div>
+
+          <TabsContent value="testing" className="mt-0">
+            <TestingPanel />
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="settings" className="mt-0">
+              <SettingsPanel />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
-      
-      {isMobile && <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />}
-      <Toaster />
     </div>
   );
 };

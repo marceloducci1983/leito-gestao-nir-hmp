@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/sonner";
-import LoginScreen from './components/LoginScreen';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NewAuthScreen } from './components/auth/NewAuthScreen';
+import { AuthGuard } from './components/auth/AuthGuard';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import './App.css';
@@ -18,31 +20,10 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
 
-  // Verificar se usuário já está logado ao carregar a aplicação
-  useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem('isAuthenticated', 'true');
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated');
-  };
-
-  // Mostrar loading enquanto verifica autenticação
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -53,23 +34,33 @@ function App() {
     );
   }
 
-  // Se não estiver autenticado, mostrar tela de login
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+  if (!user) {
+    return <NewAuthScreen />;
   }
 
-  // Se estiver autenticado, mostrar aplicação principal
+  return (
+    <Router>
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/" element={
+            <AuthGuard>
+              <Index />
+            </AuthGuard>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </div>
+    </Router>
+  );
+};
+
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-background">
-          <Routes>
-            <Route path="/" element={<Index onLogout={handleLogout} />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </div>
-      </Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -554,6 +554,39 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tfd_archives: {
         Row: {
           archived_at: string
@@ -744,6 +777,10 @@ export type Database = {
           days_between: number
         }[]
       }
+      is_admin: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       request_discharge_for_patient: {
         Args: {
           p_patient_id: string
@@ -777,6 +814,7 @@ export type Database = {
         | "MATERNIDADE"
       discharge_type: "POR MELHORA" | "EVASÃO" | "TRANSFERENCIA" | "OBITO"
       sex_type: "masculino" | "feminino"
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -903,6 +941,7 @@ export const Constants = {
       ],
       discharge_type: ["POR MELHORA", "EVASÃO", "TRANSFERENCIA", "OBITO"],
       sex_type: ["masculino", "feminino"],
+      user_role: ["admin", "user"],
     },
   },
 } as const
