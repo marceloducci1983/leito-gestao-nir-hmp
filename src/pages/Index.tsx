@@ -9,7 +9,7 @@ import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
 import AlertsPanel from '@/components/AlertsPanel';
 import TfdPanel from '@/components/TfdPanel';
 import ArchivePanel from '@/components/ArchivePanel';
-import { TestingPanel } from '@/components/test/TestingPanel';
+import TestingPanel from '@/components/test/TestingPanel';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { UserMenu } from '@/components/UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,10 +20,23 @@ interface IndexProps {
 
 const Index: React.FC<IndexProps> = () => {
   const [activeTab, setActiveTab] = useState('beds');
-  const { isAdmin } = useAuth();
+  const [appData, setAppData] = useState({
+    beds: [],
+    archivedPatients: [],
+    dischargeMonitoring: []
+  });
+  const { isAdmin, signOut } = useAuth();
 
   const handleSettingsClick = () => {
     setActiveTab('settings');
+  };
+
+  const handleDataChange = (data: {
+    beds: any[];
+    archivedPatients: any[];
+    dischargeMonitoring: any[];
+  }) => {
+    setAppData(data);
   };
 
   return (
@@ -42,7 +55,6 @@ const Index: React.FC<IndexProps> = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6">
-            <NavigationBar />
             <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto p-1 bg-muted/50">
               <TabsTrigger value="beds" className="text-xs sm:text-sm">Leitos</TabsTrigger>
               <TabsTrigger value="indicators" className="text-xs sm:text-sm">Indicadores</TabsTrigger>
@@ -59,11 +71,11 @@ const Index: React.FC<IndexProps> = () => {
           </div>
 
           <TabsContent value="beds" className="mt-0">
-            <BedsPanel />
+            <BedsPanel onDataChange={handleDataChange} />
           </TabsContent>
 
           <TabsContent value="indicators" className="mt-0">
-            <IndicatorsPanel />
+            <IndicatorsPanel data={appData} />
           </TabsContent>
 
           <TabsContent value="discharges" className="mt-0">
@@ -71,7 +83,7 @@ const Index: React.FC<IndexProps> = () => {
           </TabsContent>
 
           <TabsContent value="expected" className="mt-0">
-            <ExpectedDischargesPanel />
+            <ExpectedDischargesPanel data={appData} />
           </TabsContent>
 
           <TabsContent value="alerts" className="mt-0">
@@ -83,11 +95,11 @@ const Index: React.FC<IndexProps> = () => {
           </TabsContent>
 
           <TabsContent value="archive" className="mt-0">
-            <ArchivePanel />
+            <ArchivePanel archivedPatients={appData.archivedPatients} />
           </TabsContent>
 
           <TabsContent value="testing" className="mt-0">
-            <TestingPanel />
+            <TestingPanel isOpen={true} onClose={() => setActiveTab('beds')} />
           </TabsContent>
 
           {isAdmin && (
