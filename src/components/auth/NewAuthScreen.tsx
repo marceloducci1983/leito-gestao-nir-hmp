@@ -112,6 +112,14 @@ export const NewAuthScreen: React.FC = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
+          
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+            <p className="text-xs text-blue-600 dark:text-blue-300 text-center">
+              <strong>Acesso Admin:</strong><br />
+              Email: sociocecel@yahooo.com.br<br />
+              Senha: 12345
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

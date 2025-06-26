@@ -45,6 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = profile?.role === 'admin' && profile?.is_active === true;
 
+  // Usuário admin hardcoded para desenvolvimento
+  const ADMIN_USER = {
+    email: 'sociocecel@yahooo.com.br',
+    password: '12345'
+  };
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -69,6 +75,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Tentando fazer login com:', email);
       
+      // Verificar se é o usuário admin hardcoded
+      if (email.toLowerCase().trim() === ADMIN_USER.email.toLowerCase() && password === ADMIN_USER.password) {
+        // Criar sessão simulada para o admin
+        const adminProfile: Profile = {
+          id: 'admin-user-id',
+          email: ADMIN_USER.email,
+          full_name: 'Administrador Sistema',
+          role: 'admin',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: null,
+          is_active: true
+        };
+
+        // Criar usuário simulado
+        const adminUser = {
+          id: 'admin-user-id',
+          email: ADMIN_USER.email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as User;
+
+        // Criar sessão simulada
+        const adminSession = {
+          access_token: 'admin-token',
+          refresh_token: 'admin-refresh',
+          expires_in: 3600,
+          expires_at: Date.now() + 3600000,
+          token_type: 'Bearer',
+          user: adminUser
+        } as Session;
+
+        setUser(adminUser);
+        setProfile(adminProfile);
+        setSession(adminSession);
+        
+        // Salvar no localStorage para persistência
+        localStorage.setItem('admin_session', JSON.stringify({
+          user: adminUser,
+          profile: adminProfile,
+          session: adminSession
+        }));
+
+        toast.success('Login realizado com sucesso!');
+        return { error: null };
+      }
+
+      // Para outros usuários, tentar autenticação normal com Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -76,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Erro de login:', error);
-        toast.error('Erro no login: ' + error.message);
+        toast.error('Credenciais inválidas');
         return { error };
       }
 
@@ -121,12 +175,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Limpar sessão admin se existir
+      localStorage.removeItem('admin_session');
+      
+      // Tentar fazer logout do Supabase também
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error('Erro ao sair: ' + error.message);
-      } else {
-        toast.success('Logout realizado com sucesso!');
-      }
+      
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      
+      toast.success('Logout realizado com sucesso!');
     } catch (error) {
       toast.error('Erro inesperado ao sair');
     }
@@ -160,57 +219,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Configurar listener de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const initAuth = async () => {
+      try {
+        // Verificar se existe sessão admin salva
+        const savedAdminSession = localStorage.getItem('admin_session');
+        if (savedAdminSession) {
+          const { user: adminUser, profile: adminProfile, session: adminSession } = JSON.parse(savedAdminSession);
+          if (mounted) {
+            setUser(adminUser);
+            setProfile(adminProfile);
+            setSession(adminSession);
+            setLoading(false);
+          }
+          return;
+        }
+
+        // Configurar listener de autenticação para usuários normais
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            
+            console.log('Auth state changed:', event, session?.user?.email);
+            setSession(session);
+            setUser(session?.user ?? null);
+
+            if (session?.user) {
+              // Buscar perfil do usuário
+              const userProfile = await fetchProfile(session.user.id);
+              if (mounted) {
+                setProfile(userProfile);
+              }
+            } else {
+              if (mounted) {
+                setProfile(null);
+              }
+            }
+
+            if (mounted) {
+              setLoading(false);
+            }
+          }
+        );
+
+        // Verificar sessão inicial
+        const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-
+        
         if (session?.user) {
-          // Buscar perfil do usuário
-          const userProfile = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(userProfile);
-          }
-        } else {
-          if (mounted) {
-            setProfile(null);
-          }
-        }
-
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    );
-
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then((profile) => {
+          const profile = await fetchProfile(session.user.id);
           if (mounted) {
             setProfile(profile);
             setLoading(false);
           }
-        });
-      } else {
+        } else {
+          if (mounted) {
+            setLoading(false);
+          }
+        }
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Erro na inicialização da autenticação:', error);
         if (mounted) {
           setLoading(false);
         }
       }
-    });
+    };
+
+    initAuth();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, []);
 
