@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NavigationBar from '@/components/NavigationBar';
-import BedsPanel from '@/components/BedsPanel';
+import SupabaseBedsPanel from '@/components/SupabaseBedsPanel';
 import IndicatorsPanel from '@/components/IndicatorsPanel';
 import DischargeMonitoringPanel from '@/components/DischargeMonitoringPanel';
 import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
@@ -71,7 +71,7 @@ const Index: React.FC<IndexProps> = () => {
           </div>
 
           <TabsContent value="beds" className="mt-0">
-            <BedsPanel onDataChange={handleDataChange} />
+            <SupabaseBedsPanel onDataChange={handleDataChange} />
           </TabsContent>
 
           <TabsContent value="indicators" className="mt-0">
