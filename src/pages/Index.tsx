@@ -9,7 +9,6 @@ import ExpectedDischargesPanel from '@/components/ExpectedDischargesPanel';
 import AlertsPanel from '@/components/AlertsPanel';
 import TfdPanel from '@/components/TfdPanel';
 import ArchivePanel from '@/components/ArchivePanel';
-import TestingPanel from '@/components/test/TestingPanel';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { UserMenu } from '@/components/UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,7 +54,7 @@ const Index: React.FC<IndexProps> = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto p-1 bg-muted/50">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto p-1 bg-muted/50">
               <TabsTrigger value="beds" className="text-xs sm:text-sm">Leitos</TabsTrigger>
               <TabsTrigger value="indicators" className="text-xs sm:text-sm">Indicadores</TabsTrigger>
               <TabsTrigger value="discharges" className="text-xs sm:text-sm">Altas</TabsTrigger>
@@ -63,7 +62,6 @@ const Index: React.FC<IndexProps> = () => {
               <TabsTrigger value="alerts" className="text-xs sm:text-sm">Alertas</TabsTrigger>
               <TabsTrigger value="tfd" className="text-xs sm:text-sm">TFD</TabsTrigger>
               <TabsTrigger value="archive" className="text-xs sm:text-sm">Arquivo</TabsTrigger>
-              <TabsTrigger value="testing" className="text-xs sm:text-sm">Testes</TabsTrigger>
               {isAdmin && (
                 <TabsTrigger value="settings" className="text-xs sm:text-sm">Configurações</TabsTrigger>
               )}
@@ -96,10 +94,6 @@ const Index: React.FC<IndexProps> = () => {
 
           <TabsContent value="archive" className="mt-0">
             <ArchivePanel archivedPatients={appData.archivedPatients} />
-          </TabsContent>
-
-          <TabsContent value="testing" className="mt-0">
-            <TestingPanel isOpen={true} onClose={() => setActiveTab('beds')} />
           </TabsContent>
 
           {isAdmin && (
