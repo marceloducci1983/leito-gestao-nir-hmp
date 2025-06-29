@@ -1,110 +1,55 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDischargeControl, useDepartmentStats, useCombinedDischarges } from '@/hooks/queries/useDischargeQueries';
-import { useCancelDischarge, useCompleteDischarge } from '@/hooks/mutations/useDischargeMutations';
-import { useDischargeStatsByDepartment, useDischargeStatsByCity, useDelayedDischarges, useDischargeGeneralStats } from '@/hooks/queries/useDischargeStatsQueries';
 import { toast } from 'sonner';
 import DischargeMonitoringHeader from './discharge-monitoring/DischargeMonitoringHeader';
-import PendingDischargesFilters from './discharge-monitoring/PendingDischargesFilters';
-import PendingDischargeCard from './discharge-monitoring/PendingDischargeCard';
+import PendingDischargesTab from './discharge-monitoring/PendingDischargesTab';
 import CombinedDischargesGrid from './discharge-monitoring/CombinedDischargesGrid';
 import AnalyticsCharts from './discharge-monitoring/AnalyticsCharts';
 import SimplifiedReportsSection from './discharge-monitoring/SimplifiedReportsSection';
 import AmbulanceModule from './ambulance/AmbulanceModule';
+import DebugInfoCard from './discharge-monitoring/DebugInfoCard';
+import { useDischargeMonitoringState } from './discharge-monitoring/DischargeMonitoringState';
+import { createEffectiveDischargeHandler } from './discharge-monitoring/DischargeMonitoringLogic';
 
 const DischargeMonitoringPanel: React.FC = () => {
-  const [justification, setJustification] = useState<{ [key: string]: string }>({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'oldest' | 'newest'>('oldest');
+  const {
+    justification,
+    setJustification,
+    searchTerm,
+    setSearchTerm,
+    sortBy,
+    setSortBy,
+    dischargeControls,
+    combinedDischarges,
+    dischargeStatsByDept,
+    dischargeStatsByCity,
+    delayedDischarges,
+    pendingDischarges,
+    completedDischarges,
+    filteredPendingDischarges,
+    isLoading,
+    cancelDischargeMutation,
+    completeDischargeMutation,
+    handleRefreshData
+  } = useDischargeMonitoringState();
 
-  // Queries - usando tanto a query original quanto a combinada
-  const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
-  const { data: combinedDischarges = [], refetch: refetchCombinedDischarges } = useCombinedDischarges();
-  const { data: departmentStats = [] } = useDepartmentStats();
-  const { data: dischargeStatsByDept = [], refetch: refetchStatsByDept } = useDischargeStatsByDepartment();
-  const { data: dischargeStatsByCity = [], refetch: refetchStatsByCity } = useDischargeStatsByCity();
-  const { data: delayedDischarges = [], refetch: refetchDelayedDischarges } = useDelayedDischarges();
-  const { data: generalStats, refetch: refetchGeneralStats } = useDischargeGeneralStats();
+  const handleEffectiveDischarge = createEffectiveDischargeHandler(
+    dischargeControls,
+    justification,
+    completeDischargeMutation
+  );
 
-  // Mutations
-  const cancelDischargeMutation = useCancelDischarge();
-  const completeDischargeMutation = useCompleteDischarge();
-
-  console.log('📊 Dados no painel de monitoramento:', {
-    dischargeControls: dischargeControls.length,
-    combinedDischarges: combinedDischarges.length,
-    pendingCount: dischargeControls.filter(d => d.status === 'pending').length
-  });
-
-  const pendingDischarges = dischargeControls.filter(d => d.status === 'pending');
-  const completedDischarges = dischargeControls.filter(d => d.status === 'completed');
-
-  const filteredPendingDischarges = pendingDischarges
-    .filter(discharge =>
-      discharge.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      discharge.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (discharge.origin_city && discharge.origin_city.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a, b) => {
-      const dateA = new Date(a.discharge_requested_at).getTime();
-      const dateB = new Date(b.discharge_requested_at).getTime();
-      return sortBy === 'oldest' ? dateA - dateB : dateB - dateA;
-    });
-
-  // Função modificada para calcular tempo de espera a partir das 7h da manhã do dia da solicitação
-  const calculateWaitTime = (requestedAt: string) => {
-    const requested = new Date(requestedAt);
-    const now = new Date();
-    
-    // Criar data base: início do dia da solicitação + 7 horas (7h da manhã)
-    const requestDay = new Date(requested);
-    requestDay.setHours(0, 0, 0, 0); // Zerar horas para início do dia
-    const baseTime = new Date(requestDay.getTime() + (7 * 60 * 60 * 1000)); // Adicionar 7 horas
-    
-    // Calcular diferença entre agora e 7h da manhã do dia da solicitação
-    const diffMs = now.getTime() - baseTime.getTime();
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    // Garantir que o tempo mínimo seja 0 (caso a solicitação seja antes das 7h)
-    const finalHours = Math.max(0, hours);
-    const finalMinutes = Math.max(0, minutes);
-    
-    return { 
-      hours: finalHours, 
-      minutes: finalMinutes, 
-      isOverdue: finalHours >= 5 
-    };
+  const handleJustificationChange = (id: string, value: string) => {
+    setJustification(prev => ({
+      ...prev,
+      [id]: value
+    }));
   };
 
-  const handleEffectiveDischarge = (id: string) => {
-    const discharge = dischargeControls.find(d => d.id === id);
-    if (!discharge) return;
-
-    const waitTime = calculateWaitTime(discharge.discharge_requested_at);
-    
-    if (waitTime.isOverdue && !justification[id]) {
-      toast.error('É necessário justificar altas com mais de 5 horas de espera.');
-      return;
-    }
-
-    completeDischargeMutation.mutate({ 
-      dischargeId: id, 
-      justification: waitTime.isOverdue ? justification[id] : undefined 
-    });
-  };
-
-  const handleRefreshData = () => {
-    console.log('🔄 Atualizando dados do monitoramento...');
+  const handleRefreshWithToast = () => {
     toast.info('Atualizando dados...');
-    refetchDischargeControl();
-    refetchCombinedDischarges();
-    refetchStatsByDept();
-    refetchStatsByCity();
-    refetchDelayedDischarges();
-    refetchGeneralStats();
+    handleRefreshData();
   };
 
   if (isLoading) {
@@ -120,7 +65,7 @@ const DischargeMonitoringPanel: React.FC = () => {
       <DischargeMonitoringHeader
         pendingCount={pendingDischarges.length}
         totalProcessed={combinedDischarges.length}
-        onRefresh={handleRefreshData}
+        onRefresh={handleRefreshWithToast}
       />
 
       <Tabs defaultValue="pending" className="w-full">
@@ -143,46 +88,18 @@ const DischargeMonitoringPanel: React.FC = () => {
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
-          <PendingDischargesFilters
+          <PendingDischargesTab
+            filteredPendingDischarges={filteredPendingDischarges}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortBy={sortBy}
             onSortChange={setSortBy}
+            justification={justification}
+            onJustificationChange={handleJustificationChange}
+            onCancel={(id) => cancelDischargeMutation.mutate(id)}
+            onComplete={handleEffectiveDischarge}
+            combinedDischarges={combinedDischarges}
           />
-
-          {filteredPendingDischarges.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-gray-500">Nenhuma alta pendente no momento.</p>
-                <p className="text-sm text-gray-400 mt-2">
-                  Total de altas processadas hoje: {combinedDischarges.filter(d => 
-                    new Date(d.discharge_requested_at || d.created_at).toDateString() === new Date().toDateString()
-                  ).length}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {filteredPendingDischarges.map((discharge) => {
-                const waitTime = calculateWaitTime(discharge.discharge_requested_at);
-                
-                return (
-                  <PendingDischargeCard
-                    key={discharge.id}
-                    discharge={discharge}
-                    waitTime={waitTime}
-                    justification={justification[discharge.id] || ''}
-                    onJustificationChange={(value) => setJustification(prev => ({
-                      ...prev,
-                      [discharge.id]: value
-                    }))}
-                    onCancel={() => cancelDischargeMutation.mutate(discharge.id)}
-                    onComplete={() => handleEffectiveDischarge(discharge.id)}
-                  />
-                );
-              })}
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="combined" className="space-y-4">
@@ -190,26 +107,15 @@ const DischargeMonitoringPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          {/* Debug info para verificar dados */}
-          {process.env.NODE_ENV === 'development' && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4 text-sm">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p><strong>Controles de Alta:</strong> {dischargeControls.length}</p>
-                    <p><strong>Pendentes:</strong> {pendingDischarges.length}</p>
-                    <p><strong>Completadas:</strong> {completedDischarges.length}</p>
-                  </div>
-                  <div>
-                    <p><strong>Altas Combinadas:</strong> {combinedDischarges.length}</p>
-                    <p><strong>Stats por Dept:</strong> {dischargeStatsByDept.length}</p>
-                    <p><strong>Stats por Cidade:</strong> {dischargeStatsByCity.length}</p>
-                    <p><strong>Altas Atrasadas:</strong> {delayedDischarges.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <DebugInfoCard
+            dischargeControls={dischargeControls}
+            pendingDischarges={pendingDischarges}
+            completedDischarges={completedDischarges}
+            combinedDischarges={combinedDischarges}
+            dischargeStatsByDept={dischargeStatsByDept}
+            dischargeStatsByCity={dischargeStatsByCity}
+            delayedDischarges={delayedDischarges}
+          />
 
           <AnalyticsCharts
             dischargeStatsByDept={dischargeStatsByDept}
