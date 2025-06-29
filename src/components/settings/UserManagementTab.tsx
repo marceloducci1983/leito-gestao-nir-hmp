@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Users, Plus } from 'lucide-react';
 import { AddUserModal } from './AddUserModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,18 +26,23 @@ export const UserManagementTab: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('Buscando usuários...');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Erro ao carregar usuários:', error);
         toast.error('Erro ao carregar usuários: ' + error.message);
         return;
       }
 
+      console.log('Usuários carregados:', data);
       setUsers(data || []);
     } catch (error) {
+      console.error('Erro inesperado ao carregar usuários:', error);
       toast.error('Erro inesperado ao carregar usuários');
     } finally {
       setLoading(false);
@@ -46,6 +51,8 @@ export const UserManagementTab: React.FC = () => {
 
   const handleAddUser = async (userData: { email: string; fullName: string; role: 'admin' | 'user' }) => {
     try {
+      console.log('Criando usuário:', userData);
+
       // Verificar se email já existe
       const { data: existingUser } = await supabase
         .from('profiles')
@@ -61,39 +68,32 @@ export const UserManagementTab: React.FC = () => {
       // Gerar senha temporária
       const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
 
-      // Criar usuário no Supabase Auth com metadados
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: userData.fullName,
-          role: userData.role,
-          created_by: profile?.id
-        }
-      });
+      // Usar signUp do Auth Context para criar usuário
+      const { signUp } = useAuth();
+      const result = await signUp(userData.email, tempPassword, userData.fullName, userData.role);
 
-      if (error) {
-        toast.error('Erro ao criar usuário: ' + error.message);
-        return;
+      if (!result.error) {
+        toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
+        await fetchUsers();
+        setIsModalOpen(false);
       }
-
-      toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
-      await fetchUsers();
-      setIsModalOpen(false);
     } catch (error) {
+      console.error('Erro inesperado ao criar usuário:', error);
       toast.error('Erro inesperado ao criar usuário');
     }
   };
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
+      console.log('Alterando status do usuário:', userId, 'de', currentStatus, 'para', !currentStatus);
+
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: !currentStatus })
         .eq('id', userId);
 
       if (error) {
+        console.error('Erro ao alterar status:', error);
         toast.error('Erro ao alterar status do usuário: ' + error.message);
         return;
       }
@@ -101,6 +101,7 @@ export const UserManagementTab: React.FC = () => {
       toast.success(`Usuário ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`);
       await fetchUsers();
     } catch (error) {
+      console.error('Erro inesperado ao alterar status:', error);
       toast.error('Erro inesperado ao alterar status do usuário');
     }
   };

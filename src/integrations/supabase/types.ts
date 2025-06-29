@@ -727,6 +727,10 @@ export type Database = {
           total_discharges: number
         }[]
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       get_delayed_discharges: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -779,6 +783,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id?: string }
+        Returns: boolean
+      }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       request_discharge_for_patient: {

@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Tentando fazer login com:', email);
       
-      // Verificar se é o usuário admin hardcoded
+      // Verificar se é o usuário admin hardcoded primeiro
       if (email.toLowerCase().trim() === ADMIN_USER.email.toLowerCase() && password === ADMIN_USER.password) {
         // Criar sessão simulada para o admin
         const adminProfile: Profile = {
