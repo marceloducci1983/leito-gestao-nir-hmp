@@ -3,29 +3,10 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string;
-  role: 'admin' | 'user';
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-  is_active: boolean;
-}
-
-interface AuthContextType {
-  user: User | null;
-  profile: Profile | null;
-  session: Session | null;
-  loading: boolean;
-  isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
-}
+import { AuthContextType, Profile } from './auth/types';
+import { signInUser, signUpUser, signOutUser } from './auth/authService';
+import { fetchProfile, updateUserProfile } from './auth/profileService';
+import { getStoredAdminSession } from './auth/adminAuth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -45,175 +26,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = profile?.role === 'admin' && profile?.is_active === true;
 
-  // Usuário admin hardcoded para desenvolvimento
-  const ADMIN_USER = {
-    email: 'sociocecel@yahooo.com.br',
-    password: '12345'
-  };
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Erro ao buscar perfil:', error);
-        return null;
-      }
-
-      return data as Profile;
-    } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
-      return null;
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
-    try {
-      console.log('Tentando fazer login com:', email);
-      
-      // Verificar se é o usuário admin hardcoded primeiro
-      if (email.toLowerCase().trim() === ADMIN_USER.email.toLowerCase() && password === ADMIN_USER.password) {
-        // Criar sessão simulada para o admin
-        const adminProfile: Profile = {
-          id: 'admin-user-id',
-          email: ADMIN_USER.email,
-          full_name: 'Administrador Sistema',
-          role: 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          created_by: null,
-          is_active: true
-        };
-
-        // Criar usuário simulado
-        const adminUser = {
-          id: 'admin-user-id',
-          email: ADMIN_USER.email,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        } as User;
-
-        // Criar sessão simulada
-        const adminSession = {
-          access_token: 'admin-token',
-          refresh_token: 'admin-refresh',
-          expires_in: 3600,
-          expires_at: Date.now() + 3600000,
-          token_type: 'Bearer',
-          user: adminUser
-        } as Session;
-
-        setUser(adminUser);
-        setProfile(adminProfile);
-        setSession(adminSession);
-        
-        // Salvar no localStorage para persistência
-        localStorage.setItem('admin_session', JSON.stringify({
-          user: adminUser,
-          profile: adminProfile,
-          session: adminSession
-        }));
-
-        toast.success('Login realizado com sucesso!');
-        return { error: null };
-      }
-
-      // Para outros usuários, tentar autenticação normal com Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
-
-      if (error) {
-        console.error('Erro de login:', error);
-        toast.error('Credenciais inválidas');
-        return { error };
-      }
-
-      console.log('Login realizado com sucesso:', data);
-      toast.success('Login realizado com sucesso!');
-      return { error: null };
-    } catch (error) {
-      console.error('Erro inesperado no login:', error);
-      toast.error('Erro inesperado no login');
-      return { error };
+    const result = await signInUser(email, password);
+    
+    if (!result.error) {
+      setUser(result.user);
+      setProfile(result.profile);
+      setSession(result.session);
     }
+    
+    return { error: result.error };
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'user' = 'user') => {
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-            role: role,
-          }
-        }
-      });
-
-      if (error) {
-        toast.error('Erro no cadastro: ' + error.message);
-        return { error };
-      }
-
-      toast.success('Cadastro realizado com sucesso! Verifique seu email.');
-      return { error: null };
-    } catch (error) {
-      toast.error('Erro inesperado no cadastro');
-      return { error };
-    }
+    return await signUpUser(email, password, fullName, role);
   };
 
   const signOut = async () => {
-    try {
-      // Limpar sessão admin se existir
-      localStorage.removeItem('admin_session');
-      
-      // Tentar fazer logout do Supabase também
-      const { error } = await supabase.auth.signOut();
-      
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      
-      toast.success('Logout realizado com sucesso!');
-    } catch (error) {
-      toast.error('Erro inesperado ao sair');
-    }
+    const result = await signOutUser();
+    setUser(null);
+    setProfile(null);
+    setSession(null);
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: 'Usuário não autenticado' };
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        toast.error('Erro ao atualizar perfil: ' + error.message);
-        return { error };
-      }
-
-      setProfile(data as Profile);
+    const result = await updateUserProfile(user.id, updates);
+    
+    if (!result.error && result.data) {
+      setProfile(result.data);
       toast.success('Perfil atualizado com sucesso!');
-      return { error: null };
-    } catch (error) {
-      toast.error('Erro inesperado ao atualizar perfil');
-      return { error };
+    } else {
+      toast.error('Erro ao atualizar perfil: ' + result.error?.message);
     }
+    
+    return result;
   };
 
   useEffect(() => {
@@ -222,9 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initAuth = async () => {
       try {
         // Verificar se existe sessão admin salva
-        const savedAdminSession = localStorage.getItem('admin_session');
+        const savedAdminSession = getStoredAdminSession();
         if (savedAdminSession) {
-          const { user: adminUser, profile: adminProfile, session: adminSession } = JSON.parse(savedAdminSession);
+          const { user: adminUser, profile: adminProfile, session: adminSession } = savedAdminSession;
           if (mounted) {
             setUser(adminUser);
             setProfile(adminProfile);
