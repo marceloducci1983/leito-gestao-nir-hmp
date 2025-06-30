@@ -21,7 +21,8 @@ export const UserManagementTab: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const { profile } = useAuth();
+  const [creatingUser, setCreatingUser] = useState(false);
+  const { profile, signUp } = useAuth();
 
   const fetchUsers = async () => {
     try {
@@ -51,35 +52,89 @@ export const UserManagementTab: React.FC = () => {
 
   const handleAddUser = async (userData: { email: string; fullName: string; role: 'admin' | 'user' }) => {
     try {
+      setCreatingUser(true);
       console.log('Criando usuário:', userData);
 
-      // Verificar se email já existe
-      const { data: existingUser } = await supabase
+      // Validar dados de entrada
+      if (!userData.email || !userData.fullName || !userData.role) {
+        toast.error('Todos os campos são obrigatórios');
+        return;
+      }
+
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userData.email)) {
+        toast.error('Formato de email inválido');
+        return;
+      }
+
+      // Validar nome completo (pelo menos 2 palavras)
+      if (userData.fullName.trim().split(' ').length < 2) {
+        toast.error('Por favor, insira o nome completo (nome e sobrenome)');
+        return;
+      }
+
+      // Verificar se email já existe usando maybeSingle()
+      console.log('Verificando se email já existe:', userData.email.toLowerCase());
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('email')
         .eq('email', userData.email.toLowerCase())
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Erro ao verificar email existente:', checkError);
+        toast.error('Erro ao verificar email: ' + checkError.message);
+        return;
+      }
 
       if (existingUser) {
+        console.log('Email já existe:', existingUser);
         toast.error('Este email já está em uso por outro usuário');
         return;
       }
 
-      // Gerar senha temporária
-      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+      // Gerar senha temporária mais robusta
+      const tempPassword = 'Temp' + Math.random().toString(36).slice(-6) + '123!';
+      console.log('Senha temporária gerada:', tempPassword);
 
-      // Usar signUp do Auth Context para criar usuário
-      const { signUp } = useAuth();
+      // Criar usuário usando signUp do Auth Context
+      console.log('Chamando signUp com:', {
+        email: userData.email,
+        fullName: userData.fullName,
+        role: userData.role
+      });
+
       const result = await signUp(userData.email, tempPassword, userData.fullName, userData.role);
 
-      if (!result.error) {
-        toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
-        await fetchUsers();
-        setIsModalOpen(false);
+      if (result.error) {
+        console.error('Erro no signUp:', result.error);
+        
+        // Tratar erros específicos
+        if (result.error.message?.includes('User already registered')) {
+          toast.error('Este email já está registrado no sistema');
+        } else if (result.error.message?.includes('Password')) {
+          toast.error('Erro na senha: ' + result.error.message);
+        } else if (result.error.message?.includes('Email')) {
+          toast.error('Erro no email: ' + result.error.message);
+        } else {
+          toast.error('Erro ao criar usuário: ' + result.error.message);
+        }
+        return;
       }
+
+      console.log('Usuário criado com sucesso!');
+      toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
+      
+      // Recarregar lista de usuários
+      await fetchUsers();
+      setIsModalOpen(false);
+      
     } catch (error) {
       console.error('Erro inesperado ao criar usuário:', error);
-      toast.error('Erro inesperado ao criar usuário');
+      toast.error('Erro inesperado ao criar usuário: ' + (error as Error).message);
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -130,9 +185,13 @@ export const UserManagementTab: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-medium">Usuários Cadastrados ({users.length})</h4>
-            <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+            <Button 
+              onClick={() => setIsModalOpen(true)} 
+              className="flex items-center gap-2"
+              disabled={creatingUser}
+            >
               <Plus className="h-4 w-4" />
-              Adicionar Usuário
+              {creatingUser ? 'Criando...' : 'Adicionar Usuário'}
             </Button>
           </div>
           
