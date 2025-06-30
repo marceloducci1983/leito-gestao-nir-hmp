@@ -27,7 +27,7 @@ export const UserManagementTab: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log('Buscando usuários...');
+      console.log('🔄 Buscando usuários...');
       
       const { data, error } = await supabase
         .from('profiles')
@@ -35,15 +35,15 @@ export const UserManagementTab: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao carregar usuários:', error);
+        console.error('❌ Erro ao carregar usuários:', error);
         toast.error('Erro ao carregar usuários: ' + error.message);
         return;
       }
 
-      console.log('Usuários carregados:', data);
+      console.log('✅ Usuários carregados:', data);
       setUsers(data || []);
     } catch (error) {
-      console.error('Erro inesperado ao carregar usuários:', error);
+      console.error('💥 Erro inesperado ao carregar usuários:', error);
       toast.error('Erro inesperado ao carregar usuários');
     } finally {
       setLoading(false);
@@ -53,62 +53,72 @@ export const UserManagementTab: React.FC = () => {
   const handleAddUser = async (userData: { email: string; fullName: string; role: 'admin' | 'user' }) => {
     try {
       setCreatingUser(true);
-      console.log('Criando usuário:', userData);
+      console.log('🔄 handleAddUser iniciado com:', userData);
 
-      // Validar dados de entrada
-      if (!userData.email || !userData.fullName || !userData.role) {
+      // Validações de entrada mais rigorosas
+      if (!userData.email?.trim() || !userData.fullName?.trim() || !userData.role) {
+        console.error('❌ Dados inválidos:', userData);
         toast.error('Todos os campos são obrigatórios');
         return;
       }
 
       // Validar formato de email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(userData.email)) {
+      if (!emailRegex.test(userData.email.trim())) {
+        console.error('❌ Email inválido:', userData.email);
         toast.error('Formato de email inválido');
         return;
       }
 
       // Validar nome completo (pelo menos 2 palavras)
-      if (userData.fullName.trim().split(' ').length < 2) {
+      const nameParts = userData.fullName.trim().split(' ');
+      if (nameParts.length < 2) {
+        console.error('❌ Nome incompleto:', userData.fullName);
         toast.error('Por favor, insira o nome completo (nome e sobrenome)');
         return;
       }
 
       // Verificar se email já existe usando maybeSingle()
-      console.log('Verificando se email já existe:', userData.email.toLowerCase());
+      console.log('🔄 Verificando se email já existe:', userData.email.toLowerCase());
       const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('email')
-        .eq('email', userData.email.toLowerCase())
+        .eq('email', userData.email.toLowerCase().trim())
         .maybeSingle();
 
       if (checkError) {
-        console.error('Erro ao verificar email existente:', checkError);
+        console.error('❌ Erro ao verificar email existente:', checkError);
         toast.error('Erro ao verificar email: ' + checkError.message);
         return;
       }
 
       if (existingUser) {
-        console.log('Email já existe:', existingUser);
+        console.error('❌ Email já existe:', existingUser);
         toast.error('Este email já está em uso por outro usuário');
         return;
       }
 
       // Gerar senha temporária mais robusta
-      const tempPassword = 'Temp' + Math.random().toString(36).slice(-6) + '123!';
-      console.log('Senha temporária gerada:', tempPassword);
+      const tempPassword = 'Temp' + Math.random().toString(36).slice(-8) + 'Aa1!';
+      console.log('🔑 Senha temporária gerada (comprimento):', tempPassword.length);
 
       // Criar usuário usando signUp do Auth Context
-      console.log('Chamando signUp com:', {
-        email: userData.email,
-        fullName: userData.fullName,
-        role: userData.role
+      console.log('🔄 Chamando signUp com dados validados:', {
+        email: userData.email.trim(),
+        fullName: userData.fullName.trim(),
+        role: userData.role,
+        passwordLength: tempPassword.length
       });
 
-      const result = await signUp(userData.email, tempPassword, userData.fullName, userData.role);
+      const result = await signUp(userData.email.trim(), tempPassword, userData.fullName.trim(), userData.role);
+
+      console.log('📡 Resultado do signUp:', result);
 
       if (result.error) {
-        console.error('Erro no signUp:', result.error);
+        console.error('❌ Erro no signUp:', {
+          message: result.error.message,
+          error: result.error
+        });
         
         // Tratar erros específicos
         if (result.error.message?.includes('User already registered')) {
@@ -117,13 +127,15 @@ export const UserManagementTab: React.FC = () => {
           toast.error('Erro na senha: ' + result.error.message);
         } else if (result.error.message?.includes('Email')) {
           toast.error('Erro no email: ' + result.error.message);
+        } else if (result.error.message?.includes('Database error')) {
+          toast.error('Erro no banco de dados. Verifique se o tipo user_role foi criado corretamente.');
         } else {
           toast.error('Erro ao criar usuário: ' + result.error.message);
         }
         return;
       }
 
-      console.log('Usuário criado com sucesso!');
+      console.log('🎉 Usuário criado com sucesso!');
       toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
       
       // Recarregar lista de usuários
@@ -131,7 +143,11 @@ export const UserManagementTab: React.FC = () => {
       setIsModalOpen(false);
       
     } catch (error) {
-      console.error('Erro inesperado ao criar usuário:', error);
+      console.error('💥 Erro inesperado ao criar usuário:', {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        error
+      });
       toast.error('Erro inesperado ao criar usuário: ' + (error as Error).message);
     } finally {
       setCreatingUser(false);
@@ -140,7 +156,7 @@ export const UserManagementTab: React.FC = () => {
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      console.log('Alterando status do usuário:', userId, 'de', currentStatus, 'para', !currentStatus);
+      console.log('🔄 Alterando status do usuário:', userId, 'de', currentStatus, 'para', !currentStatus);
 
       const { error } = await supabase
         .from('profiles')
@@ -148,7 +164,7 @@ export const UserManagementTab: React.FC = () => {
         .eq('id', userId);
 
       if (error) {
-        console.error('Erro ao alterar status:', error);
+        console.error('❌ Erro ao alterar status:', error);
         toast.error('Erro ao alterar status do usuário: ' + error.message);
         return;
       }
@@ -156,7 +172,7 @@ export const UserManagementTab: React.FC = () => {
       toast.success(`Usuário ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`);
       await fetchUsers();
     } catch (error) {
-      console.error('Erro inesperado ao alterar status:', error);
+      console.error('💥 Erro inesperado ao alterar status:', error);
       toast.error('Erro inesperado ao alterar status do usuário');
     }
   };

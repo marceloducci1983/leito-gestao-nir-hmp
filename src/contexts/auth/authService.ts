@@ -50,19 +50,21 @@ export const signInUser = async (email: string, password: string) => {
 
 export const signUpUser = async (email: string, password: string, fullName: string, role: 'admin' | 'user' = 'user') => {
   try {
-    console.log('Iniciando cadastro de usuário:', { email, fullName, role });
+    console.log('🔄 signUpUser iniciado com:', { email, fullName, role });
     
-    // Validações de entrada
+    // Validações de entrada mais rigorosas
     if (!email || !password || !fullName) {
       const errorMsg = 'Todos os campos são obrigatórios';
+      console.error('❌ Validação falhou:', errorMsg);
       toast.error(errorMsg);
       return { error: { message: errorMsg } };
     }
 
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email.trim())) {
       const errorMsg = 'Formato de email inválido';
+      console.error('❌ Email inválido:', email);
       toast.error(errorMsg);
       return { error: { message: errorMsg } };
     }
@@ -70,16 +72,28 @@ export const signUpUser = async (email: string, password: string, fullName: stri
     // Validar senha
     if (password.length < 6) {
       const errorMsg = 'Senha deve ter pelo menos 6 caracteres';
+      console.error('❌ Senha muito curta:', password.length);
       toast.error(errorMsg);
       return { error: { message: errorMsg } };
     }
 
+    // Validar nome completo
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length < 2) {
+      const errorMsg = 'Por favor, insira o nome completo (nome e sobrenome)';
+      console.error('❌ Nome incompleto:', fullName);
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    }
+
+    console.log('✅ Validações passaram, tentando criar usuário no Supabase...');
+
     const redirectUrl = `${window.location.origin}/`;
     
-    console.log('Chamando supabase.auth.signUp com:', {
+    console.log('🔄 Chamando supabase.auth.signUp com:', {
       email: email.trim(),
       passwordLength: password.length,
-      fullName,
+      fullName: fullName.trim(),
       role,
       redirectUrl
     });
@@ -96,8 +110,14 @@ export const signUpUser = async (email: string, password: string, fullName: stri
       }
     });
 
+    console.log('📡 Resposta do supabase.auth.signUp:', { data, error });
+
     if (error) {
-      console.error('Erro no cadastro do Supabase:', error);
+      console.error('❌ Erro no cadastro do Supabase:', {
+        message: error.message,
+        status: error.status,
+        details: error
+      });
       
       // Tratar erros específicos do Supabase
       if (error.message?.includes('User already registered')) {
@@ -108,8 +128,9 @@ export const signUpUser = async (email: string, password: string, fullName: stri
         toast.error('Email inválido. Verifique o formato do email.');
       } else if (error.message?.includes('Email rate limit exceeded')) {
         toast.error('Limite de emails excedido. Tente novamente em alguns minutos.');
-      } else if (error.message?.includes('Database error saving new user')) {
-        toast.error('Erro interno do banco de dados. Tente novamente.');
+      } else if (error.message?.includes('Database error')) {
+        console.error('💥 Erro de banco de dados detectado:', error.message);
+        toast.error('Erro no banco de dados. Verifique se o tipo user_role existe.');
       } else {
         toast.error('Erro no cadastro: ' + error.message);
       }
@@ -117,21 +138,26 @@ export const signUpUser = async (email: string, password: string, fullName: stri
       return { error };
     }
 
-    console.log('Usuário cadastrado com sucesso no Supabase:', data);
+    console.log('✅ Usuário cadastrado com sucesso no Supabase:', data);
     
     // Verificar se o usuário foi criado
     if (!data.user) {
       const errorMsg = 'Erro ao criar usuário - dados do usuário não retornados';
-      console.error(errorMsg);
+      console.error('❌', errorMsg);
       toast.error(errorMsg);
       return { error: { message: errorMsg } };
     }
 
+    console.log('🎉 Usuário criado com sucesso! ID:', data.user.id);
     toast.success('Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.');
     return { error: null, data };
     
   } catch (error) {
-    console.error('Erro inesperado no cadastro:', error);
+    console.error('💥 Erro inesperado no cadastro:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      error
+    });
     const errorMsg = 'Erro inesperado no cadastro: ' + (error as Error).message;
     toast.error(errorMsg);
     return { error: { message: errorMsg } };
