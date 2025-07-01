@@ -40,13 +40,13 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // CLINICA CIRURGICA
+  // CLINICA CIRURGICA - ATUALIZADA COM NOVOS LEITOS
   const clinicaCirurgicaBeds = [
     '1A – ORTOP', '1B – ORTOP', '1C – ORTOP', '2A – ORTOP', '2B – ORTOP', '2C – ORTOP',
     '3A – ORTOP', '3B – ORTOP', '4A – CIRUR', '4B – CIRUR', '5A – CIRUR', '5B – CIRUR',
     '7A – CIRUR', '7B – CIRUR', '7C – CIRUR', '8A – ORTOP', '8B – ORTOP', '8C – ORTOP',
     '9A – CIRUR', '9B – CIRUR', '9C – CIRUR', '10A – PED', '10B – PED',
-    '11A – CIRUR', '11B – CIRUR', '11C – CIRUR', 'Isolamento'
+    '11A – CIRUR', '11B – CIRUR', '11C – CIRUR', 'Isolamento', 'CELA 1A', 'CELA 1B'
   ];
 
   clinicaCirurgicaBeds.forEach(bedName => {
