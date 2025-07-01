@@ -75,9 +75,9 @@ export const getInitialBeds = (): Bed[] => {
     });
   });
 
-  // UTI NEONATAL
+  // UTI NEONATAL - NOVOS LEITOS
   const utiNeonatalBeds = [
-    '1A', '1B', '1C', '1D', 'Canguru-2A', 'Canguru-2B', 'Convencional 1', 'Convencional 2'
+    'UTIN-1', 'UTIN-2', 'UTIN-3', 'UTIN-4', 'UCON-1', 'UCON-2', 'UCON-3', 'UCON-4', 'Canguru-1A', 'Canguru-1B'
   ];
 
   utiNeonatalBeds.forEach(bedName => {
