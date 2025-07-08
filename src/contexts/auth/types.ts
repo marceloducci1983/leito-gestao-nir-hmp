@@ -19,7 +19,8 @@ export interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'user') => Promise<{ error: any; data?: any }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error?: any; data?: Profile }>;
+  createUser: (email: string, password: string, fullName: string, role?: 'admin' | 'user') => Promise<{ error: any; data?: any }>;
 }

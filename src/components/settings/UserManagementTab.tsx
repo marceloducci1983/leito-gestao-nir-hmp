@@ -33,7 +33,7 @@ export const UserManagementTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const { profile, signUp } = useAuth();
+  const { profile, createUser } = useAuth();
 
   const fetchUsers = async () => {
     try {
@@ -114,20 +114,20 @@ export const UserManagementTab: React.FC = () => {
       const tempPassword = 'Temp' + Math.random().toString(36).slice(-8) + 'Aa1!';
       console.log('🔑 Senha temporária gerada (comprimento):', tempPassword.length);
 
-      // Criar usuário usando signUp do Auth Context
-      console.log('🔄 Chamando signUp com dados validados:', {
+      // Criar usuário usando createUser (Admin API) do Auth Context
+      console.log('🔄 Chamando createUser com dados validados:', {
         email: userData.email.trim(),
         fullName: userData.fullName.trim(),
         role: userData.role,
         passwordLength: tempPassword.length
       });
 
-      const result = await signUp(userData.email.trim(), tempPassword, userData.fullName.trim(), userData.role);
+      const result = await createUser(userData.email.trim(), tempPassword, userData.fullName.trim(), userData.role);
 
-      console.log('📡 Resultado do signUp:', result);
+      console.log('📡 Resultado do createUser:', result);
 
       if (result.error) {
-        console.error('❌ Erro no signUp:', {
+        console.error('❌ Erro no createUser:', {
           message: result.error.message,
           error: result.error
         });
@@ -148,7 +148,10 @@ export const UserManagementTab: React.FC = () => {
       }
 
       console.log('🎉 Usuário criado com sucesso!');
-      toast.success(`Usuário criado com sucesso! Senha temporária: ${tempPassword}`);
+      toast.success(`✅ Usuário criado com sucesso!\n📧 Email: ${userData.email}\n🔑 Senha: ${tempPassword}\n\nCompartilhe estas credenciais com o usuário de forma segura.`, {
+        duration: 10000,
+        position: 'top-center'
+      });
       
       // Recarregar lista de usuários
       await fetchUsers();

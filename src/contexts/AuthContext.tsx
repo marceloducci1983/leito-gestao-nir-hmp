@@ -4,9 +4,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AuthContextType, Profile } from './auth/types';
-import { signInUser, signUpUser, signOutUser } from './auth/authService';
+import { signInUser, createUserAsAdmin, signOutUser } from '../components/auth/UnifiedAuthService';
 import { fetchProfile, updateUserProfile } from './auth/profileService';
-import { getStoredAdminSession } from './auth/adminAuth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,7 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'user' = 'user') => {
-    return await signUpUser(email, password, fullName, role);
+    return await createUserAsAdmin(email, password, fullName, role);
+  };
+
+  const createUser = async (email: string, password: string, fullName: string, role: 'admin' | 'user' = 'user') => {
+    return await createUserAsAdmin(email, password, fullName, role);
   };
 
   const signOut = async () => {
@@ -69,20 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initAuth = async () => {
       try {
-        // Verificar se existe sessão admin salva
-        const savedAdminSession = getStoredAdminSession();
-        if (savedAdminSession) {
-          const { user: adminUser, profile: adminProfile, session: adminSession } = savedAdminSession;
-          if (mounted) {
-            setUser(adminUser);
-            setProfile(adminProfile);
-            setSession(adminSession);
-            setLoading(false);
-          }
-          return;
-        }
-
-        // Configurar listener de autenticação para usuários normais
+        // Configurar listener de autenticação
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
@@ -156,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     updateProfile,
+    createUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
