@@ -11,7 +11,7 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({
   onLogin
 }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -47,7 +47,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
     // Simular delay de autenticação
     setTimeout(() => {
-      if (username === 'admin' && password === '12345') {
+      if (email === 'admin@hospital.com' && password === '12345') {
         onLogin();
         toast({
           title: "Login realizado com sucesso",
@@ -56,7 +56,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
       } else {
         toast({
           title: "Erro de autenticação",
-          description: "Usuário ou senha incorretos",
+          description: "Email ou senha incorretos",
           variant: "destructive"
         });
       }
@@ -89,8 +89,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="username" className="dark:text-gray-200">Usuário</Label>
-            <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Digite seu usuário" disabled={isLoading} className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400" />
+            <Label htmlFor="email" className="dark:text-gray-200">Email</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              placeholder="Digite seu email" 
+              disabled={isLoading} 
+              className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400" 
+            />
           </div>
           <div>
             <Label htmlFor="password" className="dark:text-gray-200">Senha</Label>
@@ -100,8 +108,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             {isLoading ? 'Entrando...' : 'Entrar'}
           </Button>
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4 transition-colors duration-300">
-            
-            
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                <strong>Acesso de Teste:</strong><br />
+                Email: admin@hospital.com<br />
+                Senha: 12345
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
