@@ -5,8 +5,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NewAuthScreen } from '@/components/auth/NewAuthScreen';
-import { Index } from '@/pages/Index';
-import { NotFound } from '@/pages/NotFound';
+import Index from '@/pages/Index';
+import NotFound from '@/pages/NotFound';
 import { AdminPasswordChanger } from '@/components/auth/AdminPasswordChanger';
 import { useAuth } from '@/contexts/AuthContext';
 
