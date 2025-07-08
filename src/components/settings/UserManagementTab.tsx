@@ -2,8 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Users, Plus, Edit, Key, Search, Filter } from 'lucide-react';
 import { AddUserModal } from './AddUserModal';
+import { EditUserModal } from './EditUserModal';
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -18,10 +22,17 @@ interface UserProfile {
 }
 
 export const UserManagementTab: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatingUser, setCreatingUser] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const { profile, signUp } = useAuth();
 
   const fetchUsers = async () => {
@@ -42,6 +53,7 @@ export const UserManagementTab: React.FC = () => {
 
       console.log('✅ Usuários carregados:', data);
       setUsers(data || []);
+      setFilteredUsers(data || []);
     } catch (error) {
       console.error('💥 Erro inesperado ao carregar usuários:', error);
       toast.error('Erro inesperado ao carregar usuários');
@@ -140,7 +152,7 @@ export const UserManagementTab: React.FC = () => {
       
       // Recarregar lista de usuários
       await fetchUsers();
-      setIsModalOpen(false);
+      setIsAddModalOpen(false);
       
     } catch (error) {
       console.error('💥 Erro inesperado ao criar usuário:', {
@@ -177,9 +189,52 @@ export const UserManagementTab: React.FC = () => {
     }
   };
 
+  // Filtrar usuários com base na busca e filtros
+  useEffect(() => {
+    let filtered = users;
+
+    // Filtro por busca (nome ou email)
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por role
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Filtro por status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(user => 
+        statusFilter === 'active' ? user.is_active : !user.is_active
+      );
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, roleFilter, statusFilter]);
+
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleEditUser = (user: UserProfile) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleChangePassword = (user: UserProfile) => {
+    setSelectedUser(user);
+    setIsPasswordModalOpen(true);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setRoleFilter('all');
+    setStatusFilter('all');
+  };
 
   if (loading) {
     return (
@@ -199,10 +254,12 @@ export const UserManagementTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium">Usuários Cadastrados ({users.length})</h4>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h4 className="font-medium">
+              Usuários Cadastrados ({filteredUsers.length} de {users.length})
+            </h4>
             <Button 
-              onClick={() => setIsModalOpen(true)} 
+              onClick={() => setIsAddModalOpen(true)} 
               className="flex items-center gap-2"
               disabled={creatingUser}
             >
@@ -210,15 +267,72 @@ export const UserManagementTab: React.FC = () => {
               {creatingUser ? 'Criando...' : 'Adicionar Usuário'}
             </Button>
           </div>
+
+          {/* Filtros de Busca */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Buscar</label>
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo</label>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="user">Usuário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">&nbsp;</label>
+              <Button variant="outline" onClick={clearFilters} className="w-full">
+                <Filter className="h-4 w-4 mr-2" />
+                Limpar
+              </Button>
+            </div>
+          </div>
           
           <div className="border rounded-lg overflow-hidden">
-            {users.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                Nenhum usuário cadastrado
+            {loading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Carregando usuários...</p>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                {users.length === 0 ? 'Nenhum usuário cadastrado' : 'Nenhum usuário encontrado com os filtros aplicados'}
               </div>
             ) : (
               <div className="divide-y">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <div key={user.id} className="p-4">
                     <div className="flex justify-between items-center">
                       <div className="flex-1">
@@ -248,6 +362,22 @@ export const UserManagementTab: React.FC = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleChangePassword(user)}
+                        >
+                          <Key className="h-4 w-4 mr-1" />
+                          Senha
+                        </Button>
+                        <Button 
+                          variant={user.is_active ? "destructive" : "default"}
+                          size="sm"
                           onClick={() => handleToggleUserStatus(user.id, user.is_active)}
                           disabled={user.id === profile?.id}
                         >
@@ -264,9 +394,22 @@ export const UserManagementTab: React.FC = () => {
       </Card>
 
       <AddUserModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
         onAddUser={handleAddUser}
+      />
+      
+      <EditUserModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        user={selectedUser}
+        onUserUpdated={fetchUsers}
+      />
+      
+      <ChangePasswordModal
+        open={isPasswordModalOpen}
+        onOpenChange={setIsPasswordModalOpen}
+        user={selectedUser}
       />
     </>
   );

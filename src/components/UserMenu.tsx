@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,8 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, Shield } from 'lucide-react';
+import { User, Settings, LogOut, Shield, UserPen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserProfileModal } from '@/components/settings/UserProfileModal';
 
 interface UserMenuProps {
   onSettingsClick: () => void;
@@ -18,10 +19,12 @@ interface UserMenuProps {
 
 export const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
   const { profile, signOut, isAdmin } = useAuth();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   if (!profile) return null;
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
@@ -43,6 +46,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setIsProfileModalOpen(true)}>
+          <UserPen className="mr-2 h-4 w-4" />
+          <span>Meu Perfil</span>
+        </DropdownMenuItem>
         {isAdmin && (
           <DropdownMenuItem onClick={onSettingsClick}>
             <Settings className="mr-2 h-4 w-4" />
@@ -55,5 +62,11 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    
+    <UserProfileModal
+      open={isProfileModalOpen}
+      onOpenChange={setIsProfileModalOpen}
+    />
+  </>
   );
 };
