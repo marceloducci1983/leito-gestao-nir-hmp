@@ -1,35 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { NewAuthScreen } from './components/auth/NewAuthScreen';
-import { AuthGuard } from './components/auth/AuthGuard';
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { NewAuthScreen } from '@/components/auth/NewAuthScreen';
+import { Index } from '@/pages/Index';
+import { NotFound } from '@/pages/NotFound';
+import { AdminPasswordChanger } from '@/components/auth/AdminPasswordChanger';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [showPasswordChanger, setShowPasswordChanger] = useState(false);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -41,28 +31,49 @@ const AppContent: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-background">
+        {/* Botão temporário para mostrar o alterador de senha */}
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={() => setShowPasswordChanger(!showPasswordChanger)}
+            className="bg-red-500 text-white px-3 py-1 rounded text-xs"
+          >
+            Admin Password Tool
+          </button>
+        </div>
+
+        {/* Modal temporário para alteração de senha */}
+        {showPasswordChanger && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+            <div className="bg-white p-6 rounded-lg">
+              <AdminPasswordChanger />
+              <button
+                onClick={() => setShowPasswordChanger(false)}
+                className="mt-4 w-full bg-gray-200 text-gray-800 px-4 py-2 rounded"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
+
         <Routes>
-          <Route path="/" element={
-            <AuthGuard>
-              <Index />
-            </AuthGuard>
-          } />
+          <Route path="/" element={<Index />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Toaster />
       </div>
     </Router>
   );
 };
 
-function App() {
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppContent />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;
