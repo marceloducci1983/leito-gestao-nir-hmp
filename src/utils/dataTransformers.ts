@@ -15,7 +15,10 @@ export const transformBedsData = (bedsData: any[]) => {
       name: bed.name,
       department_text: bed.department_text,
       department: bed.department,
-      final_department: bedDepartment
+      final_department: bedDepartment,
+      patient_is_tfd: patient?.is_tfd,
+      patient_tfd_type: patient?.tfd_type,
+      patient_name: patient?.name
     });
 
     return {

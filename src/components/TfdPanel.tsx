@@ -16,8 +16,26 @@ const TfdPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('active');
 
   // Filtrar pacientes TFD de todos os departamentos e incluir informações do leito
+  console.log('🔍 TfdPanel - Verificando leitos ocupados:', centralData.beds.filter(bed => bed.isOccupied).length);
+  console.log('🔍 TfdPanel - Leitos com pacientes:', centralData.beds.filter(bed => bed.isOccupied && bed.patient).length);
+  console.log('🔍 TfdPanel - Verificando pacientes TFD:', centralData.beds
+    .filter(bed => bed.isOccupied && bed.patient)
+    .map(bed => ({
+      nome: bed.patient?.name,
+      isTFD: bed.patient?.isTFD,
+      tfdType: bed.patient?.tfdType,
+      leito: bed.name
+    }))
+  );
+  
   const tfdPatientsWithBeds = centralData.beds
-    .filter(bed => bed.isOccupied && bed.patient?.isTFD)
+    .filter(bed => {
+      const hasTFD = bed.isOccupied && bed.patient?.isTFD;
+      if (bed.patient && bed.patient.tfdType) {
+        console.log(`🔍 TfdPanel - Paciente ${bed.patient.name}: isTFD=${bed.patient.isTFD}, tfdType=${bed.patient.tfdType}, incluído=${hasTFD}`);
+      }
+      return hasTFD;
+    })
     .map(bed => ({
       patient: bed.patient,
       bedInfo: {
