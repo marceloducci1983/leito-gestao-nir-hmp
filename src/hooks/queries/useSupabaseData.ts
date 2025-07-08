@@ -6,7 +6,7 @@ export const useBedsData = () => {
   return useQuery({
     queryKey: ['beds'],
     queryFn: async () => {
-      console.log('Fetching beds data...');
+      console.log('🔄 Fetching beds data...');
       
       const { data, error } = await supabase
         .from('beds')
@@ -43,11 +43,11 @@ export const useBedsData = () => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error fetching beds:', error);
+        console.error('❌ Error fetching beds:', error);
         throw error;
       }
 
-      console.log('Beds data fetched:', data);
+      console.log('✅ Beds data fetched:', data?.length, 'beds');
       return data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

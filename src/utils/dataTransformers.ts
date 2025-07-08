@@ -2,6 +2,7 @@
 import { SupabaseBed, SupabasePatient, SupabaseBedReservation } from '@/types/supabase';
 
 export const transformBedsData = (bedsData: any[]) => {
+  console.log('🔄 Transforming beds data:', bedsData?.length, 'beds');
   return bedsData.map((bed: any) => {
     const patient = bed.patients?.[0];
     const reservation = bed.bed_reservations?.[0];
