@@ -69,62 +69,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const initAuth = async () => {
+      console.log('🔄 Iniciando autenticação...');
+      
       try {
-        // Configurar listener de autenticação
+        // Timeout de segurança para evitar loading infinito
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.log('⏰ Timeout de segurança ativado - forçando fim do loading');
+            setLoading(false);
+          }
+        }, 10000);
+
+        // Configurar listener de autenticação PRIMEIRO
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
+          (event, session) => {
             if (!mounted) return;
             
-            console.log('Auth state changed:', event, session?.user?.email);
+            console.log('🔄 Auth state changed:', event, session?.user?.email);
+            
+            // Atualizar estados básicos sincronamente
             setSession(session);
             setUser(session?.user ?? null);
-
+            
+            // Buscar perfil em background se usuário logado
             if (session?.user) {
-              // Buscar perfil do usuário
-              const userProfile = await fetchProfile(session.user.id);
-              if (mounted) {
-                setProfile(userProfile);
-              }
+              console.log('👤 Buscando perfil do usuário...');
+              fetchProfile(session.user.id)
+                .then(userProfile => {
+                  if (mounted) {
+                    console.log('✅ Perfil carregado:', userProfile?.role);
+                    setProfile(userProfile);
+                  }
+                })
+                .catch(error => {
+                  console.error('❌ Erro ao buscar perfil:', error);
+                  if (mounted) {
+                    setProfile(null);
+                  }
+                })
+                .finally(() => {
+                  if (mounted) {
+                    setLoading(false);
+                    clearTimeout(timeoutId);
+                  }
+                });
             } else {
+              console.log('🚪 Usuário não logado - limpando dados');
               if (mounted) {
                 setProfile(null);
+                setLoading(false);
+                clearTimeout(timeoutId);
               }
-            }
-
-            if (mounted) {
-              setLoading(false);
             }
           }
         );
 
-        // Verificar sessão inicial
-        const { data: { session } } = await supabase.auth.getSession();
+        // Verificar sessão inicial DEPOIS do listener
+        console.log('🔍 Verificando sessão inicial...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Erro ao obter sessão:', error);
+          if (mounted) {
+            setLoading(false);
+            clearTimeout(timeoutId);
+          }
+          return;
+        }
+
         if (!mounted) return;
         
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('📊 Sessão inicial:', session ? 'encontrada' : 'não encontrada');
         
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(profile);
-            setLoading(false);
-          }
-        } else {
-          if (mounted) {
-            setLoading(false);
-          }
+        // Se não há sessão, finalizar loading imediatamente
+        if (!session) {
+          setLoading(false);
+          clearTimeout(timeoutId);
         }
+        // Se há sessão, o listener cuidará do resto
 
         return () => {
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('Erro na inicialização da autenticação:', error);
+        console.error('💥 Erro na inicialização da autenticação:', error);
         if (mounted) {
           setLoading(false);
+          clearTimeout(timeoutId);
         }
       }
     };
@@ -133,6 +167,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 

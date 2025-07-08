@@ -10,9 +10,12 @@ export const NewAuthScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const {
-    signIn
-  } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  
+  console.log('🖥️ NewAuthScreen renderizando...');
+  
+  const { signIn } = useAuth();
+  
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
@@ -24,11 +27,27 @@ export const NewAuthScreen: React.FC = () => {
       localStorage.setItem('theme', 'light');
     }
   };
+  
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔐 Tentando fazer login...');
     setLoading(true);
-    await signIn(email, password);
-    setLoading(false);
+    setError(null);
+    
+    try {
+      const result = await signIn(email, password);
+      if (result.error) {
+        console.error('❌ Erro no login:', result.error);
+        setError('Erro ao fazer login. Verifique suas credenciais.');
+      } else {
+        console.log('✅ Login realizado com sucesso!');
+      }
+    } catch (err) {
+      console.error('💥 Erro inesperado no login:', err);
+      setError('Erro inesperado. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -71,12 +90,15 @@ export const NewAuthScreen: React.FC = () => {
               <Label htmlFor="password" className="dark:text-gray-200">Senha</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Digite sua senha" disabled={loading} className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400" required />
             </div>
+            {error && (
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-md">
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              </div>
+            )}
             <Button type="submit" className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          
-          
         </CardContent>
       </Card>
     </div>;
