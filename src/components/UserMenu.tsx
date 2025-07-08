@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, Shield, UserPen } from 'lucide-react';
+import { User, Settings, LogOut, Shield, UserPen, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/settings/UserProfileModal';
 
@@ -51,10 +51,16 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
           <span>Meu Perfil</span>
         </DropdownMenuItem>
         {isAdmin && (
-          <DropdownMenuItem onClick={onSettingsClick}>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações</span>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem onClick={onSettingsClick}>
+              <Users className="mr-2 h-4 w-4" />
+              <span>Gerenciar Usuários</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onSettingsClick}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Configurações</span>
+            </DropdownMenuItem>
+          </>
         )}
         <DropdownMenuItem onClick={signOut} className="text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
