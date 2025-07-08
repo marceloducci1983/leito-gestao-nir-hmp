@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,15 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sun, Moon } from 'lucide-react';
-
 export const NewAuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  
-  const { signIn } = useAuth();
-
+  const {
+    signIn
+  } = useAuth();
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
@@ -26,18 +24,16 @@ export const NewAuthScreen: React.FC = () => {
       localStorage.setItem('theme', 'light');
     }
   };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     await signIn(email, password);
     setLoading(false);
   };
-
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+    if (savedTheme === 'dark' || !savedTheme && systemPrefersDark) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     } else {
@@ -45,23 +41,16 @@ export const NewAuthScreen: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, []);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center relative" style={{
-      backgroundImage: `url('/lovable-uploads/e88a02d5-fb65-4fd9-abed-f27eb630e39b.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
-      backgroundSize: 'cover, cover',
-      backgroundPosition: 'center, center',
-      backgroundRepeat: 'no-repeat, no-repeat',
-      backgroundAttachment: 'fixed, fixed',
-      backgroundColor: '#1e40af'
-    }}>
+  return <div className="min-h-screen flex items-center justify-center relative" style={{
+    backgroundImage: `url('/lovable-uploads/e88a02d5-fb65-4fd9-abed-f27eb630e39b.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
+    backgroundSize: 'cover, cover',
+    backgroundPosition: 'center, center',
+    backgroundRepeat: 'no-repeat, no-repeat',
+    backgroundAttachment: 'fixed, fixed',
+    backgroundColor: '#1e40af'
+  }}>
       {/* Theme toggle button */}
-      <Button 
-        onClick={toggleTheme} 
-        variant="outline" 
-        size="icon" 
-        className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white/100 dark:bg-gray-800/90 dark:hover:bg-gray-800/100 transition-all duration-300"
-      >
+      <Button onClick={toggleTheme} variant="outline" size="icon" className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white/100 dark:bg-gray-800/90 dark:hover:bg-gray-800/100 transition-all duration-300">
         {isDarkMode ? <Sun className="h-4 w-4 text-yellow-500" /> : <Moon className="h-4 w-4 text-blue-600" />}
       </Button>
 
@@ -80,48 +69,19 @@ export const NewAuthScreen: React.FC = () => {
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
               <Label htmlFor="email" className="dark:text-gray-200">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Digite seu email"
-                disabled={loading}
-                className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                required
-              />
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Digite seu email" disabled={loading} className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400" required />
             </div>
             <div>
               <Label htmlFor="password" className="dark:text-gray-200">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Digite sua senha"
-                disabled={loading}
-                className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                required
-              />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Digite sua senha" disabled={loading} className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400" required />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" 
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full dark:bg-blue-600 dark:hover:bg-blue-700" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
           
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-            <p className="text-xs text-blue-600 dark:text-blue-300 text-center">
-              <strong>Acesso Admin:</strong><br />
-              Email: sociocecel@yahooo.com.br<br />
-              Senha: 12345
-            </p>
-          </div>
+          
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
