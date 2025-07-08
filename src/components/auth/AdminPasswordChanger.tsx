@@ -29,6 +29,9 @@ export const AdminPasswordChanger: React.FC = () => {
           <p className="text-sm text-muted-foreground">
             Nova senha: <strong>12345678</strong>
           </p>
+          <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+            <strong>Nota:</strong> O email correto é sociocecel@yahoo.com.br (com 2 "o"s)
+          </div>
           <Button 
             onClick={handleChangePassword} 
             disabled={changing}
