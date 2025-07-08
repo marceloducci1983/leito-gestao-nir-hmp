@@ -18,7 +18,9 @@ export const transformBedsData = (bedsData: any[]) => {
       final_department: bedDepartment,
       patient_is_tfd: patient?.is_tfd,
       patient_tfd_type: patient?.tfd_type,
-      patient_name: patient?.name
+      patient_name: patient?.name,
+      patient_origin_city: patient?.origin_city,
+      patient_origin_city_final: patient?.origin_city
     });
 
     const transformedBed = {

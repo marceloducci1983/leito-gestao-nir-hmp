@@ -26,6 +26,12 @@ interface PatientInfoProps {
 }
 
 export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
+  console.log('🔍 PatientInfo - Dados do paciente recebidos:', {
+    name: patient.name,
+    originCity: patient.originCity,
+    isTFD: patient.isTFD,
+    tfdType: patient.tfdType
+  });
   const calculateOccupationDays = (admissionDate: string) => {
     const admission = new Date(admissionDate);
     const today = new Date();
