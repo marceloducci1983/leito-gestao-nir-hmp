@@ -42,11 +42,7 @@ export const NewAuthScreen: React.FC = () => {
     }
   }, []);
   return <div className="min-h-screen flex items-center justify-center relative" style={{
-    backgroundImage: `url('/lovable-uploads/e88a02d5-fb65-4fd9-abed-f27eb630e39b.png'), linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)`,
-    backgroundSize: 'cover, cover',
-    backgroundPosition: 'center, center',
-    backgroundRepeat: 'no-repeat, no-repeat',
-    backgroundAttachment: 'fixed, fixed',
+    background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
     backgroundColor: '#1e40af'
   }}>
       {/* Theme toggle button */}
