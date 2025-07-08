@@ -21,7 +21,7 @@ export const transformBedsData = (bedsData: any[]) => {
       patient_name: patient?.name
     });
 
-    return {
+    const transformedBed = {
       id: bed.id,
       name: bed.name,
       department: bedDepartment,
@@ -55,6 +55,19 @@ export const transformBedsData = (bedsData: any[]) => {
         department: reservation.department_text || reservation.department
       } : undefined
     };
+
+    // Log específico para pacientes TFD
+    if (patient?.is_tfd) {
+      console.log('🔍 PACIENTE TFD ENCONTRADO:', {
+        nome: patient.name,
+        is_tfd: patient.is_tfd,
+        tfd_type: patient.tfd_type,
+        leito: bed.name,
+        departamento: bedDepartment
+      });
+    }
+
+    return transformedBed;
   });
 };
 

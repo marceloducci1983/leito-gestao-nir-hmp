@@ -123,7 +123,12 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
       return;
     }
 
-    console.log('Form data before submission:', formData);
+    console.log('🔄 NewPatientForm - Form data before submission:', {
+      formData,
+      isTFD: formData.isTFD,
+      tfdType: formData.tfdType,
+      name: formData.name
+    });
     
     // Convert birth date to ISO format for database
     const birthDateISO = convertDateToISO(formData.birthDate);
@@ -145,7 +150,12 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
       occupationDays: 0
     };
 
-    console.log('Patient data being submitted:', patientData);
+    console.log('🔄 NewPatientForm - Patient data being submitted:', {
+      patientData,
+      isTFD: patientData.isTFD,
+      tfdType: patientData.tfdType,
+      name: patientData.name
+    });
     onSubmit(patientData);
   };
 

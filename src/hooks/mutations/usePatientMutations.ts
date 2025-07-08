@@ -9,7 +9,13 @@ export const useAddPatient = () => {
 
   return useMutation({
     mutationFn: async ({ bedId, patientData }: { bedId: string; patientData: Omit<Patient, 'id' | 'bedId' | 'occupationDays'> }) => {
-      console.log('Adding patient with data:', { bedId, patientData });
+      console.log('🔄 useAddPatient - Dados recebidos:', {
+        bedId,
+        patientData,
+        isTFD: patientData.isTFD,
+        tfdType: patientData.tfdType,
+        name: patientData.name
+      });
       
       // Primeiro, inserir o paciente
       const { data: patient, error: patientError } = await supabase
@@ -33,6 +39,12 @@ export const useAddPatient = () => {
         })
         .select()
         .single();
+
+      console.log('✅ useAddPatient - Paciente inserido no banco:', {
+        patient,
+        is_tfd: patient?.is_tfd,
+        tfd_type: patient?.tfd_type
+      });
 
       if (patientError) {
         console.error('Error inserting patient:', patientError);
