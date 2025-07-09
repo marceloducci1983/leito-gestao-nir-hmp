@@ -1,5 +1,6 @@
 
 import { useToast } from '@/hooks/use-toast';
+import { useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
 import { Patient, Department } from '@/types';
 
 interface UseFormSubmitHandlersProps {
@@ -32,6 +33,7 @@ export const useFormSubmitHandlers = ({
   isEditingPatient
 }: UseFormSubmitHandlersProps) => {
   const { toast } = useToast();
+  const updatePatientMutation = useUpdatePatient();
 
   const submitReservation = (reservationData: any) => {
     try {
@@ -66,23 +68,39 @@ export const useFormSubmitHandlers = ({
     }
 
     try {
-      console.log('⚡ Chamando addPatient com bedId e patientData...');
-      
-      // Garantir que o departamento seja passado corretamente
-      const patientDataWithDepartment = {
-        ...patientData,
-        department: patientData.department || selectedDepartment
-      };
-      
-      console.log('🔄 Dados finais do paciente a serem enviados:', patientDataWithDepartment);
-      
-      const result = await addPatient({
-        bedId: selectedBedId,
-        patientData: patientDataWithDepartment
-      });
-      
-      console.log('✅ Resposta do addPatient:', result);
-      console.log('✅ Paciente admitido com sucesso');
+      if (isEditingPatient && selectedPatient) {
+        // MODO EDIÇÃO - Atualizar paciente existente
+        console.log('✏️ EDITANDO paciente existente:', selectedPatient.id);
+        console.log('📝 Dados atualizados:', patientData);
+        
+        await updatePatientMutation.mutateAsync({
+          patientId: selectedPatient.id,
+          patientData: patientData
+        });
+        
+        console.log('✅ Paciente editado com sucesso');
+        
+      } else {
+        // MODO ADMISSÃO - Novo paciente
+        console.log('🆕 ADMITINDO novo paciente');
+        console.log('⚡ Chamando addPatient com bedId e patientData...');
+        
+        // Garantir que o departamento seja passado corretamente
+        const patientDataWithDepartment = {
+          ...patientData,
+          department: patientData.department || selectedDepartment
+        };
+        
+        console.log('🔄 Dados finais do paciente a serem enviados:', patientDataWithDepartment);
+        
+        const result = await addPatient({
+          bedId: selectedBedId,
+          patientData: patientDataWithDepartment
+        });
+        
+        console.log('✅ Resposta do addPatient:', result);
+        console.log('✅ Paciente admitido com sucesso');
+      }
       
       // Fechar modal apenas após sucesso
       setShowPatientForm(false);

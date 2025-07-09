@@ -48,11 +48,12 @@ export const useExpectedDischargesData = (data: ExpectedDischargesData) => {
 
     const occupiedBeds = data.beds.filter(bed => bed.isOccupied && bed.patient);
     
-    console.log('Calculando altas previstas (corrigido):', {
+    console.log('🔍 Calculando altas previstas:', {
       hoje: today.toISOString().split('T')[0],
       amanha: tomorrow.toISOString().split('T')[0],
       depoisAmanha: dayAfterTomorrow.toISOString().split('T')[0],
-      totalPacientes: occupiedBeds.length
+      totalPacientes: occupiedBeds.length,
+      pacientesComDatas: occupiedBeds.filter(bed => bed.patient?.expectedDischargeDate).length
     });
     
     const discharges24h = occupiedBeds.filter(bed => {
@@ -64,17 +65,16 @@ export const useExpectedDischargesData = (data: ExpectedDischargesData) => {
       const isTomorrow = isSameDayLocal(expectedDischarge, tomorrow);
       const isWithin24h = isToday || isTomorrow;
       
-      if (isWithin24h) {
-        console.log('Paciente 24h (corrigido):', {
-          nome: bed.patient.name,
-          dpaOriginal: bed.patient.expectedDischargeDate,
-          dpaLocal: expectedDischarge.toISOString().split('T')[0],
-          hoje: today.toISOString().split('T')[0],
-          amanha: tomorrow.toISOString().split('T')[0],
-          isToday,
-          isTomorrow
-        });
-      }
+      console.log('🔍 Verificando paciente 24h:', {
+        nome: bed.patient.name,
+        dpaOriginal: bed.patient.expectedDischargeDate,
+        dpaLocal: expectedDischarge.toISOString().split('T')[0],
+        hoje: today.toISOString().split('T')[0],
+        amanha: tomorrow.toISOString().split('T')[0],
+        isToday,
+        isTomorrow,
+        isWithin24h
+      });
       
       return isWithin24h;
     });
@@ -86,16 +86,22 @@ export const useExpectedDischargesData = (data: ExpectedDischargesData) => {
       const expectedDischarge = createLocalDate(bed.patient.expectedDischargeDate);
       const isDayAfterTomorrow = isSameDayLocal(expectedDischarge, dayAfterTomorrow);
       
-      if (isDayAfterTomorrow) {
-        console.log('Paciente 48h (corrigido):', {
-          nome: bed.patient.name,
-          dpaOriginal: bed.patient.expectedDischargeDate,
-          dpaLocal: expectedDischarge.toISOString().split('T')[0],
-          depoisAmanha: dayAfterTomorrow.toISOString().split('T')[0]
-        });
-      }
+      console.log('🔍 Verificando paciente 48h:', {
+        nome: bed.patient.name,
+        dpaOriginal: bed.patient.expectedDischargeDate,
+        dpaLocal: expectedDischarge.toISOString().split('T')[0],
+        depoisAmanha: dayAfterTomorrow.toISOString().split('T')[0],
+        isDayAfterTomorrow
+      });
       
       return isDayAfterTomorrow;
+    });
+
+    console.log('📊 Resultado final das altas previstas:', {
+      discharges24h: discharges24h.length,
+      discharges48h: discharges48h.length,
+      pacientes24h: discharges24h.map(b => ({ nome: b.patient.name, dpa: b.patient.expectedDischargeDate })),
+      pacientes48h: discharges48h.map(b => ({ nome: b.patient.name, dpa: b.patient.expectedDischargeDate }))
     });
 
     return { discharges24h, discharges48h };
