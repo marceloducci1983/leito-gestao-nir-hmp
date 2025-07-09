@@ -98,7 +98,11 @@ export const useUpdatePatient = () => {
 
   return useMutation({
     mutationFn: async ({ patientId, patientData }: { patientId: string; patientData: Partial<Patient> }) => {
-      console.log('Updating patient with data:', { patientId, patientData });
+      console.log('🔄 useUpdatePatient - Iniciando atualização:', { 
+        patientId, 
+        patientData,
+        expectedDischargeDate: patientData.expectedDischargeDate
+      });
       
       const { data: patient, error: patientError } = await supabase
         .from('patients')
@@ -120,6 +124,11 @@ export const useUpdatePatient = () => {
         .select()
         .single();
 
+      console.log('✅ useUpdatePatient - Paciente atualizado no banco:', {
+        patient,
+        expected_discharge_date: patient?.expected_discharge_date
+      });
+
       if (patientError) {
         console.error('Error updating patient:', patientError);
         throw patientError;
@@ -127,9 +136,31 @@ export const useUpdatePatient = () => {
 
       return patient;
     },
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: ['beds'] });
-      toast.success('Paciente editado com sucesso!');
+    onSuccess: async (result) => {
+      console.log('🔄 useUpdatePatient - Forçando atualização dos dados...');
+      
+      // Forçar refetch imediato e aguardar conclusão
+      try {
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ['beds'], type: 'active' }),
+          queryClient.refetchQueries({ queryKey: ['patient_discharges'], type: 'active' })
+        ]);
+        console.log('✅ useUpdatePatient - Dados atualizados com sucesso');
+        
+        // Invalidar todas as queries relacionadas como backup
+        queryClient.invalidateQueries({ queryKey: ['beds'] });
+        queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
+        
+        toast.success('Paciente editado com sucesso!');
+      } catch (refreshError) {
+        console.error('⚠️ Erro ao atualizar dados, mas edição foi realizada:', refreshError);
+        toast.success('Paciente editado com sucesso! Atualizando dados...');
+        
+        // Retry depois de um delay
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['beds'] });
+        }, 1000);
+      }
     },
     onError: (error) => {
       console.error('Erro ao editar paciente:', error);

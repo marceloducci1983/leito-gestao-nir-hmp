@@ -29,6 +29,7 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
   console.log('🔍 PatientInfo - Dados do paciente recebidos:', {
     name: patient.name,
     originCity: patient.originCity,
+    expectedDischargeDate: patient.expectedDischargeDate,
     isTFD: patient.isTFD,
     tfdType: patient.tfdType
   });
