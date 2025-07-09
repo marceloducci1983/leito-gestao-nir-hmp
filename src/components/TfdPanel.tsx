@@ -9,6 +9,8 @@ import { useSupabaseBeds } from '@/hooks/useSupabaseBeds';
 import TfdPatientCard from '@/components/tfd/TfdPatientCard';
 import TfdArchiveSection from '@/components/tfd/TfdArchiveSection';
 import { generateTfdPatientsPdf } from '@/utils/pdfReportGenerator';
+import { useTfdInterventions } from '@/hooks/queries/useTfdQueries';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const TfdPanel: React.FC = () => {
@@ -46,15 +48,33 @@ const TfdPanel: React.FC = () => {
     }))
     .filter(item => item.patient);
 
-  const handlePrintActivePatients = () => {
+  const handlePrintActivePatients = async () => {
     if (tfdPatientsWithBeds.length === 0) {
       toast.error('Nenhum paciente TFD ativo para imprimir');
       return;
     }
 
     try {
-      generateTfdPatientsPdf(tfdPatientsWithBeds);
-      toast.success('Relatório PDF gerado com sucesso!');
+      toast.info('Gerando relatório detalhado...');
+      
+      // Buscar intervenções para cada paciente
+      const patientsWithInterventions = await Promise.all(
+        tfdPatientsWithBeds.map(async (item) => {
+          const { data: interventions } = await supabase
+            .from('tfd_interventions')
+            .select('*')
+            .eq('patient_id', item.patient.id)
+            .order('created_at', { ascending: false });
+          
+          return {
+            ...item,
+            interventions: interventions || []
+          };
+        })
+      );
+
+      generateTfdPatientsPdf(patientsWithInterventions);
+      toast.success('Relatório PDF detalhado gerado com sucesso!');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       toast.error('Erro ao gerar relatório PDF');
