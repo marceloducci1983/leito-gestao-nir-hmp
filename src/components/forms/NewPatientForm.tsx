@@ -142,7 +142,7 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
       admissionTime: formData.admissionTime,
       diagnosis: formData.diagnosis.trim(),
       specialty: formData.specialty.trim(),
-      expectedDischargeDate: formData.expectedDischargeDate,
+      expectedDischargeDate: formData.expectedDischargeDate || formData.admissionDate,
       originCity: formData.originCity.trim(),
       isTFD: formData.isTFD,
       tfdType: formData.tfdType.trim(),
