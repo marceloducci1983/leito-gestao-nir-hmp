@@ -33,7 +33,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           </div>
           <div className="flex items-center gap-2">
             <User className="h-3 w-3" />
-            <span>Idade: {calculateAge(bed.patient.birthDate)} anos</span>
+            <span>Idade: {bed.patient.age || calculateAge(bed.patient.birthDate)} anos</span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-3 w-3" />
