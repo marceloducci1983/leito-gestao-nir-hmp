@@ -29,7 +29,7 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ discharges24h, disc
     </div>
 
     {/* Versão para visualização normal da aplicação */}
-    <Card className="md:block hidden">
+    <Card>
       <CardHeader>
         <CardTitle>Resumo</CardTitle>
       </CardHeader>

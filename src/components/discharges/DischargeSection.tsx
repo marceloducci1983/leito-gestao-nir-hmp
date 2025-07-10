@@ -41,7 +41,7 @@ const DischargeSection: React.FC<DischargeSectionProps> = ({
     </div>
     
     {/* Versão para visualização normal da aplicação */}
-    <Card className="md:block hidden">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className={isUrgent ? "text-orange-600" : "text-blue-600"}>

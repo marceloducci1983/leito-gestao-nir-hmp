@@ -72,7 +72,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
     </div>
 
     {/* Versão para visualização normal da aplicação */}
-    <Card className={`${isUrgent ? 'border-orange-300 bg-orange-50' : 'border-gray-200'} md:block hidden`}>
+    <Card className={`${isUrgent ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}>
       <CardContent className="p-4">
         <div className="space-y-3">
           <div className="flex justify-between items-start">
