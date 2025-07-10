@@ -29,27 +29,40 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ discharges24h, disc
     </div>
 
     {/* Versão para visualização normal da aplicação */}
-    <Card>
-      <CardHeader>
-        <CardTitle>Resumo</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600">{discharges24h}</div>
-            <div className="text-sm text-gray-600">Altas em 24h</div>
-          </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{discharges48h}</div>
-            <div className="text-sm text-gray-600">Altas em 48h</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-600">{discharges24h + discharges48h}</div>
-            <div className="text-sm text-gray-600">Total de Altas</div>
-          </div>
+    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+          <span className="text-white text-lg">📊</span>
         </div>
-      </CardContent>
-    </Card>
+        <h2 className="text-xl font-bold text-gray-800">Resumo Executivo</h2>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg p-4 text-center shadow-sm border border-red-200">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-2xl">🚨</span>
+          </div>
+          <div className="text-3xl font-bold text-red-600 mb-1">{discharges24h}</div>
+          <div className="text-sm text-gray-600 font-medium">Altas Urgentes (24h)</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 text-center shadow-sm border border-blue-200">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-2xl">📅</span>
+          </div>
+          <div className="text-3xl font-bold text-blue-600 mb-1">{discharges48h}</div>
+          <div className="text-sm text-gray-600 font-medium">Altas Programadas (48h)</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 text-center shadow-sm border border-gray-200">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-2xl">📋</span>
+          </div>
+          <div className="text-3xl font-bold text-gray-700 mb-1">{discharges24h + discharges48h}</div>
+          <div className="text-sm text-gray-600 font-medium">Total de Altas Previstas</div>
+        </div>
+      </div>
+    </div>
   </>
 );
 
