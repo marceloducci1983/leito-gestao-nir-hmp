@@ -108,39 +108,34 @@ export const handlePrintDischarges = () => {
             }
             
             .patient-list {
-              padding: 25px;
+              padding: 0;
             }
             
             .patient-item {
               background: white;
-              border-radius: 10px;
+              border-radius: 12px;
               padding: 20px;
-              margin-bottom: 20px;
-              box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-              border-left: 5px solid #e74c3c;
-              transition: transform 0.2s ease;
+              margin-bottom: 15px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              border-left: 4px solid #3498db;
+              page-break-inside: avoid;
             }
             
-            .patient-item:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            }
-            
-            .patient-item.regular {
-              border-left-color: #3498db;
+            .patient-item:not(.regular) {
+              border-left-color: #e74c3c;
             }
             
             .patient-header {
               display: flex;
               justify-content: space-between;
-              align-items: center;
-              margin-bottom: 15px;
-              padding-bottom: 10px;
-              border-bottom: 2px solid #ecf0f1;
+              align-items: flex-start;
+              margin-bottom: 16px;
+              padding-bottom: 12px;
+              border-bottom: 1px solid #ecf0f1;
             }
             
             .patient-name {
-              font-size: 1.3em;
+              font-size: 1.2em;
               font-weight: 700;
               color: #2c3e50;
               display: flex;
@@ -151,83 +146,103 @@ export const handlePrintDischarges = () => {
             .bed-info {
               background: #3498db;
               color: white;
-              padding: 6px 12px;
-              border-radius: 20px;
-              font-size: 0.9em;
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 0.85em;
               font-weight: 600;
             }
             
             .urgency-badge {
               background: #e74c3c;
               color: white;
-              padding: 6px 12px;
-              border-radius: 20px;
-              font-size: 0.85em;
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 0.8em;
               font-weight: 600;
-              animation: pulse 2s infinite;
-            }
-            
-            @keyframes pulse {
-              0% { opacity: 1; }
-              50% { opacity: 0.7; }
-              100% { opacity: 1; }
             }
             
             .patient-info {
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-              gap: 15px;
-              margin-bottom: 15px;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 12px;
+              margin-bottom: 16px;
             }
             
             .info-item {
               display: flex;
+              flex-direction: column;
+              gap: 4px;
+            }
+            
+            .info-label {
+              display: flex;
               align-items: center;
-              gap: 10px;
-              padding: 8px 12px;
-              background: #f8f9fa;
-              border-radius: 8px;
-              font-size: 0.95em;
+              gap: 6px;
+              font-size: 0.7em;
+              text-transform: uppercase;
+              color: #7f8c8d;
+              font-weight: 600;
+              letter-spacing: 0.5px;
+            }
+            
+            .info-value {
+              font-size: 0.9em;
+              font-weight: 500;
+              color: #2c3e50;
+            }
+            
+            .info-value.highlight {
+              color: #e74c3c;
+              font-weight: 700;
             }
             
             .info-icon {
-              width: 20px;
-              height: 20px;
+              width: 16px;
+              height: 16px;
               display: flex;
               align-items: center;
               justify-content: center;
-              background: #3498db;
-              color: white;
               border-radius: 50%;
-              font-size: 0.8em;
+              font-size: 0.7em;
+              color: white;
               font-weight: bold;
             }
             
             .info-icon.birth { background: #9b59b6; }
             .info-icon.age { background: #27ae60; }
-            .info-icon.admission { background: #f39c12; }
-            .info-icon.origin { background: #e67e22; }
+            .info-icon.admission { background: #3498db; }
+            .info-icon.origin { background: #f39c12; }
             .info-icon.discharge { background: #e74c3c; }
             .info-icon.specialty { background: #1abc9c; }
             
             .diagnosis {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: #8e44ad;
+              background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
               color: white;
-              padding: 15px;
+              padding: 12px 16px;
               border-radius: 8px;
-              margin-top: 10px;
+              margin-top: 12px;
               font-weight: 500;
+              font-size: 0.9em;
+            }
+            
+            .diagnosis-label {
+              font-size: 0.7em;
+              text-transform: uppercase;
+              opacity: 0.9;
+              margin-bottom: 4px;
+              display: block;
             }
             
             .tfd-badge {
               display: inline-block;
               background: linear-gradient(135deg, #ff9a56 0%, #f39c12 100%);
               color: white;
-              padding: 6px 12px;
-              border-radius: 15px;
-              font-size: 0.85em;
+              padding: 4px 10px;
+              border-radius: 12px;
+              font-size: 0.75em;
               font-weight: 600;
-              margin-top: 10px;
+              margin-top: 8px;
             }
             
             .summary {
@@ -237,43 +252,76 @@ export const handlePrintDischarges = () => {
               border-radius: 12px;
               margin-top: 30px;
               text-align: center;
+              page-break-inside: avoid;
             }
             
             .summary h3 {
-              font-size: 1.4em;
-              margin-bottom: 15px;
+              font-size: 1.3em;
+              margin-bottom: 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
             }
             
             .stats {
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              grid-template-columns: repeat(3, 1fr);
               gap: 20px;
               margin-top: 20px;
             }
             
             .stat-item {
-              background: rgba(255,255,255,0.1);
-              padding: 15px;
-              border-radius: 8px;
+              background: rgba(255,255,255,0.15);
+              padding: 16px;
+              border-radius: 10px;
               text-align: center;
             }
             
             .stat-number {
-              font-size: 2em;
+              font-size: 1.8em;
               font-weight: 700;
               display: block;
+              margin-bottom: 6px;
             }
             
             .stat-label {
-              font-size: 0.9em;
-              opacity: 0.9;
+              font-size: 0.85em;
+              opacity: 0.95;
+              font-weight: 500;
             }
             
             @media print {
-              body { background: white; padding: 0; }
-              .container { box-shadow: none; border-radius: 0; }
-              .patient-item:hover { transform: none; }
-              .urgency-badge { animation: none; }
+              body { 
+                background: white !important; 
+                padding: 0 !important; 
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              .container { 
+                box-shadow: none !important; 
+                border-radius: 0 !important; 
+              }
+              .patient-item { 
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+                page-break-inside: avoid !important;
+              }
+              .urgency-badge, .bed-info, .tfd-badge { 
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              .diagnosis {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              .summary {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              .info-icon {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
             }
           </style>
         </head>
@@ -284,7 +332,31 @@ export const handlePrintDischarges = () => {
               <p>Gerado em: ${format(getCurrentDateTimeSaoPaulo(), "dd/MM/yyyy 'às' HH:mm")}</p>
             </div>
             <div class="content">
-              ${printContent.innerHTML}
+              ${printContent.innerHTML.replace(
+                /<div class="info-item">/g,
+                '<div class="info-item"><div class="info-label">'
+              ).replace(
+                /Nascimento: /g,
+                '<div class="info-icon birth">📅</div>Nascimento</div><div class="info-value">'
+              ).replace(
+                /Idade: /g,
+                '<div class="info-icon age">👶</div>Idade</div><div class="info-value">'
+              ).replace(
+                /Admissão: /g,
+                '<div class="info-icon admission">🏥</div>Admissão</div><div class="info-value">'
+              ).replace(
+                /Origem: /g,
+                '<div class="info-icon origin">📍</div>Origem</div><div class="info-value">'
+              ).replace(
+                /DPA: /g,
+                '<div class="info-icon discharge">⏰</div>DPA</div><div class="info-value highlight">'
+              ).replace(
+                /Especialidade: /g,
+                '<div class="info-icon specialty">🩺</div>Especialidade</div><div class="info-value">'
+              ).replace(
+                /<span class="text-sm text-gray-700">/g,
+                '<span class="diagnosis-label">Diagnóstico</span><span class="diagnosis-text">'
+              )}
             </div>
           </div>
         </body>
