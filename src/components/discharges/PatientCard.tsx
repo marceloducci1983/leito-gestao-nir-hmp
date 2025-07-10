@@ -13,8 +13,8 @@ interface PatientCardProps {
 
 const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
   <>
-    {/* Versão para impressão/relatório */}
-    <div className={`patient-item ${isUrgent ? '' : 'regular'}`}>
+    {/* Versão APENAS para impressão - oculta na visualização normal */}
+    <div className={`patient-item ${isUrgent ? '' : 'regular'} print:block hidden`}>
       <div className="patient-header">
         <div className="patient-name">
           👤 {bed.patient.name}
@@ -71,18 +71,16 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
       )}
     </div>
 
-    {/* Versão para visualização normal da aplicação */}
-    <Card className={`${isUrgent ? 'border-l-4 border-red-400 bg-red-50/30' : 'border-l-4 border-blue-400 bg-blue-50/30'} hover:shadow-md transition-shadow`}>
+    {/* Versão para visualização normal - layout como a segunda imagem */}
+    <Card className={`print:hidden ${isUrgent ? 'border-l-4 border-red-400' : 'border-l-4 border-blue-400'} hover:shadow-md transition-shadow`}>
       <CardContent className="p-4">
-        {/* Header com nome e badge */}
+        {/* Header com nome, leito e badge */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-              <User className="h-4 w-4 text-gray-600" />
-            </div>
+            <User className="h-5 w-5 text-gray-600" />
             <div>
               <h3 className="font-bold text-lg text-gray-900">{bed.patient.name}</h3>
-              <p className="text-sm text-gray-600">{bed.name} - {bed.department}</p>
+              <p className="text-sm text-blue-600 font-medium">{bed.name} - {bed.department}</p>
             </div>
           </div>
           {isUrgent && (
@@ -92,52 +90,64 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           )}
         </div>
         
-        {/* Grid de informações organizadas */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
-          <div className="flex flex-col">
+        {/* Grid de informações em 4 colunas como na segunda imagem */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <Calendar className="h-4 w-4 text-gray-500" />
+              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-3 w-3 text-purple-600" />
+              </div>
               <span className="text-xs text-gray-500 uppercase font-medium">Nascimento</span>
             </div>
             <span className="text-sm font-medium">{formatDateSaoPaulo(bed.patient.birthDate)}</span>
           </div>
           
-          <div className="flex flex-col">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <User className="h-4 w-4 text-gray-500" />
+              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                <User className="h-3 w-3 text-green-600" />
+              </div>
               <span className="text-xs text-gray-500 uppercase font-medium">Idade</span>
             </div>
             <span className="text-sm font-medium">{bed.patient.age || calculateAge(bed.patient.birthDate)} anos</span>
           </div>
           
-          <div className="flex flex-col">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <Calendar className="h-4 w-4 text-gray-500" />
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-3 w-3 text-blue-600" />
+              </div>
               <span className="text-xs text-gray-500 uppercase font-medium">Admissão</span>
             </div>
             <span className="text-sm font-medium">{formatDateSaoPaulo(bed.patient.admissionDate)}</span>
           </div>
           
-          <div className="flex flex-col">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <MapPin className="h-4 w-4 text-gray-500" />
+              <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
+                <MapPin className="h-3 w-3 text-orange-600" />
+              </div>
               <span className="text-xs text-gray-500 uppercase font-medium">Origem</span>
             </div>
             <span className="text-sm font-medium">{bed.patient.originCity}</span>
           </div>
           
-          <div className="flex flex-col">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <Calendar className="h-4 w-4 text-red-500" />
+              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-3 w-3 text-red-600" />
+              </div>
               <span className="text-xs text-red-500 uppercase font-medium">DPA</span>
             </div>
             <span className="text-sm font-bold text-red-600">{formatDateOnly(bed.patient.expectedDischargeDate)}</span>
           </div>
           
           {bed.patient.specialty && (
-            <div className="flex flex-col">
+            <div>
               <div className="flex items-center gap-2 mb-1">
-                <Stethoscope className="h-4 w-4 text-gray-500" />
+                <div className="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center">
+                  <Stethoscope className="h-3 w-3 text-teal-600" />
+                </div>
                 <span className="text-xs text-gray-500 uppercase font-medium">Especialidade</span>
               </div>
               <span className="text-sm font-medium">{bed.patient.specialty}</span>
@@ -145,13 +155,15 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           )}
         </div>
         
-        {/* Diagnóstico */}
-        <div className="border-t pt-3">
-          <div className="flex items-start gap-2 mb-2">
-            <Stethoscope className="h-4 w-4 mt-1 text-gray-500" />
+        {/* Diagnóstico em destaque */}
+        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+          <div className="flex items-start gap-2">
+            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mt-0.5">
+              <Stethoscope className="h-3 w-3 text-purple-600" />
+            </div>
             <div>
-              <span className="text-xs text-gray-500 uppercase font-medium block mb-1">Diagnóstico</span>
-              <span className="text-sm text-gray-700">{bed.patient.diagnosis}</span>
+              <span className="text-xs text-purple-600 uppercase font-medium block mb-1">Diagnóstico</span>
+              <span className="text-sm text-gray-800 font-medium">{bed.patient.diagnosis}</span>
             </div>
           </div>
           

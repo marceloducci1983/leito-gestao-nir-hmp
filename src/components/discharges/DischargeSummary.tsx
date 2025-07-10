@@ -9,8 +9,8 @@ interface DischargeSummaryProps {
 
 const DischargeSummary: React.FC<DischargeSummaryProps> = ({ discharges24h, discharges48h }) => (
   <>
-    {/* Versão para impressão/relatório */}
-    <div className="summary">
+    {/* Versão APENAS para impressão - oculta na visualização normal */}
+    <div className="summary print:block hidden">
       <h3>📊 Resumo Executivo</h3>
       <div className="stats">
         <div className="stat-item">
@@ -29,7 +29,7 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ discharges24h, disc
     </div>
 
     {/* Versão para visualização normal da aplicação */}
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200 print:hidden">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
           <span className="text-white text-lg">📊</span>

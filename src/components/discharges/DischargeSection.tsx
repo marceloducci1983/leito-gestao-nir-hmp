@@ -17,31 +17,34 @@ const DischargeSection: React.FC<DischargeSectionProps> = ({
   badgeColor, 
   isUrgent = false 
 }) => (
-  <div className="section">
-    <div className={`section-header ${isUrgent ? 'urgent' : 'regular'}`}>
-      <div className="section-title">
-        {isUrgent ? '🚨' : '📅'} {title}
+  <div>
+    {/* Versão APENAS para impressão - oculta na visualização normal */}
+    <div className="section print:block hidden">
+      <div className={`section-header ${isUrgent ? 'urgent' : 'regular'}`}>
+        <div className="section-title">
+          {isUrgent ? '🚨' : '📅'} {title}
+        </div>
+        <div className="section-count">
+          {discharges.length}
+        </div>
       </div>
-      <div className="section-count">
-        {discharges.length}
+      <div className="patient-list">
+        {discharges.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#666', padding: '20px', fontStyle: 'italic' }}>
+            Nenhum paciente com alta prevista para {isUrgent ? 'as próximas 24 horas' : '48 horas'}.
+          </p>
+        ) : (
+          <>
+            {discharges.map((bed) => (
+              <PatientCard key={bed.id} bed={bed} isUrgent={isUrgent} />
+            ))}
+          </>
+        )}
       </div>
-    </div>
-    <div className="patient-list">
-      {discharges.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#666', padding: '20px', fontStyle: 'italic' }}>
-          Nenhum paciente com alta prevista para {isUrgent ? 'as próximas 24 horas' : '48 horas'}.
-        </p>
-      ) : (
-        <>
-          {discharges.map((bed) => (
-            <PatientCard key={bed.id} bed={bed} isUrgent={isUrgent} />
-          ))}
-        </>
-      )}
     </div>
     
     {/* Versão para visualização normal da aplicação */}
-    <div className="mb-8">
+    <div className="mb-8 print:hidden">
       <div className={`flex items-center justify-between mb-4 p-3 rounded-lg ${
         isUrgent ? 'bg-red-50 border-l-4 border-red-400' : 'bg-blue-50 border-l-4 border-blue-400'
       }`}>
@@ -66,7 +69,7 @@ const DischargeSection: React.FC<DischargeSectionProps> = ({
       ) : (
         <div className="space-y-3">
           {discharges.map((bed) => (
-            <PatientCard key={bed.id} bed={bed} isUrgent={isUrgent} />
+            <PatientCard key={`display-${bed.id}`} bed={bed} isUrgent={isUrgent} />
           ))}
         </div>
       )}
