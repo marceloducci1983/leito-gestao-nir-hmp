@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ReservationForm from '@/components/forms/ReservationForm';
+import NewReservationForm from '@/components/forms/NewReservationForm';
 import NewPatientForm from '@/components/forms/NewPatientForm';
 import TransferModal from '@/components/forms/TransferModal';
 import SectorManagementModal from '@/components/forms/SectorManagementModal';
@@ -60,10 +60,12 @@ const BedsPanelModals: React.FC<BedsPanelModalsProps> = ({
   return (
     <>
       {showReservationForm && (
-        <ReservationForm
+        <NewReservationForm
           isOpen={showReservationForm}
           onClose={onCloseReservationForm}
           onSubmit={onSubmitReservation}
+          bedId={selectedBedId}
+          department={selectedDepartment}
         />
       )}
 

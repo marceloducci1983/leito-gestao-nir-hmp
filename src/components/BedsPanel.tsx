@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import NewBedCard from './NewBedCard';
-import ReservationForm from './forms/ReservationForm';
+import NewReservationForm from './forms/NewReservationForm';
 import NewPatientForm from './forms/NewPatientForm';
 import DischargeForm from './forms/DischargeForm';
 import TransferForm from './forms/TransferForm';
@@ -107,10 +107,12 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
     }
   };
 
-  const submitReservation = (data: { patientName: string; originClinic: string; diagnosis: string }) => {
+  const submitReservation = (data: { patient_name: string; origin_clinic: string; diagnosis: string }) => {
     const reservation: BedReservation = {
       id: generateId(),
-      ...data,
+      patientName: data.patient_name,
+      originClinic: data.origin_clinic,
+      diagnosis: data.diagnosis,
       bedId: selectedBedId,
       department: selectedDepartment
     };
@@ -123,7 +125,7 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
 
     toast({
       title: "Leito reservado com sucesso",
-      description: `Reserva para ${data.patientName}`,
+      description: `Reserva para ${data.patient_name}`,
     });
   };
 
@@ -305,10 +307,12 @@ const BedsPanel: React.FC<BedsPanelProps> = ({ onDataChange }) => {
       </div>
 
       {/* Forms */}
-      <ReservationForm
+      <NewReservationForm
         isOpen={showReservationForm}
         onClose={() => setShowReservationForm(false)}
         onSubmit={submitReservation}
+        bedId={selectedBedId}
+        department={selectedDepartment}
       />
 
       <NewPatientForm
