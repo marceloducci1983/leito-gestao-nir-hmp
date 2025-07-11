@@ -48,6 +48,12 @@ export const useSupabaseBeds = () => {
     return await addPatientMutation.mutateAsync(data);
   };
 
+  // Função addReservation que retorna Promise
+  const addReservation = async (data: { bedId: string; reservation: any }) => {
+    console.log('🔄 useSupabaseBeds.addReservation chamado com:', data);
+    return await addReservationMutation.mutateAsync(data);
+  };
+
   return {
     centralData,
     isLoading: bedsLoading || dischargedLoading || dischargeControlLoading || statsLoading,
@@ -56,7 +62,7 @@ export const useSupabaseBeds = () => {
     updatePatient: updatePatientMutation.mutate,
     dischargePatient: dischargePatientMutation.mutate,
     transferPatient: transferPatientMutation.mutate,
-    addReservation: addReservationMutation.mutate,
+    addReservation,
     requestDischarge: requestDischargeMutation.mutate
   };
 };

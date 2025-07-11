@@ -35,14 +35,20 @@ export const useFormSubmitHandlers = ({
   const { toast } = useToast();
   const updatePatientMutation = useUpdatePatient();
 
-  const submitReservation = (reservationData: any) => {
+  const submitReservation = async (reservationData: any) => {
     try {
-      addReservation(reservationData);
+      await addReservation({ 
+        bedId: selectedBedId, 
+        reservation: reservationData 
+      });
+      setShowReservationForm(false);
+      setSelectedBedId('');
       toast({
         title: "Leito reservado com sucesso",
         description: `Reserva para ${reservationData.patient_name}`,
       });
     } catch (error: any) {
+      console.error('Erro na reserva:', error);
       toast({
         title: "Erro",
         description: "Erro ao reservar leito",
