@@ -2,6 +2,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { useDeleteBed } from '@/hooks/mutations/useBedMutations';
+import { useDeleteReservation } from '@/hooks/mutations/useReservationMutations';
 import { Bed, Patient } from '@/types';
 
 interface UseBedActionHandlersProps {
@@ -30,6 +31,7 @@ export const useBedActionHandlers = ({
   const { toast } = useToast();
   const requestDischargeMutation = useRequestDischarge();
   const deleteBedMutation = useDeleteBed();
+  const deleteReservationMutation = useDeleteReservation();
 
   const handleReserveBed = (bedId: string) => {
     setSelectedBedId(bedId);
@@ -102,12 +104,11 @@ export const useBedActionHandlers = ({
   };
 
   const handleDeleteReservation = async (bedId: string) => {
+    console.log('🗑️ Excluindo reserva do leito:', bedId);
     try {
-      toast({
-        title: "Reserva excluída",
-        description: "A reserva foi removida com sucesso",
-      });
+      await deleteReservationMutation.mutateAsync(bedId);
     } catch (error: any) {
+      console.error('❌ Erro ao excluir reserva:', error);
       toast({
         title: "Erro",
         description: "Erro ao excluir reserva",
