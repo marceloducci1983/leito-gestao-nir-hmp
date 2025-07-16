@@ -42,24 +42,20 @@ const BED_ORDER: Record<Department, string[]> = {
 };
 
 export const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[] => {
-  // Normalizar o departamento para garantir correspondência
   const normalizedDepartment = department?.trim();
-  console.log('🔄 Sorting beds for department:', normalizedDepartment);
-  console.log('📋 Available departments in BED_ORDER:', Object.keys(BED_ORDER));
-  console.log('📋 Beds to sort:', beds.map(b => `${b.name} (dept: ${b.department})`));
-  
   const order = BED_ORDER[normalizedDepartment];
-  console.log('📊 Order found:', order);
   
   if (!order) {
-    console.log('⚠️ No custom order found for department:', normalizedDepartment);
-    console.log('📋 Falling back to alphabetical sort');
     return beds.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  const sortedBeds = beds.sort((a, b) => {
-    const indexA = order.indexOf(a.name);
-    const indexB = order.indexOf(b.name);
+  return beds.sort((a, b) => {
+    // Normalizar os nomes dos leitos removendo espaços extras
+    const normalizedNameA = a.name.replace(/\s+/g, '').replace(/\s*-\s*/g, '-');
+    const normalizedNameB = b.name.replace(/\s+/g, '').replace(/\s*-\s*/g, '-');
+    
+    const indexA = order.indexOf(normalizedNameA);
+    const indexB = order.indexOf(normalizedNameB);
     
     // Se ambos os leitos estão na ordem definida, usar a ordem
     if (indexA !== -1 && indexB !== -1) {
@@ -73,7 +69,4 @@ export const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[
     // Se nenhum está na ordem definida, ordenar alfabeticamente
     return a.name.localeCompare(b.name);
   });
-  
-  console.log('✅ Final sorted beds:', sortedBeds.map(b => b.name));
-  return sortedBeds;
 };
