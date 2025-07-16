@@ -42,10 +42,22 @@ const BED_ORDER: Record<Department, string[]> = {
 };
 
 export const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[] => {
-  const order = BED_ORDER[department];
-  if (!order) return beds;
+  // Normalizar o departamento para garantir correspondência
+  const normalizedDepartment = department?.trim();
+  console.log('🔄 Sorting beds for department:', normalizedDepartment);
+  console.log('📋 Available departments in BED_ORDER:', Object.keys(BED_ORDER));
+  console.log('📋 Beds to sort:', beds.map(b => `${b.name} (dept: ${b.department})`));
+  
+  const order = BED_ORDER[normalizedDepartment];
+  console.log('📊 Order found:', order);
+  
+  if (!order) {
+    console.log('⚠️ No custom order found for department:', normalizedDepartment);
+    console.log('📋 Falling back to alphabetical sort');
+    return beds.sort((a, b) => a.name.localeCompare(b.name));
+  }
 
-  return beds.sort((a, b) => {
+  const sortedBeds = beds.sort((a, b) => {
     const indexA = order.indexOf(a.name);
     const indexB = order.indexOf(b.name);
     
@@ -61,4 +73,7 @@ export const sortBedsByCustomOrder = (beds: Bed[], department: Department): Bed[
     // Se nenhum está na ordem definida, ordenar alfabeticamente
     return a.name.localeCompare(b.name);
   });
+  
+  console.log('✅ Final sorted beds:', sortedBeds.map(b => b.name));
+  return sortedBeds;
 };
