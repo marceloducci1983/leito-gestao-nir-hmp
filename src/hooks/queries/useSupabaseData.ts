@@ -40,7 +40,7 @@ export const useBedsData = () => {
             department_text
           )
         `)
-        .order('created_at', { ascending: true });
+        ;
 
       if (error) {
         console.error('❌ Error fetching beds:', error);
