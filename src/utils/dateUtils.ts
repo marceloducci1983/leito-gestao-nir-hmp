@@ -152,3 +152,82 @@ export const isSameDayISO = (date1: string | Date, date2: string | Date): boolea
   
   return getISODateString(date1) === getISODateString(date2);
 };
+
+// Função para calcular idade em dias (para UTI Neonatal e Pediatria)
+export const calculateAgeInDays = (birthDate: string): number => {
+  const parts = birthDate.split('/');
+  if (parts.length !== 3) return 0;
+  
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+  const year = parseInt(parts[2], 10);
+  
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return 0;
+  
+  const birth = new Date(year, month, day);
+  const today = new Date();
+  
+  const timeDiff = today.getTime() - birth.getTime();
+  const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+  
+  return Math.max(0, daysDiff);
+};
+
+// Função para calcular idade em meses (para Pediatria)
+export const calculateAgeInMonths = (birthDate: string): number => {
+  const parts = birthDate.split('/');
+  if (parts.length !== 3) return 0;
+  
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+  const year = parseInt(parts[2], 10);
+  
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return 0;
+  
+  const birth = new Date(year, month, day);
+  const today = new Date();
+  
+  let months = (today.getFullYear() - birth.getFullYear()) * 12;
+  months += today.getMonth() - birth.getMonth();
+  
+  // Ajustar se o dia ainda não chegou no mês atual
+  if (today.getDate() < birth.getDate()) {
+    months--;
+  }
+  
+  return Math.max(0, months);
+};
+
+// Função para formatar idade apropriada baseada no departamento
+export const formatAgeForDepartment = (birthDate: string, department: string): string => {
+  if (!birthDate || !isValidDate(birthDate)) return '';
+  
+  const ageInYears = calculateAge(birthDate);
+  const ageInMonths = calculateAgeInMonths(birthDate);
+  const ageInDays = calculateAgeInDays(birthDate);
+  
+  // Para UTI NEONATAL - usar dias se menos de 30 dias, senão meses se menos de 24 meses
+  if (department === 'UTI NEONATAL') {
+    if (ageInDays <= 30) {
+      return `${ageInDays} dia${ageInDays !== 1 ? 's' : ''}`;
+    } else if (ageInMonths < 24) {
+      return `${ageInMonths} m${ageInMonths !== 1 ? 'eses' : 'ês'}`;
+    } else {
+      return `${ageInYears} ano${ageInYears !== 1 ? 's' : ''}`;
+    }
+  }
+  
+  // Para PEDIATRIA - usar dias se menos de 30 dias, meses se menos de 24 meses, senão anos
+  if (department === 'PEDIATRIA') {
+    if (ageInDays <= 30) {
+      return `${ageInDays} dia${ageInDays !== 1 ? 's' : ''}`;
+    } else if (ageInMonths < 24) {
+      return `${ageInMonths} m${ageInMonths !== 1 ? 'eses' : 'ês'}`;
+    } else {
+      return `${ageInYears} ano${ageInYears !== 1 ? 's' : ''}`;
+    }
+  }
+  
+  // Para outros departamentos - usar apenas anos
+  return `${ageInYears} ano${ageInYears !== 1 ? 's' : ''}`;
+};

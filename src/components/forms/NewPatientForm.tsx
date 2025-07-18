@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Patient } from '@/types';
-import { calculateAge, isValidDate, convertDateToISO, convertISOToDisplayDate } from '@/utils/dateUtils';
+import { calculateAge, isValidDate, convertDateToISO, convertISOToDisplayDate, formatAgeForDepartment } from '@/utils/dateUtils';
 
 interface NewPatientFormProps {
   isOpen: boolean;
@@ -224,8 +224,10 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
                 className="bg-gray-100"
                 placeholder="Calculada automaticamente"
               />
-              {formData.age > 0 && (
-                <p className="text-sm text-green-600 mt-1">IDADE: {formData.age} anos</p>
+              {formData.birthDate && isValidDate(formData.birthDate) && (
+                <p className="text-sm text-green-600 mt-1">
+                  IDADE: {formatAgeForDepartment(formData.birthDate, formData.department)}
+                </p>
               )}
             </div>
           </div>
