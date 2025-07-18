@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { User, Calendar, MapPin, Stethoscope } from 'lucide-react';
-import { formatDate, formatDateTime, formatDateOnly } from '@/utils/dateUtils';
+import { formatDate, formatDateTime, formatDateOnly, formatAgeForDepartment } from '@/utils/dateUtils';
 
 interface PatientData {
   id: string;
@@ -19,6 +19,7 @@ interface PatientData {
   occupationDays: number;
   isTFD: boolean;
   tfdType?: string;
+  department?: string;
 }
 
 interface PatientInfoProps {
@@ -46,7 +47,11 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
       <div className="flex items-center gap-1">
         <User className="h-3 w-3" />
         <span className="font-medium">{patient.name}</span>
-        <span className="text-gray-500">({patient.age}a, {patient.sex})</span>
+        <span className="text-gray-500">
+          ({patient.department && (patient.department === 'UTI NEONATAL' || patient.department === 'PEDIATRIA') 
+            ? formatAgeForDepartment(patient.birthDate, patient.department) 
+            : `${patient.age}a`}, {patient.sex})
+        </span>
       </div>
       <div className="flex items-center gap-1">
         <Calendar className="h-3 w-3" />

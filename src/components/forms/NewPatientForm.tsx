@@ -89,10 +89,23 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
   // Calculate age automatically when birth date changes
   useEffect(() => {
     if (formData.birthDate && isValidDate(formData.birthDate)) {
-      const calculatedAge = calculateAge(formData.birthDate);
+      let calculatedAge = calculateAge(formData.birthDate);
+      
+      // Para UTI NEONATAL e PEDIATRIA, usar idade específica se necessário
+      if (formData.department === 'UTI NEONATAL' || formData.department === 'PEDIATRIA') {
+        const ageInDays = Math.floor((new Date().getTime() - new Date(formData.birthDate.split('/').reverse().join('-')).getTime()) / (1000 * 60 * 60 * 24));
+        const ageInMonths = Math.floor(ageInDays / 30.44); // Média de dias por mês
+        
+        if (ageInDays <= 30) {
+          calculatedAge = ageInDays; // Salvar em dias
+        } else if (ageInMonths < 24) {
+          calculatedAge = ageInMonths; // Salvar em meses
+        }
+      }
+      
       setFormData(prev => ({ ...prev, age: calculatedAge }));
     }
-  }, [formData.birthDate]);
+  }, [formData.birthDate, formData.department]);
 
   const handleBirthDateChange = (value: string) => {
     // Allow typing and format validation
@@ -218,8 +231,8 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
               <Label htmlFor="age">Idade (calculada automaticamente)</Label>
               <Input
                 id="age"
-                type="number"
-                value={formData.age}
+                type="text"
+                value={formData.birthDate && isValidDate(formData.birthDate) ? formatAgeForDepartment(formData.birthDate, formData.department) : ''}
                 readOnly
                 className="bg-gray-100"
                 placeholder="Calculada automaticamente"
