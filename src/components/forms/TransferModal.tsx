@@ -40,6 +40,11 @@ const TransferModal: React.FC<TransferModalProps> = ({
     bed.department === targetDepartment
   );
 
+  // Leitos do mesmo departamento para mudança de leito
+  const sameDepBeds = availableBeds.filter(bed => 
+    bed.department === currentDepartment
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (targetDepartment && targetBedId) {
@@ -79,6 +84,9 @@ const TransferModal: React.FC<TransferModalProps> = ({
                 <SelectValue placeholder="Selecione o departamento" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={currentDepartment}>
+                  {currentDepartment} (Mudar de leito no mesmo departamento)
+                </SelectItem>
                 {departments
                   .filter(dept => dept !== currentDepartment)
                   .map(dept => (
@@ -91,13 +99,18 @@ const TransferModal: React.FC<TransferModalProps> = ({
 
           {targetDepartment && (
             <div>
-              <Label htmlFor="target_bed">Leito de Destino*</Label>
+              <Label htmlFor="target_bed">
+                {targetDepartment === currentDepartment 
+                  ? "Novo Leito (mesmo departamento)*" 
+                  : "Leito de Destino*"
+                }
+              </Label>
               <Select value={targetBedId} onValueChange={setTargetBedId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o leito" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredBeds.map(bed => (
+                  {(targetDepartment === currentDepartment ? sameDepBeds : filteredBeds).map(bed => (
                     <SelectItem key={bed.id} value={bed.id}>
                       {bed.name}
                     </SelectItem>
@@ -112,7 +125,10 @@ const TransferModal: React.FC<TransferModalProps> = ({
               Cancelar
             </Button>
             <Button type="submit" disabled={!targetDepartment || !targetBedId}>
-              Confirmar Transferência
+              {targetDepartment === currentDepartment 
+                ? "Confirmar Mudança de Leito" 
+                : "Confirmar Transferência"
+              }
             </Button>
           </div>
         </form>

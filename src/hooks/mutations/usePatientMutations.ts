@@ -355,6 +355,8 @@ export const useTransferPatient = () => {
         throw fromBedError;
       }
 
+      const isSameDepartment = fromBed.department === toBed.department;
+
       // Registrar a transferência
       const { error: transferError } = await supabase
         .from('patient_transfers')
@@ -364,7 +366,8 @@ export const useTransferPatient = () => {
           to_bed_id: toBedId,
           from_department: fromBed.department,
           to_department: toBed.department,
-          transfer_date: new Date().toISOString()
+          transfer_date: new Date().toISOString(),
+          notes: isSameDepartment ? 'Mudança de leito no mesmo departamento' : null
         });
 
       if (transferError) {
@@ -407,14 +410,21 @@ export const useTransferPatient = () => {
         console.error('Error updating destination bed:', toBedUpdateError);
         throw toBedUpdateError;
       }
+
+      return { isSameDepartment, fromDept: fromBed.department, toDept: toBed.department };
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       await queryClient.refetchQueries({ queryKey: ['beds'] });
-      toast.success('Transferência realizada com sucesso!');
+      
+      if (result?.isSameDepartment) {
+        toast.success('Mudança de leito realizada com sucesso!');
+      } else {
+        toast.success('Transferência realizada com sucesso!');
+      }
     },
     onError: (error) => {
       console.error('Erro ao transferir paciente:', error);
-      toast.error('Erro ao transferir paciente. Tente novamente.');
+      toast.error('Erro ao transferir/mudar leito do paciente. Tente novamente.');
     }
   });
 };
