@@ -55,7 +55,7 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
       </div>
       <div className="flex items-center gap-1">
         <Calendar className="h-3 w-3" />
-        <span>Admissão: {formatDate(patient.admissionDate)}</span>
+        <span>Admissão: {formatDateOnly(patient.admissionDate)}</span>
       </div>
       {patient.admissionTime && (
         <div className="flex items-center gap-1">
