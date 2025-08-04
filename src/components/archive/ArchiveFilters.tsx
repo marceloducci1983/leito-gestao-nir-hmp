@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -44,7 +43,7 @@ const ArchiveFilters: React.FC<ArchiveFiltersProps> = ({
           {/* Campo de busca principal */}
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, diagnóstico, cidade, leito ou data de nascimento..."
                 value={searchTerm}
@@ -64,7 +63,7 @@ const ArchiveFilters: React.FC<ArchiveFiltersProps> = ({
 
           {/* Filtros avançados */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
               <div>
                 <label className="text-sm font-medium mb-2 block">Departamento</label>
                 <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
