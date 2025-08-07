@@ -92,9 +92,9 @@ export const getInitialBeds = (): Bed[] => {
 
   // PEDIATRIA
   const pediatriaBeds = [
-    'BOX-1', 'BOX-2', 'BOX-3', 'BOX-4', '1A', '1B', '1C', '1D',
-    '2A', '2B', '2C', '2D', '2E', '3A', '3B', '3C', '3D',
-    '4A', '4B', '4C', '4D', '5A', '5B', '5C', 'Isolamento'
+    'BOX-1', 'BOX-2', 'BOX-3', '1A', '1B', '1C',
+    '2A', '2B', '2C', '3A', '3B', '3C', '3D',
+    '4A', '4B', '4C', 'Isolamento'
   ];
 
   pediatriaBeds.forEach(bedName => {
