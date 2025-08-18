@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -679,11 +679,11 @@ export type Database = {
         Returns: boolean
       }
       create_bed: {
-        Args: { p_name: string; p_department: string }
+        Args: { p_department: string; p_name: string }
         Returns: string
       }
       create_department: {
-        Args: { p_name: string; p_description?: string }
+        Args: { p_description?: string; p_name: string }
         Returns: string
       }
       delete_department: {
@@ -697,38 +697,38 @@ export type Database = {
       get_all_departments: {
         Args: Record<PropertyKey, never>
         Returns: {
+          description: string
           id: string
           name: string
-          description: string
-          total_beds: number
           occupied_beds: number
           reserved_beds: number
+          total_beds: number
         }[]
       }
       get_ambulance_stats_by_city: {
-        Args: { p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
-          origin_city: string
-          total_requests: number
           avg_response_time_minutes: number
           confirmed_requests: number
+          origin_city: string
+          total_requests: number
         }[]
       }
       get_ambulance_stats_by_city_and_sector: {
-        Args: { p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
+          avg_response_time_minutes: number
+          confirmed_requests: number
           origin_city: string
           sector: string
           total_requests: number
-          avg_response_time_minutes: number
-          confirmed_requests: number
         }[]
       }
       get_average_discharge_time_by_department: {
         Args: Record<PropertyKey, never>
         Returns: {
-          department: string
           avg_discharge_time_hours: number
+          department: string
           total_discharges: number
         }[]
       }
@@ -739,51 +739,51 @@ export type Database = {
       get_delayed_discharges: {
         Args: Record<PropertyKey, never>
         Returns: {
-          patient_name: string
-          department: string
-          discharge_requested_at: string
-          discharge_effective_at: string
           delay_hours: number
+          department: string
+          discharge_effective_at: string
+          discharge_requested_at: string
           justification: string
+          patient_name: string
         }[]
       }
       get_department_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
+          available_beds: number
           department: string
-          total_beds: number
+          occupation_rate: number
           occupied_beds: number
           reserved_beds: number
-          available_beds: number
-          occupation_rate: number
+          total_beds: number
         }[]
       }
       get_discharge_time_stats_by_city: {
-        Args: { p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
-          origin_city: string
           avg_hours: number
+          origin_city: string
           total_discharges: number
         }[]
       }
       get_discharge_time_stats_by_department: {
-        Args: { p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
-          department: string
           avg_hours: number
-          total_discharges: number
           delayed_discharges: number
+          department: string
+          total_discharges: number
         }[]
       }
       get_readmissions_within_30_days: {
         Args: Record<PropertyKey, never>
         Returns: {
-          patient_name: string
-          discharge_date: string
-          readmission_date: string
-          diagnosis: string
-          origin_city: string
           days_between: number
+          diagnosis: string
+          discharge_date: string
+          origin_city: string
+          patient_name: string
+          readmission_date: string
         }[]
       }
       is_admin: {
@@ -796,10 +796,10 @@ export type Database = {
       }
       request_discharge_for_patient: {
         Args: {
-          p_patient_id: string
-          p_patient_name: string
           p_bed_id: string
           p_department: string
+          p_patient_id: string
+          p_patient_name: string
         }
         Returns: string
       }
@@ -808,11 +808,11 @@ export type Database = {
         Returns: undefined
       }
       update_bed: {
-        Args: { p_bed_id: string; p_name: string; p_department: string }
+        Args: { p_bed_id: string; p_department: string; p_name: string }
         Returns: boolean
       }
       update_department: {
-        Args: { p_id: string; p_name: string; p_description?: string }
+        Args: { p_description?: string; p_id: string; p_name: string }
         Returns: boolean
       }
     }
