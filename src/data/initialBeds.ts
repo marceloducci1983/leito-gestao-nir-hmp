@@ -77,7 +77,7 @@ export const getInitialBeds = (): Bed[] => {
 
   // UTI NEONATAL - NOVOS LEITOS
   const utiNeonatalBeds = [
-    'UTIN-1', 'UTIN-2', 'UTIN-3', 'UTIN-4', 'UCINCo-5', 'UCINCo-6', 'UCINCo-7', 'UCINCo-8', 'Canguru-1A', 'Canguru-1B'
+    'UTIN-1', 'UTIN-2', 'UTIN-3', 'UTIN-4', 'UCINCo-5', 'UCINCo-6', 'UCINCo-7', 'UCINCo-8', 'UCIN Canguru-9', 'UCIN Canguru-10'
   ];
 
   utiNeonatalBeds.forEach(bedName => {
