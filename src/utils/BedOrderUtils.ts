@@ -26,7 +26,7 @@ const BED_ORDER: Record<Department, string[]> = {
     'BOX-9', 'BOX-10', 'BOX-11', 'BOX-12', 'BOX-13', 'BOX-14', 'BOX-15-ISOL', 'BOX-16-ISOL'
   ],
   'UTI NEONATAL': [
-    'UTIN-1', 'UTIN-2', 'UTIN-3', 'UTIN-4', 'UCON-1', 'UCON-2', 'UCON-3', 'UCON-4', 'Canguru-1A', 'Canguru-1B'
+    'UTIN-1', 'UTIN-2', 'UTIN-3', 'UTIN-4', 'UCINCo-5', 'UCINCo-6', 'UCINCo-7', 'UCINCo-8', 'Canguru-1A', 'Canguru-1B'
   ],
   'PEDIATRIA': [
     'BOX-1', 'BOX-2', 'BOX-3', '1A', '1B', '1C',
