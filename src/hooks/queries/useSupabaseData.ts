@@ -8,46 +8,53 @@ export const useBedsData = () => {
     queryFn: async () => {
       console.log('🔄 Fetching beds data...');
       
-      const { data, error } = await supabase
+      // First, get all beds
+      const { data: bedsData, error: bedsError } = await supabase
         .from('beds')
-        .select(`
-          *,
-          patients (
-            id,
-            name,
-            sex,
-            birth_date,
-            age,
-            admission_date,
-            admission_time,
-            diagnosis,
-            specialty,
-            expected_discharge_date,
-            origin_city,
-            occupation_days,
-            is_tfd,
-            tfd_type,
-            bed_id,
-            department,
-            department_text
-          ),
-          bed_reservations (
-            id,
-            patient_name,
-            origin_clinic,
-            diagnosis,
-            department,
-            department_text
-          )
-        `)
-        ;
+        .select('*')
+        .order('name');
 
-      if (error) {
-        console.error('❌ Error fetching beds:', error);
-        throw error;
+      if (bedsError) {
+        console.error('❌ Error fetching beds:', bedsError);
+        throw bedsError;
       }
 
-      console.log('✅ Beds data fetched:', data?.length, 'beds');
+      // Then get all patients
+      const { data: patientsData, error: patientsError } = await supabase
+        .from('patients')
+        .select('*');
+
+      if (patientsError) {
+        console.error('❌ Error fetching patients:', patientsError);
+        throw patientsError;
+      }
+
+      // Get all reservations
+      const { data: reservationsData, error: reservationsError } = await supabase
+        .from('bed_reservations')
+        .select('*');
+
+      if (reservationsError) {
+        console.error('❌ Error fetching reservations:', reservationsError);
+        throw reservationsError;
+      }
+
+      // Combine data manually
+      const data = bedsData.map(bed => {
+        // Find patients for this bed
+        const patients = patientsData.filter(p => p.bed_id === bed.id);
+        // Find reservations for this bed
+        const bed_reservations = reservationsData.filter(r => r.bed_id === bed.id);
+        
+        return {
+          ...bed,
+          patients,
+          bed_reservations
+        };
+      });
+
+      console.log('✅ Beds data combined:', data?.length, 'beds');
+      console.log('🔍 Sample bed data:', data?.[0]);
       return data;
     },
     staleTime: 0, // Force immediate refresh

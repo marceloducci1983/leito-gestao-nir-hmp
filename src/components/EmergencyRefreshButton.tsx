@@ -14,16 +14,15 @@ const EmergencyRefreshButton: React.FC = () => {
       // Clear all cache
       queryClient.clear();
       
-      // Force reload window to ensure clean state
-      toast.success('Sistema reiniciado - dados sincronizados!');
+      // Force invalidate specific queries
+      await queryClient.invalidateQueries({ queryKey: ['beds'] });
+      await queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
       
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      toast.success('Sistema sincronizado - dados atualizados!');
       
     } catch (error) {
       console.error('❌ Erro no refresh de emergência:', error);
-      toast.error('Erro ao reiniciar sistema');
+      toast.error('Erro ao sincronizar sistema');
     }
   };
 

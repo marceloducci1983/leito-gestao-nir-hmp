@@ -6,6 +6,18 @@ export const transformBedsData = (bedsData: any[]) => {
   return bedsData.map((bed: any) => {
     const patient = bed.patients?.[0];
     const reservation = bed.bed_reservations?.[0];
+    
+    console.log('🔍 DEBUGGING BED:', {
+      bed_id: bed.id,
+      bed_name: bed.name,
+      is_occupied: bed.is_occupied,
+      is_reserved: bed.is_reserved,
+      patients_array: bed.patients,
+      patients_count: bed.patients?.length,
+      patient_data: patient,
+      has_patient: !!patient,
+      patient_name: patient?.name
+    });
 
     // Priorizar department_text, mas garantir compatibilidade com department
     const bedDepartment = bed.department_text || bed.department;
