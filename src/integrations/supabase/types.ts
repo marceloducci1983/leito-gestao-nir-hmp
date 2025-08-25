@@ -670,6 +670,16 @@ export type Database = {
         Args: { p_discharge_id: string }
         Returns: boolean
       }
+      check_bed_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bed_name: string
+          department: string
+          is_occupied: boolean
+          patient_count: number
+          status_consistent: boolean
+        }[]
+      }
       complete_discharge_and_remove_patient: {
         Args: { p_discharge_id: string; p_justification?: string }
         Returns: boolean

@@ -40,6 +40,34 @@ export const useBedActionHandlers = ({
 
   const handleAdmitPatient = (bedId: string) => {
     console.log('🏥 handleAdmitPatient chamado para leito:', bedId);
+    
+    // FASE 3: VALIDAÇÃO FRONTEND - Verificar se leito está realmente livre
+    const bed = centralData.beds.find((b: Bed) => b.id === bedId);
+    if (!bed) {
+      console.error('❌ Leito não encontrado:', bedId);
+      toast({
+        title: "Erro",
+        description: "Leito não encontrado",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (bed.isOccupied || bed.patient) {
+      console.error('❌ Tentativa de admitir em leito ocupado:', {
+        bedId,
+        bedName: bed.name,
+        isOccupied: bed.isOccupied,
+        patient: bed.patient?.name
+      });
+      toast({
+        title: "Erro",
+        description: `Leito ${bed.name} já está ocupado por ${bed.patient?.name || 'outro paciente'}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSelectedBedId(bedId);
     setSelectedPatient(null);
     setIsEditingPatient(false);
