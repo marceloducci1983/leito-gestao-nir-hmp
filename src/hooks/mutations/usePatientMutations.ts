@@ -17,24 +17,6 @@ export const useAddPatient = () => {
         name: patientData.name
       });
       
-      // FASE 3: VALIDAÇÃO PRÉ-INSERÇÃO - Verificar se leito está realmente livre
-      const { data: existingPatients, error: checkError } = await supabase
-        .from('patients')
-        .select('id, name')
-        .eq('bed_id', bedId);
-      
-      if (checkError) {
-        console.error('❌ Erro ao verificar ocupação do leito:', checkError);
-        throw new Error('Erro ao verificar disponibilidade do leito');
-      }
-      
-      if (existingPatients && existingPatients.length > 0) {
-        console.error('❌ LEITO JÁ OCUPADO:', { bedId, existingPatients });
-        throw new Error(`Leito já está ocupado por: ${existingPatients.map(p => p.name).join(', ')}`);
-      }
-      
-      console.log('✅ Leito confirmado como livre, prosseguindo com admissão...');
-      
       // Primeiro, inserir o paciente
       const { data: patient, error: patientError } = await supabase
         .from('patients')

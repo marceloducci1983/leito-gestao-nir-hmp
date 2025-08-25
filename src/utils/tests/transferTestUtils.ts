@@ -86,7 +86,7 @@ export const executeTransferTests = async (): Promise<TransferTestResults> => {
       const plan = transferPlans[i];
       const patientBed = occupiedBeds.find(bed => bed.department === plan.fromDept);
       
-      if (!patientBed || !patientBed.patients || !Array.isArray(patientBed.patients) || patientBed.patients.length === 0) {
+      if (!patientBed || !patientBed.patients || patientBed.patients.length === 0) {
         results.errors.push({
           patientName: 'SISTEMA',
           error: `Nenhum paciente encontrado em ${plan.fromDept} para transferir`

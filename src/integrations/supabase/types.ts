@@ -553,7 +553,7 @@ export type Database = {
           {
             foreignKeyName: "patients_bed_id_fkey"
             columns: ["bed_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "beds"
             referencedColumns: ["id"]
           },
@@ -669,16 +669,6 @@ export type Database = {
       cancel_discharge_and_restore_patient: {
         Args: { p_discharge_id: string }
         Returns: boolean
-      }
-      check_bed_integrity: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          bed_name: string
-          department: string
-          is_occupied: boolean
-          patient_count: number
-          status_consistent: boolean
-        }[]
       }
       complete_discharge_and_remove_patient: {
         Args: { p_discharge_id: string; p_justification?: string }

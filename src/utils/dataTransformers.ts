@@ -4,20 +4,8 @@ import { SupabaseBed, SupabasePatient, SupabaseBedReservation } from '@/types/su
 export const transformBedsData = (bedsData: any[]) => {
   console.log('🔄 Transforming beds data:', bedsData?.length, 'beds');
   return bedsData.map((bed: any) => {
-    const patients = bed.patients || [];
-    const patient = patients[0]; // Pegar apenas o primeiro paciente
+    const patient = bed.patients?.[0];
     const reservation = bed.bed_reservations?.[0];
-    
-    // FASE 3: DETECTAR E REPORTAR ANOMALIAS
-    if (patients.length > 1) {
-      console.error('🚨 ANOMALIA DETECTADA - Múltiplos pacientes em um leito:', {
-        bed_id: bed.id,
-        bed_name: bed.name,
-        department: bed.department_text || bed.department,
-        patient_count: patients.length,
-        patients: patients.map((p: any) => ({ id: p.id, name: p.name, created_at: p.created_at }))
-      });
-    }
 
     // Priorizar department_text, mas garantir compatibilidade com department
     const bedDepartment = bed.department_text || bed.department;
