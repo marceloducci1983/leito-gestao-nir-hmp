@@ -50,7 +50,8 @@ export const useBedsData = () => {
       console.log('✅ Beds data fetched:', data?.length, 'beds');
       return data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Force immediate refresh
+    refetchInterval: 5000, // Auto refresh every 5 seconds
   });
 };
 
@@ -73,6 +74,6 @@ export const useDischargedPatientsData = () => {
       console.log('Discharged patients data fetched:', data?.length, 'records');
       return data;
     },
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // Force immediate refresh
   });
 };

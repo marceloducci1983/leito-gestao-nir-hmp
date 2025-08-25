@@ -6,13 +6,23 @@ import { useAddPatient, useDischargePatient, useTransferPatient, useUpdatePatien
 import { useAddReservation } from '@/hooks/mutations/useReservationMutations';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { transformBedsData, transformDischargedPatientsData } from '@/utils/dataTransformers';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useSupabaseBeds = () => {
-  const { data: bedsData, isLoading: bedsLoading, error: bedsError } = useBedsData();
+  const queryClient = useQueryClient();
+  const { data: bedsData, isLoading: bedsLoading, error: bedsError, refetch: refetchBeds } = useBedsData();
   const { data: dischargedData, isLoading: dischargedLoading, error: dischargedError } = useDischargedPatientsData();
   const { data: dischargeControlData, isLoading: dischargeControlLoading } = useDischargeControl();
   const { data: departmentStats, isLoading: statsLoading } = useDepartmentStats();
+  
+  // Force cache invalidation on mount to ensure fresh data
+  useEffect(() => {
+    console.log('🔄 Forçando atualização de cache...');
+    queryClient.invalidateQueries({ queryKey: ['beds'] });
+    queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+    refetchBeds();
+  }, [queryClient, refetchBeds]);
   
   // Set up real-time subscriptions
   useRealtimeSubscriptions();
