@@ -18,11 +18,22 @@ export const useSupabaseBeds = () => {
   
   // Force cache invalidation on mount to ensure fresh data
   useEffect(() => {
-    console.log('🔄 Forçando atualização de cache...');
+    console.log('🔄 USESUPABASEBEDS - Forçando atualização de cache...');
+    console.log('🔍 USESUPABASEBEDS - Estado atual:', {
+      bedsLoading,
+      bedsError,
+      hasBedsData: !!bedsData,
+      bedsDataLength: bedsData?.length,
+      dischargedLoading,
+      dischargedError,
+      hasDischargedData: !!dischargedData,
+      dischargedDataLength: dischargedData?.length
+    });
+    
     queryClient.invalidateQueries({ queryKey: ['beds'] });
     queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
     refetchBeds();
-  }, [queryClient, refetchBeds]);
+  }, [queryClient, refetchBeds, bedsLoading, bedsError, bedsData, dischargedLoading, dischargedError, dischargedData]);
   
   // Set up real-time subscriptions
   useRealtimeSubscriptions();
@@ -37,11 +48,29 @@ export const useSupabaseBeds = () => {
 
   // Transform and memoize data
   const centralData = useMemo(() => {
+    console.log('🔄 USESUPABASEBEDS - Transformando dados...');
+    console.log('🔍 USESUPABASEBEDS - Dados recebidos:', {
+      bedsData: bedsData?.length,
+      dischargedData: dischargedData?.length,
+      dischargeControlData: dischargeControlData?.length,
+      departmentStats: departmentStats?.length
+    });
+    
     const beds = bedsData ? transformBedsData(bedsData) : [];
     const archivedPatients = dischargedData ? transformDischargedPatientsData(dischargedData) : [];
     const dischargeMonitoring = archivedPatients; // Same data for now
     const dischargeControl = dischargeControlData || [];
     const stats = departmentStats || [];
+
+    console.log('✅ USESUPABASEBEDS - Dados transformados:', {
+      beds: beds.length,
+      totalOccupied: beds.filter(b => b.isOccupied).length,
+      totalAvailable: beds.filter(b => !b.isOccupied && !b.isReserved).length,
+      totalReserved: beds.filter(b => b.isReserved).length,
+      archivedPatients: archivedPatients.length,
+      dischargeControl: dischargeControl.length,
+      stats: stats.length
+    });
 
     return {
       beds,

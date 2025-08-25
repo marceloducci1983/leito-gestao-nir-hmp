@@ -9,16 +9,32 @@ const EmergencyRefreshButton: React.FC = () => {
 
   const handleEmergencyRefresh = async () => {
     try {
-      console.log('🚨 REFRESH DE EMERGÊNCIA INICIADO');
+      console.log('🚨 REFRESH DE EMERGÊNCIA INICIADO - LIMPEZA TOTAL');
       
-      // Clear all cache
+      // Step 1: Clear all cache aggressively
+      console.log('🧹 Limpando todo o cache...');
       queryClient.clear();
       
-      // Force invalidate specific queries
+      // Step 2: Remove all cached data for specific queries
+      console.log('🗑️ Removendo cache específico...');
+      queryClient.removeQueries({ queryKey: ['beds'] });
+      queryClient.removeQueries({ queryKey: ['discharged-patients'] });
+      queryClient.removeQueries({ queryKey: ['discharge-control'] });
+      queryClient.removeQueries({ queryKey: ['department-stats'] });
+      
+      // Step 3: Force invalidate and refetch
+      console.log('🔄 Forçando nova busca...');
       await queryClient.invalidateQueries({ queryKey: ['beds'] });
       await queryClient.invalidateQueries({ queryKey: ['discharged-patients'] });
+      await queryClient.invalidateQueries({ queryKey: ['discharge-control'] });
+      await queryClient.invalidateQueries({ queryKey: ['department-stats'] });
       
-      toast.success('Sistema sincronizado - dados atualizados!');
+      // Step 4: Force a complete reload
+      console.log('⚡ Forçando reload completo...');
+      await queryClient.refetchQueries({ queryKey: ['beds'] });
+      
+      toast.success('🎉 Sistema totalmente sincronizado!');
+      console.log('✅ REFRESH DE EMERGÊNCIA CONCLUÍDO');
       
     } catch (error) {
       console.error('❌ Erro no refresh de emergência:', error);

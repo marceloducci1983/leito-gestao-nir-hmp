@@ -2,21 +2,24 @@
 import { SupabaseBed, SupabasePatient, SupabaseBedReservation } from '@/types/supabase';
 
 export const transformBedsData = (bedsData: any[]) => {
-  console.log('🔄 Transforming beds data:', bedsData?.length, 'beds');
-  return bedsData.map((bed: any) => {
+  console.log('🔄 TRANSFORM - Iniciando transformação de', bedsData?.length, 'leitos');
+  console.log('🔍 TRANSFORM - Dados brutos recebidos:', bedsData);
+  
+  const transformedBeds = bedsData.map((bed: any) => {
     const patient = bed.patients?.[0];
     const reservation = bed.bed_reservations?.[0];
     
-    console.log('🔍 DEBUGGING BED:', {
+    console.log('🔍 TRANSFORM BED:', {
       bed_id: bed.id,
       bed_name: bed.name,
-      is_occupied: bed.is_occupied,
-      is_reserved: bed.is_reserved,
-      patients_array: bed.patients,
-      patients_count: bed.patients?.length,
-      patient_data: patient,
-      has_patient: !!patient,
-      patient_name: patient?.name
+      db_is_occupied: bed.is_occupied,
+      db_is_reserved: bed.is_reserved,
+      patients_array_length: bed.patients?.length || 0,
+      has_patient_data: !!patient,
+      patient_name: patient?.name || 'SEM_PACIENTE',
+      reservations_array_length: bed.bed_reservations?.length || 0,
+      has_reservation_data: !!reservation,
+      reservation_patient_name: reservation?.patient_name || 'SEM_RESERVA'
     });
 
     // Priorizar department_text, mas garantir compatibilidade com department
@@ -39,9 +42,9 @@ export const transformBedsData = (bedsData: any[]) => {
       id: bed.id,
       name: bed.name,
       department: bedDepartment,
-      isOccupied: bed.is_occupied,
-      isReserved: bed.is_reserved,
-      isCustom: bed.is_custom,
+      isOccupied: !!patient,
+      isReserved: !!reservation && !patient,
+      isCustom: bed.is_custom || false,
       patient: patient ? {
         id: patient.id,
         name: patient.name,
@@ -54,35 +57,42 @@ export const transformBedsData = (bedsData: any[]) => {
         specialty: patient.specialty,
         expectedDischargeDate: patient.expected_discharge_date,
         originCity: patient.origin_city,
-        occupationDays: patient.occupation_days,
-        isTFD: patient.is_tfd,
+        occupationDays: patient.occupation_days || 0,
+        isTFD: patient.is_tfd || false,
         tfdType: patient.tfd_type,
-        bedId: patient.bed_id,
-        department: patient.department_text || patient.department
+        bedId: patient.bed_id || bed.id,
+        department: patient.department_text || patient.department || bedDepartment
       } : undefined,
       reservation: reservation ? {
         id: reservation.id,
         patientName: reservation.patient_name,
         originClinic: reservation.origin_clinic,
         diagnosis: reservation.diagnosis,
-        bedId: bed.id,
-        department: reservation.department_text || reservation.department
+        bedId: bed.id,  
+        department: reservation.department_text || reservation.department || bedDepartment
       } : undefined
     };
 
-    // Log específico para pacientes TFD
-    if (patient?.is_tfd) {
-      console.log('🔍 PACIENTE TFD ENCONTRADO:', {
-        nome: patient.name,
-        is_tfd: patient.is_tfd,
-        tfd_type: patient.tfd_type,
-        leito: bed.name,
-        departamento: bedDepartment
-      });
-    }
+    console.log('✅ TRANSFORMED BED:', {
+      bed_id: transformedBed.id,
+      bed_name: transformedBed.name,
+      final_isOccupied: transformedBed.isOccupied,
+      final_isReserved: transformedBed.isReserved,
+      final_patient_name: transformedBed.patient?.name || 'NONE',
+      final_reservation_name: transformedBed.reservation?.patientName || 'NONE'
+    });
 
     return transformedBed;
   });
+  
+  console.log('✅ TRANSFORM - Transformação completa:', {
+    total_beds: transformedBeds.length,
+    occupied: transformedBeds.filter(b => b.isOccupied).length,
+    available: transformedBeds.filter(b => !b.isOccupied && !b.isReserved).length,
+    reserved: transformedBeds.filter(b => b.isReserved).length
+  });
+  
+  return transformedBeds;
 };
 
 export const transformDischargedPatientsData = (dischargedData: any[]) => {
