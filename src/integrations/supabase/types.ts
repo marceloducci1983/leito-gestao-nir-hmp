@@ -815,16 +815,6 @@ export type Database = {
         Args: { p_description?: string; p_id: string; p_name: string }
         Returns: boolean
       }
-      validate_bed_patient_consistency: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          bed_id: string
-          bed_name: string
-          is_occupied: boolean
-          patient_count: number
-          status_consistent: boolean
-        }[]
-      }
     }
     Enums: {
       department_type:
