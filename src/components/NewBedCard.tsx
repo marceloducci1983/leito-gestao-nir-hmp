@@ -30,6 +30,7 @@ interface BedCardProps {
       occupationDays: number;
       isTFD: boolean;
       tfdType?: string;
+      isIsolation?: boolean;
     };
     reservation?: {
       id: string;
@@ -45,6 +46,7 @@ interface BedCardProps {
   onDischargePatient: (bedId: string) => void;
   onDeleteReservation: (bedId: string) => void;
   onDeleteBed?: (bedId: string) => void;
+  onToggleIsolation?: (patientId: string) => void;
   editMode?: boolean;
   isDischarging?: boolean;
 }
@@ -58,11 +60,12 @@ const NewBedCard: React.FC<BedCardProps> = ({
   onDischargePatient,
   onDeleteReservation,
   onDeleteBed,
+  onToggleIsolation,
   editMode = false,
   isDischarging = false
 }) => {
   return (
-    <Card className={`w-full ${getBedStatusColor(bed.isOccupied, bed.isReserved)} transition-all hover:shadow-md ${isDischarging ? 'opacity-75' : ''}`}>
+    <Card className={`w-full ${getBedStatusColor(bed.isOccupied, bed.isReserved, bed.patient?.isIsolation)} transition-all hover:shadow-md ${isDischarging ? 'opacity-75' : ''}`}>
       <BedHeader
         name={bed.name}
         department={bed.department}
@@ -97,6 +100,7 @@ const NewBedCard: React.FC<BedCardProps> = ({
             onEditPatient={() => onEditPatient(bed.id)}
             onTransferPatient={() => onTransferPatient(bed.id)}
             onDischargePatient={() => onDischargePatient(bed.id)}
+            onToggleIsolation={onToggleIsolation}
             isDischarging={isDischarging}
           />
         )}

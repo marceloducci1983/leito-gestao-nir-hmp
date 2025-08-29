@@ -2,7 +2,7 @@
 import { useBedsData, useDischargedPatientsData } from '@/hooks/queries/useSupabaseData';
 import { useDischargeControl, useDepartmentStats } from '@/hooks/queries/useDischargeQueries';
 import { useRealtimeSubscriptions } from '@/hooks/useRealtimeSubscriptions';
-import { useAddPatient, useDischargePatient, useTransferPatient, useUpdatePatient } from '@/hooks/mutations/usePatientMutations';
+import { useAddPatient, useDischargePatient, useTransferPatient, useUpdatePatient, useTogglePatientIsolation } from '@/hooks/mutations/usePatientMutations';
 import { useAddReservation } from '@/hooks/mutations/useReservationMutations';
 import { useRequestDischarge } from '@/hooks/mutations/useDischargeMutations';
 import { transformBedsData, transformDischargedPatientsData } from '@/utils/dataTransformers';
@@ -45,6 +45,7 @@ export const useSupabaseBeds = () => {
   const transferPatientMutation = useTransferPatient();
   const addReservationMutation = useAddReservation();
   const requestDischargeMutation = useRequestDischarge();
+  const toggleIsolationMutation = useTogglePatientIsolation();
 
   // Transform and memoize data
   const centralData = useMemo(() => {
@@ -105,10 +106,14 @@ export const useSupabaseBeds = () => {
     return await transferPatientMutation.mutateAsync(data);
   };
 
-  // Função dischargePatient que retorna Promise
+  // Função dischargePatient que retorna Promise (mantém assinatura original)
   const dischargePatient = async (data: any) => {
     console.log('🔄 useSupabaseBeds.dischargePatient chamado com:', data);
     return await dischargePatientMutation.mutateAsync(data);
+  };
+
+  const togglePatientIsolation = async (patientId: string) => {
+    return await toggleIsolationMutation.mutateAsync(patientId);
   };
 
   return {
@@ -120,6 +125,7 @@ export const useSupabaseBeds = () => {
     dischargePatient,
     transferPatient,
     addReservation,
+    togglePatientIsolation,
     requestDischarge: requestDischargeMutation.mutate
   };
 };

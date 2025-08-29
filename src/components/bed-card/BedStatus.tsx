@@ -13,7 +13,8 @@ export const BedStatus: React.FC<BedStatusProps> = ({ isOccupied, isReserved }) 
   return <Badge className="bg-green-500">Disponível</Badge>;
 };
 
-export const getBedStatusColor = (isOccupied: boolean, isReserved: boolean) => {
+export const getBedStatusColor = (isOccupied: boolean, isReserved: boolean, isIsolation?: boolean) => {
+  if (isIsolation) return 'bg-gray-100 border-gray-400';
   if (isOccupied) return 'bg-red-100 border-red-300';
   if (isReserved) return 'bg-yellow-100 border-yellow-300';
   return 'bg-green-100 border-green-300';

@@ -53,6 +53,7 @@ interface SupabaseBedsPanelLayoutProps {
   handleDischargePatient: (bedId: string) => void;
   handleDeleteReservation: (bedId: string) => void;
   handleDeleteBed: (bedId: string) => void;
+  onToggleIsolation?: (patientId: string) => void;
   submitReservation: (data: any) => void;
   submitPatient: (data: any) => void;
   submitTransfer: (department: string, bedId: string) => void;
@@ -102,7 +103,8 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
   submitTransfer,
   handleManageSectors,
   handleCreateNewBed,
-  handleEditBed
+  handleEditBed,
+  onToggleIsolation
 }) => {
   if (isLoading) {
     return (
@@ -152,6 +154,7 @@ const SupabaseBedsPanelLayout: React.FC<SupabaseBedsPanelLayoutProps> = ({
         onDischargePatient={handleDischargePatient}
         onDeleteReservation={handleDeleteReservation}
         onDeleteBed={handleDeleteBed}
+        onToggleIsolation={onToggleIsolation}
       />
 
       <BedsPanelModals

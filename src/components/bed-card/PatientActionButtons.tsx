@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, ArrowRightLeft, LogOut, Loader2 } from 'lucide-react';
+import { Edit, ArrowRightLeft, LogOut, Loader2, Shield, ShieldAlert } from 'lucide-react';
 
 interface PatientActionButtonsProps {
   onEditPatient: () => void;
   onTransferPatient: () => void;
   onDischargePatient: () => void;
+  onToggleIsolation?: (patientId: string) => void;
+  patientId?: string;
+  isIsolation?: boolean;
   isDischarging?: boolean;
   isMobile?: boolean;
 }
@@ -15,6 +18,9 @@ export const PatientActionButtons: React.FC<PatientActionButtonsProps> = ({
   onEditPatient,
   onTransferPatient,
   onDischargePatient,
+  onToggleIsolation,
+  patientId,
+  isIsolation = false,
   isDischarging = false,
   isMobile = false
 }) => {
@@ -42,6 +48,12 @@ export const PatientActionButtons: React.FC<PatientActionButtonsProps> = ({
         console.log('🔄 Resetando estado de processamento');
         setIsProcessing(false);
       }, 2000);
+    }
+  };
+
+  const handleIsolationToggle = () => {
+    if (onToggleIsolation && patientId) {
+      onToggleIsolation(patientId);
     }
   };
 
@@ -90,6 +102,26 @@ export const PatientActionButtons: React.FC<PatientActionButtonsProps> = ({
           {isDisabled ? 'PROCESSANDO...' : 'DAR ALTA'}
         </span>
       </Button>
+
+      {/* Isolation Button */}
+      {onToggleIsolation && (
+        <Button 
+          size="sm"
+          onClick={handleIsolationToggle}
+          disabled={isDisabled}
+          className={`w-full ${isIsolation 
+            ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+            : 'bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-gray-700'
+          } shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 border-0 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+        >
+          {isIsolation ? (
+            <ShieldAlert className="h-3 w-3 mr-1.5" />
+          ) : (
+            <Shield className="h-3 w-3 mr-1.5" />
+          )}
+          <span className="text-xs font-medium">ISOLAMENTO</span>
+        </Button>
+      )}
     </div>
   );
 };

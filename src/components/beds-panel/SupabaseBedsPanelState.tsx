@@ -15,7 +15,7 @@ interface SupabaseBedsPanelStateProps {
 }
 
 export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelStateProps) => {
-  const { centralData, isLoading, error, addPatient, transferPatient, addReservation } = useSupabaseBeds();
+  const { centralData, isLoading, error, addPatient, transferPatient, addReservation, togglePatientIsolation } = useSupabaseBeds();
   const { departmentNames, isLoading: loadingDepartments } = useDepartmentNames();
   const { isMobile } = useResponsive();
 
@@ -164,6 +164,7 @@ export const useSupabaseBedsPanelState = ({ onDataChange }: SupabaseBedsPanelSta
     submitTransfer,
     handleManageSectors,
     handleCreateNewBed,
-    handleEditBed
+    handleEditBed,
+    onToggleIsolation: togglePatientIsolation
   };
 };

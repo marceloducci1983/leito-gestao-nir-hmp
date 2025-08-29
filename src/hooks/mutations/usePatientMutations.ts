@@ -428,3 +428,27 @@ export const useTransferPatient = () => {
     }
   });
 };
+
+export const useTogglePatientIsolation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (patientId: string) => {
+      const { data, error } = await supabase.rpc('toggle_patient_isolation', {
+        p_patient_id: patientId
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['beds'] });
+      queryClient.invalidateQueries({ queryKey: ['patient_discharges'] });
+      toast.success('Status de isolamento atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao alterar status de isolamento:', error);
+      toast.error('Não foi possível alterar o status de isolamento do paciente. Tente novamente.');
+    }
+  });
+};

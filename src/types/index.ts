@@ -16,6 +16,7 @@ export interface Patient {
   tfdType?: string;
   bedId: string;
   department: string;
+  isIsolation?: boolean;
 }
 
 export interface BedReservation {
@@ -42,6 +43,7 @@ export interface DischargedPatient extends Patient {
   dischargeDate: string;
   dischargeType: 'POR MELHORA' | 'EVASÃO' | 'TRANSFERENCIA' | 'OBITO';
   actualStayDays: number;
+  isIsolation?: boolean;
 }
 
 // Mudança: Department agora é string para permitir departamentos dinâmicos

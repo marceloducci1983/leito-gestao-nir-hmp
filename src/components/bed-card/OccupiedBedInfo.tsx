@@ -19,6 +19,7 @@ interface PatientData {
   occupationDays: number;
   isTFD: boolean;
   tfdType?: string;
+  isIsolation?: boolean;
 }
 
 interface OccupiedBedInfoProps {
@@ -26,6 +27,7 @@ interface OccupiedBedInfoProps {
   onEditPatient: () => void;
   onTransferPatient: () => void;
   onDischargePatient: () => void;
+  onToggleIsolation?: (patientId: string) => void;
   isDischarging?: boolean;
 }
 
@@ -34,6 +36,7 @@ export const OccupiedBedInfo: React.FC<OccupiedBedInfoProps> = ({
   onEditPatient,
   onTransferPatient,
   onDischargePatient,
+  onToggleIsolation,
   isDischarging = false
 }) => {
   const { isMobile } = useResponsive();
@@ -45,6 +48,9 @@ export const OccupiedBedInfo: React.FC<OccupiedBedInfoProps> = ({
         onEditPatient={onEditPatient}
         onTransferPatient={onTransferPatient}
         onDischargePatient={onDischargePatient}
+        onToggleIsolation={onToggleIsolation}
+        patientId={patient.id}
+        isIsolation={patient.isIsolation}
         isDischarging={isDischarging}
         isMobile={isMobile}
       />

@@ -18,6 +18,7 @@ interface BedsPanelContentProps {
   onDischargePatient: (bedId: string) => void;
   onDeleteReservation: (bedId: string) => void;
   onDeleteBed: (bedId: string) => void;
+  onToggleIsolation?: (patientId: string) => void;
 }
 
 const BedsPanelContent: React.FC<BedsPanelContentProps> = ({
@@ -33,7 +34,8 @@ const BedsPanelContent: React.FC<BedsPanelContentProps> = ({
   onTransferPatient,
   onDischargePatient,
   onDeleteReservation,
-  onDeleteBed
+  onDeleteBed,
+  onToggleIsolation
 }) => {
   return (
     // Quando há busca, não mostrar o seletor de departamento
@@ -72,10 +74,11 @@ const BedsPanelContent: React.FC<BedsPanelContentProps> = ({
             onReserveBed={onReserveBed}
             onAdmitPatient={onAdmitPatient}
             onEditPatient={onEditPatient}
-            onTransferPatient={onTransferPatient}
-            onDischargePatient={onDischargePatient}
-            onDeleteReservation={onDeleteReservation}
-            onDeleteBed={onDeleteBed}
+                  onTransferPatient={onTransferPatient}
+                  onDischargePatient={onDischargePatient}
+                  onDeleteReservation={onDeleteReservation}
+                  onDeleteBed={onDeleteBed}
+                  onToggleIsolation={onToggleIsolation}
           />
         </Card>
       </ResponsiveDepartmentSelector>

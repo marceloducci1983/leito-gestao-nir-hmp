@@ -369,6 +369,7 @@ export type Database = {
           discharge_type: Database["public"]["Enums"]["discharge_type"]
           expected_discharge_date: string | null
           id: string
+          is_isolation: boolean | null
           is_tfd: boolean | null
           name: string
           occupation_days: number
@@ -393,6 +394,7 @@ export type Database = {
           discharge_type: Database["public"]["Enums"]["discharge_type"]
           expected_discharge_date?: string | null
           id?: string
+          is_isolation?: boolean | null
           is_tfd?: boolean | null
           name: string
           occupation_days: number
@@ -417,6 +419,7 @@ export type Database = {
           discharge_type?: Database["public"]["Enums"]["discharge_type"]
           expected_discharge_date?: string | null
           id?: string
+          is_isolation?: boolean | null
           is_tfd?: boolean | null
           name?: string
           occupation_days?: number
@@ -498,6 +501,7 @@ export type Database = {
           diagnosis: string
           expected_discharge_date: string | null
           id: string
+          is_isolation: boolean | null
           is_tfd: boolean | null
           name: string
           occupation_days: number | null
@@ -519,6 +523,7 @@ export type Database = {
           diagnosis: string
           expected_discharge_date?: string | null
           id?: string
+          is_isolation?: boolean | null
           is_tfd?: boolean | null
           name: string
           occupation_days?: number | null
@@ -540,6 +545,7 @@ export type Database = {
           diagnosis?: string
           expected_discharge_date?: string | null
           id?: string
+          is_isolation?: boolean | null
           is_tfd?: boolean | null
           name?: string
           occupation_days?: number | null
@@ -812,6 +818,10 @@ export type Database = {
           p_patient_name: string
         }
         Returns: string
+      }
+      toggle_patient_isolation: {
+        Args: { p_patient_id: string }
+        Returns: boolean
       }
       update_all_occupation_days: {
         Args: Record<PropertyKey, never>
