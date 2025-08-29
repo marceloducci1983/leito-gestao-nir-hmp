@@ -14,7 +14,7 @@ export const BedStatus: React.FC<BedStatusProps> = ({ isOccupied, isReserved }) 
 };
 
 export const getBedStatusColor = (isOccupied: boolean, isReserved: boolean, isIsolation?: boolean) => {
-  if (isIsolation) return 'bg-gray-100 border-gray-400';
+  if (isIsolation) return 'bg-black border-gray-800 text-white';
   if (isOccupied) return 'bg-red-100 border-red-300';
   if (isReserved) return 'bg-yellow-100 border-yellow-300';
   return 'bg-green-100 border-green-300';
