@@ -54,9 +54,9 @@ const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
           </div>
 
           {/* Município de Origem (Destaque) */}
-          <div className="flex items-center gap-2 p-2 bg-purple-100 rounded-md border border-purple-200 md:col-span-2">
-            <MapPin className="h-4 w-4 text-purple-600" />
-            <span className="font-bold text-purple-800">Município de Origem: {patient.originCity}</span>
+          <div className="flex items-center gap-2 p-2 bg-blue-100 rounded-md border border-blue-200 md:col-span-2">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <span className="font-bold text-blue-800">Município de Origem: {patient.originCity}</span>
           </div>
 
           {/* Diagnóstico */}
@@ -75,13 +75,19 @@ const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
             <span><strong>Leito:</strong> {patient.bedId}</span>
           </div>
 
-          {/* TFD */}
-          <div className="flex items-center gap-2">
-            <span><strong>TFD:</strong> {patient.isTFD ? 'Sim' : 'Não'}</span>
-            {patient.isTFD && patient.tfdType && (
-              <span className="text-sm text-gray-600">({patient.tfdType})</span>
-            )}
-          </div>
+          {/* TFD (Destaque) */}
+          {patient.isTFD ? (
+            <div className="flex items-center gap-2 p-2 bg-red-100 rounded-md border border-red-200 md:col-span-2">
+              <span className="font-bold text-red-800">TFD: Sim</span>
+              {patient.tfdType && (
+                <span className="text-sm text-red-700">({patient.tfdType})</span>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span><strong>TFD:</strong> Não</span>
+            </div>
+          )}
 
           {/* Especialidade */}
           {patient.specialty && (

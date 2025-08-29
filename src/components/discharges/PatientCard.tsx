@@ -124,8 +124,8 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
-                <MapPin className="h-3 w-3 text-orange-600" />
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <MapPin className="h-3 w-3 text-blue-600" />
               </div>
               <span className="text-xs text-gray-500 uppercase font-medium">Origem</span>
             </div>
@@ -168,7 +168,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           </div>
           
           {bed.patient.isTFD && (
-            <Badge variant="outline" className="mt-2 text-xs border-orange-300 text-orange-700 bg-orange-50">
+            <Badge variant="outline" className="mt-2 text-xs border-red-300 text-red-700 bg-red-100">
               🚑 TFD {bed.patient.tfdType && `- ${bed.patient.tfdType}`}
             </Badge>
           )}

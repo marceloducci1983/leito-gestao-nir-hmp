@@ -144,12 +144,12 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 p-2 bg-purple-50 rounded">
-          <MapPin className="h-4 w-4 text-purple-600" />
+        <div className="flex items-center gap-2 p-2 bg-blue-100 rounded border border-blue-200">
+          <MapPin className="h-4 w-4 text-blue-600" />
           <div>
-            <span className="font-medium text-purple-800">Origem:</span>
+            <span className="font-medium text-blue-800">Origem:</span>
             <br />
-            <span className="text-purple-700">{patient.originCity}</span>
+            <span className="text-blue-700">{patient.originCity}</span>
           </div>
         </div>
 
@@ -175,7 +175,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
             Internação: {calculateOccupationDays(patient.admissionDate)} dias
           </span>
           {patient.isTFD && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs border-red-300 text-red-700 bg-red-100">
               TFD {patient.tfdType && `- ${patient.tfdType}`}
             </Badge>
           )}
@@ -243,9 +243,9 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                     <Calendar className="h-3 w-3 text-yellow-600" />
                     <span className="font-bold text-yellow-800">DPA: {bed.patient.expectedDischargeDate ? formatDate(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    <span>{bed.patient.originCity}</span>
+                  <div className="flex items-center gap-2 p-2 bg-blue-100 rounded border border-blue-200">
+                    <MapPin className="h-3 w-3 text-blue-600" />
+                    <span className="text-blue-800">{bed.patient.originCity}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Stethoscope className="h-3 w-3" />
@@ -259,7 +259,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                   <div className="flex items-center justify-between">
                     <span>Dias: {calculateOccupationDays(bed.patient.admissionDate)}</span>
                     {bed.patient.isTFD && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-red-300 text-red-700 bg-red-100">
                         TFD {bed.patient.tfdType && `- ${bed.patient.tfdType}`}
                       </Badge>
                     )}

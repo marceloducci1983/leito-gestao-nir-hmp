@@ -67,9 +67,9 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
         <Calendar className="h-3 w-3 text-yellow-600" />
         <span className="font-bold text-yellow-800">DPA: {patient.expectedDischargeDate ? formatDateOnly(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
       </div>
-      <div className="flex items-center gap-1">
-        <MapPin className="h-3 w-3" />
-        <span>{patient.originCity}</span>
+      <div className="flex items-center gap-2 p-2 bg-blue-100 rounded-md border border-blue-200">
+        <MapPin className="h-3 w-3 text-blue-600" />
+        <span className="font-medium text-blue-800">{patient.originCity}</span>
       </div>
       <div className="flex items-center gap-1">
         <Stethoscope className="h-3 w-3" />
@@ -83,7 +83,7 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
       <div className="flex items-center justify-between">
         <span>Dias: {calculateOccupationDays(patient.admissionDate)}</span>
         {patient.isTFD && (
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs border-red-300 text-red-700 bg-red-100">
             TFD {patient.tfdType && `- ${patient.tfdType}`}
           </Badge>
         )}
