@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Patient } from '@/types';
 
 interface PatientFormProps {
@@ -37,11 +38,13 @@ const PatientForm: React.FC<PatientFormProps> = ({
     isTFD: false,
     tfdType: '',
     bedId: '',
-    department: ''
+    department: '',
+    hasNoExpectedDate: false
   });
 
   useEffect(() => {
     if (patient && isEditing) {
+      const hasNoExpectedDate = !patient.expectedDischargeDate || patient.expectedDischargeDate === '';
       setFormData({
         name: patient.name,
         sex: patient.sex,
@@ -50,12 +53,13 @@ const PatientForm: React.FC<PatientFormProps> = ({
         admissionDate: patient.admissionDate,
         diagnosis: patient.diagnosis,
         specialty: patient.specialty || '',
-        expectedDischargeDate: patient.expectedDischargeDate,
+        expectedDischargeDate: hasNoExpectedDate ? '' : patient.expectedDischargeDate,
         originCity: patient.originCity,
         isTFD: patient.isTFD,
         tfdType: patient.tfdType || '',
         bedId: patient.bedId,
-        department: patient.department
+        department: patient.department,
+        hasNoExpectedDate: hasNoExpectedDate
       });
     } else if (!isEditing) {
       setFormData({
@@ -71,7 +75,8 @@ const PatientForm: React.FC<PatientFormProps> = ({
         isTFD: false,
         tfdType: '',
         bedId: '',
-        department: ''
+        department: '',
+        hasNoExpectedDate: false
       });
     }
   }, [patient, isEditing, isOpen]);
@@ -96,13 +101,26 @@ const PatientForm: React.FC<PatientFormProps> = ({
   };
 
   const handleSubmit = () => {
-    if (formData.name && formData.birthDate && formData.diagnosis && formData.expectedDischargeDate) {
-      onSubmit({
+    const isValidDate = formData.hasNoExpectedDate || formData.expectedDischargeDate;
+    if (formData.name && formData.birthDate && formData.diagnosis && isValidDate) {
+      const submissionData = {
         ...formData,
-        age: calculateAge(formData.birthDate)
-      });
+        age: calculateAge(formData.birthDate),
+        expectedDischargeDate: formData.hasNoExpectedDate ? '' : formData.expectedDischargeDate
+      };
+      // Remove hasNoExpectedDate before submitting
+      const { hasNoExpectedDate, ...dataToSubmit } = submissionData;
+      onSubmit(dataToSubmit);
       onClose();
     }
+  };
+
+  const handleNoExpectedDateChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      hasNoExpectedDate: checked,
+      expectedDischargeDate: checked ? '' : prev.expectedDischargeDate
+    }));
   };
 
   return (
@@ -169,14 +187,30 @@ const PatientForm: React.FC<PatientFormProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="expectedDischargeDate">Data Provável de Alta</Label>
-              <Input
-                id="expectedDischargeDate"
-                type="date"
-                value={formData.expectedDischargeDate}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setFormData(prev => ({ ...prev, expectedDischargeDate: e.target.value }))}
-              />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="expectedDischargeDate">Data Provável de Alta</Label>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="hasNoExpectedDate"
+                      checked={formData.hasNoExpectedDate}
+                      onCheckedChange={handleNoExpectedDateChange}
+                    />
+                    <Label htmlFor="hasNoExpectedDate" className="text-sm text-muted-foreground">
+                      SEM DATA PREVISTA
+                    </Label>
+                  </div>
+                </div>
+                <Input
+                  id="expectedDischargeDate"
+                  type="date"
+                  value={formData.expectedDischargeDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormData(prev => ({ ...prev, expectedDischargeDate: e.target.value }))}
+                  disabled={formData.hasNoExpectedDate}
+                  className={formData.hasNoExpectedDate ? 'opacity-50 cursor-not-allowed' : ''}
+                />
+              </div>
             </div>
           </div>
 
