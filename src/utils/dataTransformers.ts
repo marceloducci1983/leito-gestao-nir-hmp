@@ -61,7 +61,8 @@ export const transformBedsData = (bedsData: any[]) => {
         isTFD: patient.is_tfd || false,
         tfdType: patient.tfd_type,
         bedId: patient.bed_id || bed.id,
-        department: patient.department_text || patient.department || bedDepartment
+        department: patient.department_text || patient.department || bedDepartment,
+        isIsolation: patient.is_isolation || false
       } : undefined,
       reservation: reservation ? {
         id: reservation.id,
@@ -126,7 +127,8 @@ export const transformDischargedPatientsData = (dischargedData: any[]) => {
       department: patientDepartment,
       dischargeDate: patient.discharge_date,
       dischargeType: patient.discharge_type,
-      actualStayDays: patient.actual_stay_days
+      actualStayDays: patient.actual_stay_days,
+      isIsolation: patient.is_isolation || false
     };
   });
 };
