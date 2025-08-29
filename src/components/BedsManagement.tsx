@@ -190,15 +190,12 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
       if (isEditingPatient && selectedPatient) {
         // MODO EDIÇÃO - Atualizar paciente existente
         console.log('✏️ EDITANDO paciente existente');
-        const updatedPatientData = {
-          ...selectedPatient,
-          ...patientData,
-          id: selectedPatient.id,
-          bedId: selectedPatient.bedId,
-        };
         
-        console.log('🔄 Dados atualizados do paciente:', updatedPatientData);
-        await updatePatient(updatedPatientData);
+        console.log('🔄 Dados atualizados do paciente:', patientData);
+        await updatePatient({ 
+          patientId: selectedPatient.id, 
+          patientData: patientData 
+        });
         console.log('✅ Paciente editado com sucesso');
         
       } else {
@@ -282,14 +279,21 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
         fromBedId: selectedBedId,
         toBedId: targetBedId
       });
+      
       toast({
         title: "Transferência realizada com sucesso",
         description: `${selectedPatient.name} transferido para ${targetDepartment}`,
       });
+      
+      // Fechar modal após sucesso
+      setShowTransferModal(false);
+      setSelectedPatient(null);
+      
     } catch (error) {
+      console.error('❌ Erro na transferência:', error);
       toast({
         title: "Erro",
-        description: "Erro ao transferir paciente",
+        description: "Erro ao transferir paciente. Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }

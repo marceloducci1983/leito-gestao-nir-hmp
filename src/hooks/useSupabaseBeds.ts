@@ -93,14 +93,32 @@ export const useSupabaseBeds = () => {
     return await addReservationMutation.mutateAsync(data);
   };
 
+  // Função updatePatient que retorna Promise
+  const updatePatient = async (data: { patientId: string; patientData: any }) => {
+    console.log('🔄 useSupabaseBeds.updatePatient chamado com:', data);
+    return await updatePatientMutation.mutateAsync(data);
+  };
+
+  // Função transferPatient que retorna Promise
+  const transferPatient = async (data: any) => {
+    console.log('🔄 useSupabaseBeds.transferPatient chamado com:', data);
+    return await transferPatientMutation.mutateAsync(data);
+  };
+
+  // Função dischargePatient que retorna Promise
+  const dischargePatient = async (data: any) => {
+    console.log('🔄 useSupabaseBeds.dischargePatient chamado com:', data);
+    return await dischargePatientMutation.mutateAsync(data);
+  };
+
   return {
     centralData,
     isLoading: bedsLoading || dischargedLoading || dischargeControlLoading || statsLoading,
     error: bedsError || dischargedError,
     addPatient,
-    updatePatient: updatePatientMutation.mutate,
-    dischargePatient: dischargePatientMutation.mutate,
-    transferPatient: transferPatientMutation.mutate,
+    updatePatient,
+    dischargePatient,
+    transferPatient,
     addReservation,
     requestDischarge: requestDischargeMutation.mutate
   };
