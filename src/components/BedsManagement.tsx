@@ -22,7 +22,7 @@ interface BedsManagementProps {
 }
 
 const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
-  const { centralData, isLoading, error, addPatient, dischargePatient, addReservation, transferPatient } = useSupabaseBeds();
+  const { centralData, isLoading, error, addPatient, updatePatient, dischargePatient, addReservation, transferPatient } = useSupabaseBeds();
   const {
     selectedDepartment,
     setSelectedDepartment,
@@ -185,15 +185,58 @@ const BedsManagement: React.FC<BedsManagementProps> = ({ onDataChange }) => {
 
   const submitPatient = async (patientData: any) => {
     try {
-      await addPatient(patientData);
+      console.log('🔄 submitPatient chamado com:', { patientData, isEditingPatient, selectedBedId });
+      
+      if (isEditingPatient && selectedPatient) {
+        // MODO EDIÇÃO - Atualizar paciente existente
+        console.log('✏️ EDITANDO paciente existente');
+        const updatedPatientData = {
+          ...selectedPatient,
+          ...patientData,
+          id: selectedPatient.id,
+          bedId: selectedPatient.bedId,
+        };
+        
+        console.log('🔄 Dados atualizados do paciente:', updatedPatientData);
+        await updatePatient(updatedPatientData);
+        console.log('✅ Paciente editado com sucesso');
+        
+      } else {
+        // MODO ADMISSÃO - Novo paciente
+        console.log('🆕 ADMITINDO novo paciente');
+        console.log('⚡ Chamando addPatient com bedId e patientData...');
+        
+        // Garantir que o departamento seja passado corretamente
+        const patientDataWithDepartment = {
+          ...patientData,
+          department: patientData.department || selectedDepartment
+        };
+        
+        console.log('🔄 Dados finais do paciente a serem enviados:', patientDataWithDepartment);
+        
+        await addPatient({
+          bedId: selectedBedId,
+          patientData: patientDataWithDepartment
+        });
+        
+        console.log('✅ Paciente admitido com sucesso');
+      }
+      
       toast({
         title: isEditingPatient ? "Paciente editado com sucesso" : "Paciente admitido com sucesso",
         description: `${patientData.name} - ${patientData.diagnosis}`,
       });
+      
+      // Fechar o modal após sucesso
+      setShowPatientForm(false);
+      setSelectedPatient(null);
+      setIsEditingPatient(false);
+      
     } catch (error) {
+      console.error('❌ Erro ao processar paciente:', error);
       toast({
         title: "Erro",
-        description: isEditingPatient ? "Erro ao editar paciente" : "Erro ao admitir paciente",
+        description: isEditingPatient ? "Erro ao editar paciente. Verifique os dados e tente novamente." : "Erro ao admitir paciente. Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
