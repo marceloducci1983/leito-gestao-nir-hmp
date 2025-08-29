@@ -367,7 +367,7 @@ export type Database = {
           diagnosis: string
           discharge_date: string
           discharge_type: Database["public"]["Enums"]["discharge_type"]
-          expected_discharge_date: string
+          expected_discharge_date: string | null
           id: string
           is_tfd: boolean | null
           name: string
@@ -391,7 +391,7 @@ export type Database = {
           diagnosis: string
           discharge_date: string
           discharge_type: Database["public"]["Enums"]["discharge_type"]
-          expected_discharge_date: string
+          expected_discharge_date?: string | null
           id?: string
           is_tfd?: boolean | null
           name: string
@@ -415,7 +415,7 @@ export type Database = {
           diagnosis?: string
           discharge_date?: string
           discharge_type?: Database["public"]["Enums"]["discharge_type"]
-          expected_discharge_date?: string
+          expected_discharge_date?: string | null
           id?: string
           is_tfd?: boolean | null
           name?: string
@@ -496,7 +496,7 @@ export type Database = {
           department: Database["public"]["Enums"]["department_type"]
           department_text: string | null
           diagnosis: string
-          expected_discharge_date: string
+          expected_discharge_date: string | null
           id: string
           is_tfd: boolean | null
           name: string
@@ -517,7 +517,7 @@ export type Database = {
           department: Database["public"]["Enums"]["department_type"]
           department_text?: string | null
           diagnosis: string
-          expected_discharge_date: string
+          expected_discharge_date?: string | null
           id?: string
           is_tfd?: boolean | null
           name: string
@@ -538,7 +538,7 @@ export type Database = {
           department?: Database["public"]["Enums"]["department_type"]
           department_text?: string | null
           diagnosis?: string
-          expected_discharge_date?: string
+          expected_discharge_date?: string | null
           id?: string
           is_tfd?: boolean | null
           name?: string
@@ -553,7 +553,7 @@ export type Database = {
           {
             foreignKeyName: "patients_bed_id_fkey"
             columns: ["bed_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "beds"
             referencedColumns: ["id"]
           },
@@ -669,6 +669,16 @@ export type Database = {
       cancel_discharge_and_restore_patient: {
         Args: { p_discharge_id: string }
         Returns: boolean
+      }
+      check_bed_integrity: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bed_name: string
+          department: string
+          is_occupied: boolean
+          patient_count: number
+          status_consistent: boolean
+        }[]
       }
       complete_discharge_and_remove_patient: {
         Args: { p_discharge_id: string; p_justification?: string }
@@ -814,6 +824,16 @@ export type Database = {
       update_department: {
         Args: { p_description?: string; p_id: string; p_name: string }
         Returns: boolean
+      }
+      validate_bed_patient_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bed_id: string
+          bed_name: string
+          is_occupied: boolean
+          patient_count: number
+          status_consistent: boolean
+        }[]
       }
     }
     Enums: {
