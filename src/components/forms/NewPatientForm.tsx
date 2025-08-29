@@ -370,7 +370,21 @@ const NewPatientForm: React.FC<NewPatientFormProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!formData.name || !formData.diagnosis || !formData.originCity || !isValidDate(formData.birthDate)}>
+            <Button 
+              type="submit" 
+              disabled={(() => {
+                const isDisabled = !formData.name || !formData.diagnosis || !formData.originCity || !isValidDate(formData.birthDate);
+                console.log('🔍 Button validation debug:', {
+                  name: formData.name,
+                  diagnosis: formData.diagnosis,
+                  originCity: formData.originCity,
+                  birthDate: formData.birthDate,
+                  isValidBirthDate: isValidDate(formData.birthDate),
+                  isDisabled
+                });
+                return isDisabled;
+              })()}
+            >
               {isEditing ? 'Salvar Alterações' : 'Admitir Paciente'}
             </Button>
           </div>
