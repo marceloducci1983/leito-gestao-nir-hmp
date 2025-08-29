@@ -48,9 +48,9 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
           <div className="info-icon origin">📍</div>
           <span>Origem: {bed.patient.originCity}</span>
         </div>
-        <div className="info-item">
-          <div className="info-icon discharge">⏰</div>
-          <span><strong>DPA: {bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</strong></span>
+        <div className="info-item p-2 bg-yellow-100 rounded border border-yellow-200">
+          <div className="info-icon discharge text-yellow-600">⏰</div>
+          <span className="font-bold text-yellow-800"><strong>DPA: {bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</strong></span>
         </div>
         {bed.patient.specialty && (
           <div className="info-item">
@@ -132,14 +132,14 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
             <span className="text-sm font-medium">{bed.patient.originCity}</span>
           </div>
           
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                <Calendar className="h-3 w-3 text-red-600" />
+          <div className="flex flex-col items-center mb-2 p-2 bg-yellow-100 rounded border border-yellow-200">
+            <div className="w-12 h-12 bg-yellow-200 rounded-full flex items-center justify-center mb-1">
+              <div className="w-6 h-6 rounded-full bg-yellow-600 flex items-center justify-center">
+                <span className="text-xs text-white font-bold">⏰</span>
               </div>
-              <span className="text-xs text-red-500 uppercase font-medium">DPA</span>
+              <span className="text-xs text-yellow-700 uppercase font-medium">DPA</span>
             </div>
-            <span className="text-sm font-bold text-red-600">{bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
+            <span className="text-sm font-bold text-yellow-800">{bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
           </div>
           
           {bed.patient.specialty && (

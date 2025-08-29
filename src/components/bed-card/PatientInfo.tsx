@@ -63,9 +63,9 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
           <span>Hora: {patient.admissionTime}</span>
         </div>
       )}
-      <div className="flex items-center gap-1">
-        <Calendar className="h-3 w-3" />
-        <span>DPA: {patient.expectedDischargeDate ? formatDateOnly(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
+      <div className="flex items-center gap-2 p-2 bg-yellow-100 rounded-md border border-yellow-200">
+        <Calendar className="h-3 w-3 text-yellow-600" />
+        <span className="font-bold text-yellow-800">DPA: {patient.expectedDischargeDate ? formatDateOnly(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
       </div>
       <div className="flex items-center gap-1">
         <MapPin className="h-3 w-3" />

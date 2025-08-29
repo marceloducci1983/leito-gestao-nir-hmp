@@ -135,12 +135,12 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 p-2 bg-orange-50 rounded">
-          <Calendar className="h-4 w-4 text-orange-600" />
+        <div className="flex items-center gap-2 p-2 bg-yellow-100 rounded border border-yellow-200">
+          <Calendar className="h-4 w-4 text-yellow-600" />
           <div>
-            <span className="font-medium text-orange-800">DPA:</span>
+            <span className="font-medium text-yellow-800">DPA:</span>
             <br />
-            <span className="text-orange-700">{patient.expectedDischargeDate ? formatDate(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
+            <span className="text-yellow-700">{patient.expectedDischargeDate ? formatDate(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
           </div>
         </div>
 
@@ -239,9 +239,9 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                       <span>Hora: {bed.patient.admissionTime}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>DPA: {bed.patient.expectedDischargeDate ? formatDate(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
+                  <div className="flex items-center gap-2 p-2 bg-yellow-100 rounded-md border border-yellow-200">
+                    <Calendar className="h-3 w-3 text-yellow-600" />
+                    <span className="font-bold text-yellow-800">DPA: {bed.patient.expectedDischargeDate ? formatDate(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
