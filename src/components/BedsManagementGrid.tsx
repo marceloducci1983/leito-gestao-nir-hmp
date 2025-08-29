@@ -19,6 +19,7 @@ interface BedsManagementGridProps {
   onDischargePatient: (bedId: string) => void;
   onDeleteReservation: (bedId: string) => void;
   onDeleteBed: (bedId: string) => void;
+  onToggleIsolation?: (patientId: string) => void;
   showEditBedMode?: boolean;
   onEditBedClick?: (bed: Bed) => void;
 }
@@ -32,6 +33,7 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
   onDischargePatient,
   onDeleteReservation,
   onDeleteBed,
+  onToggleIsolation,
   showEditBedMode = false,
   onEditBedClick
 }) => {
@@ -78,6 +80,7 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
                 onDischargePatient={onDischargePatient}
                 onDeleteReservation={onDeleteReservation}
                 onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
+                onToggleIsolation={onToggleIsolation}
                 editMode={showEditBedMode}
                 isDischarging={bed.isDischarging || false}
               />
@@ -91,6 +94,7 @@ const BedsManagementGrid: React.FC<BedsManagementGridProps> = ({
                 onDischargePatient={onDischargePatient}
                 onDeleteReservation={onDeleteReservation}
                 onDeleteBed={bed.isCustom ? onDeleteBed : undefined}
+                onToggleIsolation={onToggleIsolation}
                 editMode={showEditBedMode}
                 isDischarging={bed.isDischarging || false}
               />

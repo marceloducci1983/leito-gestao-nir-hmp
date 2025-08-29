@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Calendar, MapPin, Stethoscope, Edit, ArrowRightLeft, LogOut, Loader2 } from 'lucide-react';
+import { User, Calendar, MapPin, Stethoscope, Edit, ArrowRightLeft, LogOut, Loader2, Shield, ShieldAlert } from 'lucide-react';
 import { getBedStatusColor } from './bed-card/BedStatus';
 import { BedHeader } from './bed-card/BedHeader';
 import { AvailableBedActions } from './bed-card/AvailableBedActions';
@@ -34,6 +34,7 @@ interface ResponsiveBedCardProps {
       occupationDays: number;
       isTFD: boolean;
       tfdType?: string;
+      isIsolation?: boolean;
     };
     reservation?: {
       id: string;
@@ -49,6 +50,7 @@ interface ResponsiveBedCardProps {
   onDischargePatient: (bedId: string) => void;
   onDeleteReservation: (bedId: string) => void;
   onDeleteBed?: (bedId: string) => void;
+  onToggleIsolation?: (patientId: string) => void;
   editMode?: boolean;
   isDischarging?: boolean;
 }
@@ -62,6 +64,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
   onDischargePatient,
   onDeleteReservation,
   onDeleteBed,
+  onToggleIsolation,
   editMode = false,
   isDischarging = false
 }) => {
@@ -113,6 +116,25 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
           {isDischarging ? 'PROCESSANDO...' : 'DAR ALTA'}
         </span>
       </Button>
+
+      {onToggleIsolation && bed.patient && (
+        <Button 
+          size="sm"
+          onClick={() => onToggleIsolation(bed.patient!.id)}
+          disabled={isDischarging}
+          className={`w-full ${bed.patient.isIsolation 
+            ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+            : 'bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-gray-700'
+          } shadow-md hover:shadow-lg transition-all duration-200`}
+        >
+          {bed.patient.isIsolation ? (
+            <ShieldAlert className="h-4 w-4 mr-2" />
+          ) : (
+            <Shield className="h-4 w-4 mr-2" />
+          )}
+          <span className="font-medium">ISOLAMENTO</span>
+        </Button>
+      )}
     </div>
   );
 
@@ -185,7 +207,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
   );
 
   return (
-    <Card className={`w-full transition-all hover:shadow-md ${getBedStatusColor(bed.isOccupied, bed.isReserved)} ${isDischarging ? 'opacity-75' : ''} ${isMobile ? 'min-h-[200px]' : ''}`}>
+    <Card className={`w-full transition-all hover:shadow-md ${getBedStatusColor(bed.isOccupied, bed.isReserved, bed.patient?.isIsolation)} ${isDischarging ? 'opacity-75' : ''} ${isMobile ? 'min-h-[200px]' : ''}`}>
       <BedHeader
         name={bed.name}
         department={bed.department}
@@ -302,6 +324,25 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                       {isDischarging ? 'PROCESSANDO...' : 'DAR ALTA'}
                     </span>
                   </Button>
+
+                  {onToggleIsolation && (
+                    <Button 
+                      size="sm"
+                      onClick={() => onToggleIsolation(bed.patient!.id)}
+                      disabled={isDischarging}
+                      className={`w-full ${bed.patient.isIsolation 
+                        ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-gray-700'
+                      } shadow-md hover:shadow-lg transition-all duration-200`}
+                    >
+                      {bed.patient.isIsolation ? (
+                        <ShieldAlert className="h-3 w-3 mr-1.5" />
+                      ) : (
+                        <Shield className="h-3 w-3 mr-1.5" />
+                      )}
+                      <span className="text-xs font-medium">ISOLAMENTO</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
