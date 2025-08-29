@@ -65,7 +65,7 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
       )}
       <div className="flex items-center gap-1">
         <Calendar className="h-3 w-3" />
-        <span>DPA: {formatDateOnly(patient.expectedDischargeDate)}</span>
+        <span>DPA: {patient.expectedDischargeDate ? formatDateOnly(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
       </div>
       <div className="flex items-center gap-1">
         <MapPin className="h-3 w-3" />

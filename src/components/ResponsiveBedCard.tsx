@@ -140,7 +140,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
           <div>
             <span className="font-medium text-orange-800">DPA:</span>
             <br />
-            <span className="text-orange-700">{formatDate(patient.expectedDischargeDate)}</span>
+            <span className="text-orange-700">{patient.expectedDischargeDate ? formatDate(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
           </div>
         </div>
 
@@ -241,7 +241,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                   )}
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>DPA: {formatDate(bed.patient.expectedDischargeDate)}</span>
+                    <span>DPA: {bed.patient.expectedDischargeDate ? formatDate(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />

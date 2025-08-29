@@ -50,7 +50,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
         </div>
         <div className="info-item">
           <div className="info-icon discharge">⏰</div>
-          <span><strong>DPA: {formatDateOnly(bed.patient.expectedDischargeDate)}</strong></span>
+          <span><strong>DPA: {bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</strong></span>
         </div>
         {bed.patient.specialty && (
           <div className="info-item">
@@ -139,7 +139,7 @@ const PatientCard: React.FC<PatientCardProps> = ({ bed, isUrgent = false }) => (
               </div>
               <span className="text-xs text-red-500 uppercase font-medium">DPA</span>
             </div>
-            <span className="text-sm font-bold text-red-600">{formatDateOnly(bed.patient.expectedDischargeDate)}</span>
+            <span className="text-sm font-bold text-red-600">{bed.patient.expectedDischargeDate ? formatDateOnly(bed.patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}</span>
           </div>
           
           {bed.patient.specialty && (

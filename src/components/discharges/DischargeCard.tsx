@@ -48,8 +48,8 @@ const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
           <div className="flex items-center gap-2 p-2 bg-orange-100 rounded-md border border-orange-200 md:col-span-2">
             <Clock className="h-4 w-4 text-orange-600" />
             <span className="font-bold text-orange-800">
-              DPA: {formatDateOnly(patient.expectedDischargeDate)} 
-              <span className="text-orange-600 ml-2">({hoursUntilDischarge}h restantes)</span>
+              DPA: {patient.expectedDischargeDate ? formatDateOnly(patient.expectedDischargeDate) : 'SEM DATA PREVISTA DE ALTA'}
+              {patient.expectedDischargeDate && <span className="text-orange-600 ml-2">({hoursUntilDischarge}h restantes)</span>}
             </span>
           </div>
 
