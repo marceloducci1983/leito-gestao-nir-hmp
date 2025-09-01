@@ -77,10 +77,10 @@ const DischargeCard: React.FC<DischargeCardProps> = ({ discharge }) => {
 
           {/* TFD (Destaque) */}
           {patient.isTFD ? (
-            <div className="flex items-center gap-2 p-2 bg-red-100 rounded-md border border-red-200 md:col-span-2">
-              <span className="font-bold text-red-800">TFD: Sim</span>
+            <div className="flex items-center gap-2 p-2 bg-blue-800 rounded-md border border-blue-800 md:col-span-2">
+              <span className="font-bold text-white">TFD: Sim</span>
               {patient.tfdType && (
-                <span className="text-sm text-red-700">({patient.tfdType})</span>
+                <span className="text-sm text-white">({patient.tfdType})</span>
               )}
             </div>
           ) : (

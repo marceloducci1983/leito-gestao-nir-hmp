@@ -197,7 +197,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
             Internação: {calculateOccupationDays(patient.admissionDate)} dias
           </span>
           {patient.isTFD && (
-            <Badge variant="outline" className="text-xs border-red-300 text-red-700 bg-red-100">
+            <Badge variant="outline" className="text-xs border-blue-800 text-white bg-blue-800">
               TFD {patient.tfdType && `- ${patient.tfdType}`}
             </Badge>
           )}
@@ -281,7 +281,7 @@ const ResponsiveBedCard: React.FC<ResponsiveBedCardProps> = ({
                   <div className="flex items-center justify-between">
                     <span>Dias: {calculateOccupationDays(bed.patient.admissionDate)}</span>
                     {bed.patient.isTFD && (
-                      <Badge variant="outline" className="text-xs border-red-300 text-red-700 bg-red-100">
+                      <Badge variant="outline" className="text-xs border-blue-800 text-white bg-blue-800">
                         TFD {bed.patient.tfdType && `- ${bed.patient.tfdType}`}
                       </Badge>
                     )}
