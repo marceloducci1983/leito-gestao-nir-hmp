@@ -83,7 +83,7 @@ export const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
       <div className="flex items-center justify-between">
         <span>Dias: {calculateOccupationDays(patient.admissionDate)}</span>
         {patient.isTFD && (
-          <Badge variant="outline" className="text-xs border-blue-800 text-white bg-blue-800">
+          <Badge variant="outline" className="text-xs border-blue-600 text-white bg-blue-600">
             TFD {patient.tfdType && `- ${patient.tfdType}`}
           </Badge>
         )}
