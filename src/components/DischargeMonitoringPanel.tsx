@@ -31,13 +31,18 @@ const DischargeMonitoringPanel: React.FC = () => {
     isLoading,
     cancelDischargeMutation,
     completeDischargeMutation,
-    handleRefreshData
+    handleRefreshData,
+    dischargeTypeModal,
+    handleOpenDischargeTypeModal,
+    handleCloseDischargeTypeModal,
+    handleConfirmDischarge
   } = useDischargeMonitoringState();
 
   const handleEffectiveDischarge = createEffectiveDischargeHandler(
     dischargeControls,
     justification,
-    completeDischargeMutation
+    completeDischargeMutation,
+    handleOpenDischargeTypeModal
   );
 
   const handleJustificationChange = (id: string, value: string) => {
@@ -89,7 +94,8 @@ const DischargeMonitoringPanel: React.FC = () => {
 
         <TabsContent value="pending" className="space-y-4">
           <PendingDischargesTab
-            filteredPendingDischarges={filteredPendingDischarges}
+            dischargeControls={filteredPendingDischarges}
+            isLoading={isLoading}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortBy={sortBy}
@@ -98,7 +104,11 @@ const DischargeMonitoringPanel: React.FC = () => {
             onJustificationChange={handleJustificationChange}
             onCancel={(id) => cancelDischargeMutation.mutate(id)}
             onComplete={handleEffectiveDischarge}
-            combinedDischarges={combinedDischarges}
+            dischargeTypeModal={dischargeTypeModal}
+            onOpenDischargeTypeModal={handleOpenDischargeTypeModal}
+            onCloseDischargeTypeModal={handleCloseDischargeTypeModal}
+            onConfirmDischarge={handleConfirmDischarge}
+            isCompleting={completeDischargeMutation.isPending}
           />
         </TabsContent>
 

@@ -8,6 +8,11 @@ export const useDischargeMonitoringState = () => {
   const [justification, setJustification] = useState<{ [key: string]: string }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'oldest' | 'newest'>('oldest');
+  const [dischargeTypeModal, setDischargeTypeModal] = useState<{
+    isOpen: boolean;
+    discharge?: any;
+    requiresJustification: boolean;
+  }>({ isOpen: false, requiresJustification: false });
 
   // Queries - usando tanto a query original quanto a combinada
   const { data: dischargeControls = [], isLoading, refetch: refetchDischargeControl } = useDischargeControl();
@@ -53,6 +58,28 @@ export const useDischargeMonitoringState = () => {
     refetchGeneralStats();
   };
 
+  const handleOpenDischargeTypeModal = (discharge: any, requiresJustification: boolean) => {
+    setDischargeTypeModal({
+      isOpen: true,
+      discharge,
+      requiresJustification
+    });
+  };
+
+  const handleCloseDischargeTypeModal = () => {
+    setDischargeTypeModal({ isOpen: false, requiresJustification: false });
+  };
+
+  const handleConfirmDischarge = (dischargeType: string, justificationText?: string) => {
+    if (!dischargeTypeModal.discharge) return;
+
+    completeDischargeMutation.mutate({
+      dischargeId: dischargeTypeModal.discharge.id,
+      justification: justificationText,
+      dischargeType
+    });
+  };
+
   return {
     // State
     justification,
@@ -82,6 +109,10 @@ export const useDischargeMonitoringState = () => {
     completeDischargeMutation,
     
     // Actions
-    handleRefreshData
+    handleRefreshData,
+    dischargeTypeModal,
+    handleOpenDischargeTypeModal,
+    handleCloseDischargeTypeModal,
+    handleConfirmDischarge
   };
 };

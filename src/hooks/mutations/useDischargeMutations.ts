@@ -120,26 +120,21 @@ export const useCancelDischarge = () => {
 
 export const useCompleteDischarge = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: async ({
-      dischargeId,
-      justification
-    }: {
-      dischargeId: string;
+    mutationFn: async ({ dischargeId, justification, dischargeType }: { 
+      dischargeId: string; 
       justification?: string;
+      dischargeType: string;
     }) => {
       const { data, error } = await supabase
         .rpc('complete_discharge_and_remove_patient', {
           p_discharge_id: dischargeId,
-          p_justification: justification
+          p_justification: justification,
+          p_discharge_type: dischargeType
         });
 
-      if (error) {
-        console.error('Erro ao dar alta efetiva:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {

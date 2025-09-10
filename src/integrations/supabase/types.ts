@@ -687,7 +687,13 @@ export type Database = {
         }[]
       }
       complete_discharge_and_remove_patient: {
-        Args: { p_discharge_id: string; p_justification?: string }
+        Args:
+          | {
+              p_discharge_id: string
+              p_discharge_type?: string
+              p_justification?: string
+            }
+          | { p_discharge_id: string; p_justification?: string }
         Returns: boolean
       }
       confirm_ambulance_transport: {

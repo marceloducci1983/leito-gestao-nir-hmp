@@ -30,22 +30,32 @@ export const calculateWaitTime = (requestedAt: string) => {
 export const createEffectiveDischargeHandler = (
   dischargeControls: any[],
   justification: { [key: string]: string },
-  completeDischargeMutation: any
+  completeDischargeMutation: any,
+  onOpenDischargeTypeModal?: (discharge: any, requiresJustification: boolean) => void
 ) => {
   return (id: string) => {
     const discharge = dischargeControls.find(d => d.id === id);
     if (!discharge) return;
 
     const waitTime = calculateWaitTime(discharge.discharge_requested_at);
+    const requiresJustification = waitTime.isOverdue;
     
-    if (waitTime.isOverdue && !justification[id]) {
+    // Se um callback para abrir modal foi fornecido, usar ele
+    if (onOpenDischargeTypeModal) {
+      onOpenDischargeTypeModal(discharge, requiresJustification);
+      return;
+    }
+
+    // Fallback para o comportamento antigo (compatibilidade)
+    if (requiresJustification && !justification[id]) {
       toast.error('É necessário justificar altas com mais de 5 horas de espera.');
       return;
     }
 
     completeDischargeMutation.mutate({ 
       dischargeId: id, 
-      justification: waitTime.isOverdue ? justification[id] : undefined 
+      justification: requiresJustification ? justification[id] : undefined,
+      dischargeType: 'POR MELHORA' // valor padrão para compatibilidade
     });
   };
 };
