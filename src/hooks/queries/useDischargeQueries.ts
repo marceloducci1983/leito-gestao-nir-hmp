@@ -101,15 +101,17 @@ export const useCombinedDischarges = () => {
           name: discharge.name, // Campo de backup
           origin_city: discharge.origin_city // Já disponível nas altas diretas
         })),
-        // Altas controladas (pendentes e completadas)
-        ...(enrichedControlledDischarges || []).map(discharge => ({
-          ...discharge,
-          source: 'controlled' as const,
-          bed_name: discharge.bed_id,
-          patient_name: discharge.patient_name, // Campo principal para nome
-          name: discharge.patient_name, // Campo de backup
-          origin_city: discharge.origin_city // Incluir município
-        }))
+        // Altas controladas (apenas pendentes e canceladas - evita duplicação com patient_discharges)
+        ...(enrichedControlledDischarges || [])
+          .filter(discharge => discharge.status !== 'completed') // Elimina duplicação com patient_discharges
+          .map(discharge => ({
+            ...discharge,
+            source: 'controlled' as const,
+            bed_name: discharge.bed_id,
+            patient_name: discharge.patient_name, // Campo principal para nome
+            name: discharge.patient_name, // Campo de backup
+            origin_city: discharge.origin_city // Incluir município
+          }))
       ];
 
       // Ordenar por data mais recente (discharge_requested_at ou created_at)
