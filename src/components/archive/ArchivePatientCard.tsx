@@ -20,6 +20,7 @@ const ArchivePatientCard: React.FC<ArchivePatientCardProps> = ({ patient, cardIn
       case 'TRANSFERENCIA': return 'bg-sky-50/80 text-sky-700 border-sky-200/50 ring-1 ring-sky-100';
       case 'EVASÃO': return 'bg-amber-50/80 text-amber-700 border-amber-200/50 ring-1 ring-amber-100';
       case 'OBITO': return 'bg-rose-50/80 text-rose-700 border-rose-200/50 ring-1 ring-rose-100';
+      case 'ALTA A PEDIDO': return 'bg-purple-50/80 text-purple-700 border-purple-200/50 ring-1 ring-purple-100';
       default: return 'bg-slate-50/80 text-slate-700 border-slate-200/50 ring-1 ring-slate-100';
     }
   };

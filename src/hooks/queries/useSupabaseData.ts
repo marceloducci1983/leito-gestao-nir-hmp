@@ -64,7 +64,7 @@ export const useBedsData = () => {
 
 export const useDischargedPatientsData = () => {
   return useQuery({
-    queryKey: ['discharged-patients'],
+    queryKey: ['patient_discharges'],
     queryFn: async () => {
       console.log('Fetching discharged patients data...');
       
