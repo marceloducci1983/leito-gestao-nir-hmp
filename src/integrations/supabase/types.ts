@@ -861,7 +861,12 @@ export type Database = {
         | "UTI NEONATAL"
         | "PEDIATRIA"
         | "MATERNIDADE"
-      discharge_type: "POR MELHORA" | "EVASÃO" | "TRANSFERENCIA" | "OBITO"
+      discharge_type:
+        | "POR MELHORA"
+        | "EVASÃO"
+        | "TRANSFERENCIA"
+        | "OBITO"
+        | "ALTA A PEDIDO"
       sex_type: "masculino" | "feminino"
       user_role: "admin" | "user"
     }
@@ -1000,7 +1005,13 @@ export const Constants = {
         "PEDIATRIA",
         "MATERNIDADE",
       ],
-      discharge_type: ["POR MELHORA", "EVASÃO", "TRANSFERENCIA", "OBITO"],
+      discharge_type: [
+        "POR MELHORA",
+        "EVASÃO",
+        "TRANSFERENCIA",
+        "OBITO",
+        "ALTA A PEDIDO",
+      ],
       sex_type: ["masculino", "feminino"],
       user_role: ["admin", "user"],
     },
